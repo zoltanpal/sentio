@@ -1,9 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { AppNavbar } from "@/components/navbar";
 
 const routeTitleMap: Record<string, string> = {
-  "/": "Home",
+  "/": "Dashboard",
   "/about": "About",
   "/tech_stack": "Tech Stack",
   "/contact": "Contact",
@@ -21,11 +20,10 @@ export default function Layout() {
 
 
   return (
-      <div className="flex w-full min-h-screen flex-col">
+      <div className="flex w-full min-h-screen flex-col bg-gray-50">
         <header
-          className="fixed top-0 z-10 w-full bg-white "
+          className="fixed top-0 z-10 w-full"
         >
-          <AppNavbar />
         </header>  
         <main className="flex-1 overflow-y-auto pt-20">
           <Outlet context={{ pageTitle }} />
