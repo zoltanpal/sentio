@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 const routeTitleMap: Record<string, string> = {
+  "/": "Home",
   "/results": "Dashboard",
   "/about": "About",
   "/tech_stack": "Tech Stack",
@@ -33,11 +34,15 @@ export default function Layout() {
             <div className="text-center">
               <a href="/" className="text-blue-500 hover:underline inline-block">
                 Home
-              </a>&nbsp;|&nbsp;
+              </a>
+              &nbsp;&bull;&nbsp;
               <a href="/about" className="text-blue-500 hover:underline inline-block">
                 About
               </a>
-            
+              &nbsp;&bull;&nbsp;
+              <a href="/contact" className="text-blue-500 hover:underline inline-block">
+                Contact
+              </a>            
               <p className="text-center text-muted-foreground mt-2">
                 &copy; {new Date().getFullYear()} Sentio. All rights reserved.
               </p>

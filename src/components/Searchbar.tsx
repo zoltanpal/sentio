@@ -31,12 +31,12 @@ export default function SearchBar({
   const sizeStyles = {
     lg: {
       wrapper: "rounded-2xl",
-      input: "px-6 py-4 text-2xl",
+      input: "px-4 py-3 text-2xl",
       button: "px-6 text-sm font-medium",
     },
     md: {
       wrapper: "rounded-xl",
-      input: "px-4 py-3 text-lg",
+      input: "px-3 py-2 text-lg",
       button: "px-5 text-sm font-medium",
     },
   };
@@ -49,7 +49,7 @@ export default function SearchBar({
   };
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("w-full w-2xl", className)}>
       <div
         className={cn(
           "flex overflow-hidden border border-gray-200 bg-white shadow-sm transition focus-within:ring-2 focus-within:ring-gray-300",
@@ -89,7 +89,7 @@ export default function SearchBar({
           )}
         >
           <SearchIcon className="h-5 w-5" />
-          <span className="text-xl">Search</span>
+          {/* <span className="text-xl">Search</span> */}
         </button>
       </div>
 

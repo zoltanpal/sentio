@@ -5,6 +5,7 @@ import SearchBar from "@/components/Searchbar";
 import Loading from "@/components/elements/Loading";
 import WindowHoursSelector from "@/components/elements/WindowHoursSelector";
 import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
+import HeadlinesTable from "@/components/HeadlinesTable";
 
 const sentimentLabelMap: Record<string, string> = {
   positive: "Positive",
@@ -103,37 +104,49 @@ export default function Dashboard() {
 
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-3">
-      <a href="/" className="text-blue-500 hover:underline mb-5 inline-block">
-        &larr; Back to Home
-      </a>
-      <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="w-full">
-          <SearchBar
-            value={query}
-            onChange={(value) => {
-              setQuery(value);
-              if (error) setError("");
-            }}
-            onSearch={onSearch}
-            loading={loading}
-            error={error}
-            placeholder="e.g. Tesla, NVDA, oil prices"
-            size="md"
-          />
-        </div>
+      <div className="mx-auto w-full max-w-6xl px-4 py-3">
+        <a href="/" className="text-blue-500 hover:underline mb-5 inline-block">
+          &larr; Back to Home
+        </a>
 
-        <div className="flex flex-wrap items-center justify-between gap-1">
-          <div className="text-lg text-muted-foreground">
-            Time window
+        <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="grid gap-4 md:grid-cols-[1fr_auto] items-end">
+            
+            {/* SEARCH */}
+            <div className="w-full">
+              <SearchBar
+                value={query}
+                onChange={(value) => {
+                  setQuery(value);
+                  if (error) setError("");
+                }}
+                onSearch={onSearch}
+                loading={loading}
+                error={error}
+                placeholder="e.g. Tesla, NVDA, oil prices"
+                size="md"
+              />
+            </div>
+
+            {/* WINDOW FILTER */}
+            <div className="flex flex-col gap-1 min-w-[220px]">
+              <span className="text-sm text-muted-foreground">
+                Time window
+              </span>
+
+              <WindowHoursSelector
+                value={windowHours}
+                onChange={setWindowHours}
+              />
+            </div>
+
           </div>
-
-          <WindowHoursSelector
-            value={windowHours}
-            onChange={setWindowHours}
-          />
         </div>
-      </div>
+
+
+
+
+
 
       {loading ? (
         <Loading text="Analyzing feeds, please wait..." />
@@ -171,6 +184,15 @@ export default function Dashboard() {
           <div>
             <h2 className="mb-3 text-xl font-semibold">Latest Headlines</h2>
             <div className="">
+
+              
+              <HeadlinesTable items={results.headlines.headlines || []} />
+              
+              
+              
+              
+              
+              
               <table className="w-full text-sm text-left rtl:text-right text-body">
                 <tbody>
                   {results.headlines.headlines?.map((item: any, index: number) => (

@@ -29,8 +29,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-full flex-col items-center justify-center px-4">
-      {/* <img src="/generated_image-2.png" alt="Sentio" className="h-65 w-65" /> */}
+    <div className="flex h-full flex-col items-center justify-center">
       <h1 className="text-6xl font-bold">Sentio</h1>
       <div className="w-full max-w-4xl text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-5xl mt-10">
@@ -41,7 +40,7 @@ export default function Dashboard() {
           Track sentiment, trends, and narrative shifts across global news.
         </p>
 
-        <div className="mt-20">
+        <div className="mt-20 items-center justify-center gap-4 sm:flex">
           <SearchBar
             value={query}
             onChange={(value) => {
