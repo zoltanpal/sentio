@@ -31,13 +31,15 @@ export default function SearchBar({
   const sizeStyles = {
     lg: {
       wrapper: "rounded-2xl",
-      input: "px-4 py-3 text-2xl",
-      button: "px-6 text-sm font-medium",
+      input: "px-4 py-3 text-base sm:px-5 sm:py-4 sm:text-xl md:px-6 md:text-2xl",
+      button: "px-4 sm:px-5 md:px-6",
+      icon: "h-4 w-4 sm:h-5 sm:w-5",
     },
     md: {
       wrapper: "rounded-xl",
-      input: "px-3 py-2 text-lg",
-      button: "px-5 text-sm font-medium",
+      input: "px-3 py-2 text-sm sm:px-4 sm:py-3 sm:text-base md:text-lg",
+      button: "px-3 sm:px-4 md:px-5",
+      icon: "h-4 w-4 sm:h-5 sm:w-5",
     },
   };
 
@@ -49,7 +51,7 @@ export default function SearchBar({
   };
 
   return (
-    <div className={cn("w-full w-2xl", className)}>
+    <div className={cn("w-full", className)}>
       <div
         className={cn(
           "flex overflow-hidden border border-gray-200 bg-white shadow-sm transition focus-within:ring-2 focus-within:ring-gray-300",
@@ -70,7 +72,7 @@ export default function SearchBar({
           placeholder={placeholder}
           autoComplete="off"
           className={cn(
-            "flex-1 outline-none bg-white placeholder:text-gray-400",
+            "min-w-0 flex-1 bg-white outline-none placeholder:text-gray-400",
             currentSize.input,
             inputClassName
           )}
@@ -81,15 +83,15 @@ export default function SearchBar({
           onClick={handleSearch}
           disabled={isDisabled}
           className={cn(
-            "flex items-center gap-2 border-l border-gray-200 bg-blue-100 transition",
+            "flex shrink-0 items-center justify-center border-l border-gray-200 bg-blue-100 transition",
             "hover:bg-blue-300",
-            "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-gray-50",
+            "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-blue-100",
             currentSize.button,
             buttonClassName
           )}
+          aria-label="Search"
         >
-          <SearchIcon className="h-5 w-5" />
-          {/* <span className="text-xl">Search</span> */}
+          <SearchIcon className={currentSize.icon} />
         </button>
       </div>
 

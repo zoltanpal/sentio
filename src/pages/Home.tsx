@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import SearchBar from "@/components/Searchbar";
 
-export default function Dashboard() {
+export default function Home() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
 
@@ -23,24 +23,23 @@ export default function Dashboard() {
     }
 
     setError("");
-    navigate(
-      `/results?query=${encodeURIComponent(trimmedQuery)}&window=6`
-    );
+    navigate(`/results?query=${encodeURIComponent(trimmedQuery)}&window=6`);
   };
 
   return (
-    <div className="flex h-full flex-col items-center justify-center">
-      <h1 className="text-6xl font-bold">Sentio</h1>
-      <div className="w-full max-w-4xl text-center">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl mt-10">
-          Understand the news in real time
-        </h1>
+    <div className="flex flex-col items-center px-4 py-10 sm:py-14">
+      <div className="w-full max-w-5xl text-center">
+        <h1 className="text-4xl font-bold sm:text-5xl md:text-6xl">Sentio</h1>
 
-        <p className="mt-10 text-lg text-gray-600">
+        <h2 className="mt-8 text-2xl font-bold tracking-tight sm:mt-10 sm:text-4xl md:text-5xl">
+          Understand the news in real time
+        </h2>
+
+        <p className="mx-auto mt-6 max-w-2xl text-base text-gray-600 sm:text-lg">
           Track sentiment, trends, and narrative shifts across global news.
         </p>
 
-        <div className="mt-20 items-center justify-center gap-4 sm:flex">
+        <div className="mx-auto mt-10 w-full max-w-3xl sm:mt-14">
           <SearchBar
             value={query}
             onChange={(value) => {
