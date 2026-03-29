@@ -60,12 +60,13 @@ export default function SentimentDoughnut({
           callbacks: {
             label(context) {
               const value = Number(context.raw ?? 0);
-              const total = context.dataset.data.reduce(
-                (sum, item) => sum + Number(item),
-                0
-              );
-              const pct = total ? ((value / total) * 100).toFixed(1) : "0.0";
-              return `${context.label}: ${value} (${pct}%)`;
+            //   const total = context.dataset.data.reduce(
+            //     (sum, item) => sum + Number(item),
+            //     0
+            //   );
+            //   const pct = total ? ((value / total) * 100).toFixed(1) : "0.0";
+            //   return `${context.label}: ${value} (${pct}%)`;
+              return `${context.label}: ${value}`;
             },
           },
         },

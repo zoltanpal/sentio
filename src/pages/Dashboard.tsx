@@ -7,6 +7,7 @@ import WindowHoursSelector from "@/components/elements/WindowHoursSelector";
 import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
 import HeadlinesTable from "@/components/HeadlinesTable";
 import SentimentDoughnut from "@/components/elements/SentimentDoughnut";
+import ExpandableText from "@/components/elements/ExpandableText";
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -31,7 +32,7 @@ const sentimentLabelMap: Record<string, string> = {
 };
 
 const ALLOWED_WINDOWS = [6, 12, 24, 48, 72];
-const AI_SUMMARY = false;
+const AI_SUMMARY = true;
 
 function sanitizeWindow(value: string | null): number {
   const parsed = Number(value);
@@ -160,34 +161,35 @@ export default function Dashboard() {
 
       {loading ? (
         <Loading text="Analyzing feeds, please wait..." />
-      ) : results.aggregated ? (
+      ) : results.aggregated && results.aggregated.article_count > 0 ? (
+
         <div className="space-y-8">
           {AI_SUMMARY && results.headlines?.ai_summary ? (
-            <div>
-              
-              <div className="rounded-xl border bg-muted/20 p-4 bg-gradient-to-r from-purple-100 to-teal-100">
-                <BotIcon />
-                <label className="mb-1 text-md font-semibold">AI Summary (last {windowHours} hours)</label>
-                <p>{results.headlines.ai_summary}</p>
-              </div>
-            </div>
-          ) : null}
+            
 
+              <div className="rounded-xl border bg-muted/20 p-4 bg-gradient-to-r from-purple-100 to-teal-100">
+                <div className="mb-2 flex items-center gap-2 text-md font-semibold">
+                  <BotIcon className="h-4 w-4" />
+                  <span>AI Summary (last {windowHours} hours)</span>
+                </div>
+                <ExpandableText text={results.headlines.ai_summary} maxLength={250} />
+              </div>
+          ) : null}
 
 
             <div className="flex flex-col-reverse lg:flex-row gap-4">
               <div className="w-full lg:w-3/4">
-                <Card className="py-3 gap-0 h-[300px] sm:h-[320px]">
+                <Card className="py-2 gap-0 h-[300px] sm:h-[320px] bg-gradient-to-r from-pink-30 to-pink-50">
                   <CardHeader className="px-5 py-2 m-0">
                     <CardTitle className="text-lg">Latest Headlines</CardTitle>
                   </CardHeader>
-                  <CardContent className="m-0 p-0 h-[250px]">
+                  <CardContent className="m-0 p-0 h-[220px]">
                     <HeadlinesTable items={results.headlines?.headlines || []} />
                   </CardContent>
                 </Card>
               </div>
               <div className="w-full lg:w-1/4">
-                <Card className="h-[300px] sm:h-[320px] py-2 gap-0">
+                <Card className="h-[300px] sm:h-[320px] py-2 gap-0 bg-gradient-to-r from-pink-50 to-pink-100">
                   <CardHeader className="px-4 sm:px-5 py-2">
                     <CardTitle className="text-base sm:text-lg">Sentiment Overview</CardTitle>
                   </CardHeader>
@@ -204,7 +206,7 @@ export default function Dashboard() {
                   <CardFooter className="px-3 py-2">
                     <Badge
                       variant="secondary"
-                      className="flex items-center gap-1 text-[11px] sm:text-xs max-w-full"
+                      className="flex items-center px-2 bg-green-200 border-green-200 gap-1 text-[11px] sm:text-xs max-w-full"
                     >
                       <NewspaperIcon className="h-3.5 w-3.5" />
                       <span>{results.aggregated.article_count} articles</span>
@@ -212,16 +214,13 @@ export default function Dashboard() {
                   </CardFooter>
                 </Card>
               </div>
-            </div>
-
-         
-          
-
+            </div>          
 
           <section>
             <h2 className="mb-3 text-xl font-semibold">Sentiment Change</h2>
             <div className="overflow-x-auto rounded-xl border bg-muted/20 p-4">
               <pre className="whitespace-pre-wrap text-sm">
+                {JSON.stringify(results.aggregated, null, 2)}
                 {JSON.stringify(results.sentimentChange, null, 2)}
               </pre>
             </div>
@@ -229,7 +228,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
-          Search for a topic to see live sentiment analysis results.
+          No news found for the given query and time window. Please try expanding the time window or using different keywords.
         </div>
       )}
     </div>
