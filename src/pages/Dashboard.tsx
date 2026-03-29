@@ -8,6 +8,8 @@ import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
 import HeadlinesTable from "@/components/HeadlinesTable";
 import SentimentDoughnut from "@/components/elements/SentimentDoughnut";
 import ExpandableText from "@/components/elements/ExpandableText";
+import SentimentChangeCard from "@/components/elements/SentimentChangeCard";
+
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -163,9 +165,7 @@ export default function Dashboard() {
 
         <div className="space-y-8">
           {AI_SUMMARY && results.headlines?.ai_summary ? (
-            
-
-              <div className="rounded-xl border bg-muted/20 p-4 bg-gradient-to-r from-purple-100 to-teal-100">
+             <div className="rounded-xl border bg-muted/20 p-4 bg-gradient-to-r from-purple-100 to-teal-100">
                 <div className="mb-2 flex items-center gap-2 text-md font-semibold">
                   <BotIcon className="h-4 w-4" />
                   <span>AI Summary (last {windowHours} hours)</span>
@@ -174,6 +174,10 @@ export default function Dashboard() {
               </div>
           ) : null}
 
+          <div className="flex flex-col w-[300px]">
+            <SentimentChangeCard data={results.sentimentChange} />
+          </div>
+          
 
             <div className="flex flex-col-reverse lg:flex-row gap-4">
               <div className="w-full lg:w-3/4">

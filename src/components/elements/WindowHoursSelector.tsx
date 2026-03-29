@@ -24,13 +24,14 @@ export default function WindowHoursSelector({
         if (!val) return;
         onChange(Number(val));
       }}
-      className="outline rounded-md border bg-blue-50"
+      className="outline rounded-md border bg-blue-50 flex w-full"
     >
       {options.map((hours) => (
         <ToggleGroupItem
           key={hours}
           value={hours.toString()}
           className="
+            flex-1
             px-3 py-2 text-sm font-medium
             data-[state=on]:bg-blue-500
             data-[state=on]:text-white
