@@ -31,9 +31,9 @@ export default function Home() {
       <div className="w-full max-w-5xl text-center">
         <h1 className="text-4xl font-bold sm:text-5xl md:text-6xl">Sentio</h1>
 
-        <h2 className="mt-8 text-2xl font-bold tracking-tight sm:mt-10 sm:text-4xl md:text-5xl">
-          Understand the news in real time
-        </h2>
+        <p className="mt-8 font-bold tracking-tight text-gray-700 sm:text-4xl">
+          Turn news into signal, not noise.
+        </p>
 
         <p className="mx-auto mt-6 max-w-2xl text-base text-gray-600 sm:text-lg">
           Track sentiment, trends, and narrative shifts across global news.

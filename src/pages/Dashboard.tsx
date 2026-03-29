@@ -12,9 +12,7 @@ import ExpandableText from "@/components/elements/ExpandableText";
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -149,7 +147,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex min-w-[220px] flex-col gap-1">
-            <span className="text-sm text-muted-foreground">Time window</span>
+            <span className="text-sm ">Time window</span>
 
             <WindowHoursSelector
               value={windowHours}
