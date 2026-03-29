@@ -108,7 +108,7 @@ export default function SentimentChangeCard({
 
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-lg font-semibold ${meta.deltaClass}`}>{meta.label}</span>
+              <span className={`text-3xl font-semibold ${meta.deltaClass}`}>{meta.label}</span>
               {/* <Badge
                 variant="outline"
                 className={`rounded-full ${meta.badgeClass}`}
@@ -146,7 +146,7 @@ export default function SentimentChangeCard({
           </div>
         </div> */}
 
-        {lowVolume && (
+        {/* {lowVolume && (
           <div className="flex mt-4 items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300">
             <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
             <p className="text-xs leading-5">
@@ -154,7 +154,7 @@ export default function SentimentChangeCard({
               {totalArticles === 1 ? "" : "s"}, so the signal may be noisy.
             </p>
           </div>
-        )}
+        )} */}
       </CardContent>
     </Card>
   );
