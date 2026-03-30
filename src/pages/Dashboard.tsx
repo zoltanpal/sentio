@@ -32,7 +32,7 @@ const sentimentLabelMap: Record<string, string> = {
 };
 
 const ALLOWED_WINDOWS = [6, 12, 24, 48, 72];
-const AI_SUMMARY = true;
+const USE_AI = true;
 
 function sanitizeWindow(value: string | null): number {
   const parsed = Number(value);
@@ -108,22 +108,25 @@ export default function Dashboard() {
       setError("");
     }
 
-    let ai_summary = AI_SUMMARY;
+    let use_ai = USE_AI;
     if (cheatCode === "marcopolo") {
-      ai_summary = true;
+      use_ai = true;
     }
 
     setQuery(queryFromUrl);
     setWindowHours(safeWindow);
 
-    console.log(ai_summary)
-
     run({
       query: queryFromUrl,
       windowHours: safeWindow,
-      aiSummary: AI_SUMMARY,
+      useAi: use_ai,
     });
+
+    console.log(results)
+
   }, [searchParams]);
+
+  console.log(results)
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
@@ -189,7 +192,7 @@ export default function Dashboard() {
       ) : results.aggregated && results.aggregated.article_count > 0 ? (
 
         <div className="space-y-8">
-          {AI_SUMMARY && results.headlines?.ai_summary ? (
+          {USE_AI && results.headlines?.ai_summary ? (
              <div className="rounded-xl border bg-muted/20 p-4 bg-gradient-to-r from-purple-100 to-teal-100">
                 <div className="mb-2 flex items-center gap-2 text-md font-semibold">
                   <BotIcon className="h-4 w-4" />
