@@ -129,10 +129,10 @@ export default function Dashboard() {
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
       {/* <a href="/" className="mb-5 inline-block text-blue-500 hover:underline">
         &larr; Back to Home
-      </a> */}
+      </a> */
+}
 
-
-      <div className="flex items-center justify-between mb-1 px-2">
+      <div className="flex items-center justify-between mb-1gigi px-2">
         <a href="/" className="flex items-center gap-2 sm:gap-4">
           <img src="/logo.png" alt="Sentio Logo" className="w-10 sm:w-12 md:w-14" />
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
