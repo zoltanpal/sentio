@@ -34,7 +34,7 @@ export default function SentimentDoughnut({
             distribution.neutral_count,
             distribution.negative_count,
           ],
-          backgroundColor: ["#22c55e", "rgb(255, 205, 86)", "rgb(255, 99, 132)"],
+          backgroundColor: ["#34d399", "#fbbf24", "#f87171"],
           borderWidth: 4,
           hoverOffset: 6,
           hoverBorderWidth: 2,

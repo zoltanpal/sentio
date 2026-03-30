@@ -47,10 +47,10 @@ function getDirectionMeta(direction: ChangeDirection, delta: number) {
         label,
         Icon: ArrowUpIcon,
         badgeClass:
-          "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-300",
+          "border-emerald-200 bg-emerald-400 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300",
         iconWrapClass:
-          "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
-        deltaClass: "text-green-700 dark:text-green-300",
+          "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+        deltaClass: "text-emerald-700 dark:text-emerald-300",
       };
 
     case "worsening":
@@ -69,10 +69,10 @@ function getDirectionMeta(direction: ChangeDirection, delta: number) {
         label,
         Icon: ArrowRightIcon,
         badgeClass:
-          "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300",
+          "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300",
         iconWrapClass:
-          "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300",
-        deltaClass: "text-slate-700 dark:text-slate-300",
+          "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+        deltaClass: "text-amber-700 dark:text-amber-300",
       };
   }
 }

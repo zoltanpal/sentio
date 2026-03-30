@@ -118,3 +118,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+body {
+  background-color: #f8fafc;
+  font-family: 'Plus Jakarta Sans', 'DM Serif Display', sans-serif;
+}
+
+card {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+p {
+  color: #0f172a;
+}

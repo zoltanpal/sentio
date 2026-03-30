@@ -28,15 +28,20 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center px-4 py-10 sm:py-14">
-      <div className="w-full max-w-5xl text-center">
-        <h1 className="text-4xl font-bold sm:text-5xl md:text-6xl">Sentio</h1>
+      <div className="w-full max-w-2xl text-center">
+        <div className="flex items-center justify-center gap-3 sm:gap-4">
+          <img src="/logo.png" alt="Sentio Logo" className="w-14 sm:w-20 md:w-26" />
+          <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl">
+            Sentio
+          </h1>
+        </div>
 
-        <p className="mt-8 font-bold tracking-tight text-gray-700 sm:text-4xl">
+        <p className="mt-8 text-3xl font-bold tracking-tight text-gray-700 sm:text-4xl">
           Turn news into signal, not noise.
         </p>
 
         <p className="mx-auto mt-6 max-w-2xl text-base text-gray-600 sm:text-lg">
-          Track sentiment, trends, and narrative shifts across global news.
+          See how sentiment is shifting on any topic — across global news — right now.
         </p>
 
         <div className="mx-auto mt-10 w-full max-w-3xl sm:mt-14">

@@ -127,9 +127,34 @@ export default function Dashboard() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
-      <a href="/" className="mb-5 inline-block text-blue-500 hover:underline">
+      {/* <a href="/" className="mb-5 inline-block text-blue-500 hover:underline">
         &larr; Back to Home
-      </a>
+      </a> */}
+
+
+      <div className="flex items-center justify-between mb-1 px-2">
+        <a href="/" className="flex items-center gap-2 sm:gap-4">
+          <img src="/logo.png" alt="Sentio Logo" className="w-10 sm:w-12 md:w-14" />
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
+            Sentio
+          </h1>
+        </a>
+
+        <ul className="flex items-center gap-2">
+          <li>
+            <a href="/login" className="text-sm text-gray-600 hover:text-blue-500 hover:underline">
+                Log In
+              </a>
+          </li>
+          <li>
+
+            <a href="/login" className="text-sm text-gray-600 hover:text-blue-500 hover:underline">
+              Sign In
+            </a>
+
+          </li>
+        </ul>
+      </div>
 
       <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
