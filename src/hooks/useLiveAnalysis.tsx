@@ -41,7 +41,7 @@ export function useLiveAnalysis() {
     const params = new URLSearchParams({
       query: query.trim().toLowerCase(),
       window_hours: windowHours.toString(),
-      ai_summary: String(aiSummary),
+      use_ai: String(aiSummary),
     });
 
     return `${API_HOST}/${endpoint}?${params.toString()}`;
