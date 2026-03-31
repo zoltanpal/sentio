@@ -4,6 +4,7 @@ const API_HOST = "https://devapi.palzoltan.net/sentio/live/query";
 const API_TOKEN = "testtoken";
 
 export type SentimentLabel = "positive" | "neutral" | "negative";
+
 export type SummaryLabel =
   | "positive"
   | "negative"
@@ -97,7 +98,7 @@ const EMPTY_STATE: UseLiveAnalysisState = {
 function buildUrl({
   query,
   windowHours,
-  useAi = true,
+  useAi = false,
   includeHeadlines = true,
   includeChange = true,
 }: RunParams) {
@@ -151,7 +152,7 @@ export function useLiveAnalysis() {
     async ({
       query,
       windowHours,
-      useAi = true,
+      useAi = false,
       includeHeadlines = true,
       includeChange = true,
     }: RunParams) => {
@@ -213,7 +214,7 @@ export function useLiveAnalysis() {
   );
 
   return {
-    results: state.data,
+    data: state.data,
     loading: state.loading,
     error: state.error,
     run,

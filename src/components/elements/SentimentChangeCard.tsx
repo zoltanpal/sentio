@@ -13,11 +13,9 @@ type SentimentChangeData = {
     article_count: number;
     avg_sentiment_score: number;
   };
-  change: {
-    delta: number;
-    direction: ChangeDirection;
-  };
-  window_hours: number;
+  delta: number;
+  direction: ChangeDirection;
+  // window_hours: number;
 };
 
 type Props = {
@@ -79,11 +77,11 @@ function getDirectionMeta(direction: ChangeDirection, delta: number) {
 
 export default function SentimentChangeCard({
   data,
-  title = "Sentiment change",
+  title = "Tone Shift",
 }: Props) {
-  const { current, previous, change, window_hours } = data;
+  const { current, previous, direction, delta } = data;
 
-  const meta = getDirectionMeta(change.direction, change.delta);
+  const meta = getDirectionMeta(direction, delta);
   const totalArticles = current.article_count + previous.article_count;
   const lowVolume = totalArticles < 10;
 
@@ -113,7 +111,7 @@ export default function SentimentChangeCard({
                 variant="outline"
                 className={`rounded-full ${meta.badgeClass}`}
               >
-                {formatScore(change.delta)}
+                {formatScore(delta)}
               </Badge> */}
             </div>
 

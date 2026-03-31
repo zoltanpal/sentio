@@ -1,26 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { BotIcon, NewspaperIcon } from "lucide-react";
 
 import SearchBar from "@/components/Searchbar";
 import Loading from "@/components/elements/Loading";
 import WindowHoursSelector from "@/components/elements/WindowHoursSelector";
-import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
 import HeadlinesTable from "@/components/HeadlinesTable";
 import SentimentDoughnut from "@/components/elements/SentimentDoughnut";
 import ExpandableText from "@/components/elements/ExpandableText";
 import SentimentChangeCard from "@/components/elements/SentimentChangeCard";
 
-
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { BotIcon, NewspaperIcon } from "lucide-react";
+} from "@/components/ui/card";
 
+import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
 
 const sentimentLabelMap: Record<string, string> = {
   positive: "Positive",
@@ -32,129 +31,157 @@ const sentimentLabelMap: Record<string, string> = {
 };
 
 const ALLOWED_WINDOWS = [6, 12, 24, 48, 72];
-const USE_AI = true;
+const DEFAULT_WINDOW = 6;
+const USE_AI = false;
 
 function sanitizeWindow(value: string | null): number {
   const parsed = Number(value);
-  return ALLOWED_WINDOWS.includes(parsed) ? parsed : 6;
+  return ALLOWED_WINDOWS.includes(parsed) ? parsed : DEFAULT_WINDOW;
 }
 
 function sanitizeQuery(value: string | null): string {
-  const trimmed = (value ?? "").trim();
-  return trimmed.length >= 3 ? trimmed : "";
+  return (value ?? "").trim();
+}
+
+function validateQuery(query: string): string {
+  const trimmed = query.trim();
+
+  if (!trimmed) {
+    return "Please enter at least one keyword.";
+  }
+
+  if (trimmed.length < 3) {
+    return "Please enter at least 3 characters.";
+  }
+
+  return "";
 }
 
 export default function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialQuery = searchParams.get("query") ?? "";
-  const initialWindow = sanitizeWindow(searchParams.get("window"));
+  const queryFromUrl = useMemo(
+    () => sanitizeQuery(searchParams.get("query")),
+    [searchParams]
+  );
 
-  const [query, setQuery] = useState(initialQuery);
-  const [windowHours, setWindowHours] = useState(initialWindow);
+  const windowFromUrl = useMemo(
+    () => sanitizeWindow(searchParams.get("window")),
+    [searchParams]
+  );
 
-  const { results, loading, error, run, setError } = useLiveAnalysis();
+  const [queryInput, setQueryInput] = useState(queryFromUrl);
+  const [windowHours, setWindowHours] = useState(windowFromUrl);
+  const [pageError, setPageError] = useState("");
 
-  const executeSearch = (nextQuery: string, nextWindow: number) => {
-    const trimmedQuery = nextQuery.trim();
+  const { data, loading, error, run, clearResults } = useLiveAnalysis();
 
-    if (!trimmedQuery || trimmedQuery.length < 3) {
-      setError("Please enter at least 3 characters.");
-      return false;
-    }
+  useEffect(() => {
+    setQueryInput(queryFromUrl);
+  }, [queryFromUrl]);
 
-    setError("");
-
-    setSearchParams({
-      query: trimmedQuery,
-      window: nextWindow.toString(),
-    });
-
-    return true;
-  };
-
-
-  const onSearch = async () => {
-    executeSearch(query, windowHours);
-  };
-
-  const onWindowTimeChange = async (nextWindow: number) => {
-    if (nextWindow === windowHours) return;
-
-    setWindowHours(nextWindow);
-
-    executeSearch(query, nextWindow);
-  };
-
+  useEffect(() => {
+    setWindowHours(windowFromUrl);
+  }, [windowFromUrl]);
 
   useEffect(() => {
     const rawQuery = searchParams.get("query");
     const rawWindow = searchParams.get("window");
     const cheatCode = searchParams.get("cheat");
 
-    const queryFromUrl = sanitizeQuery(rawQuery);
+    const safeQuery = sanitizeQuery(rawQuery);
     const safeWindow = sanitizeWindow(rawWindow);
 
-    if (!queryFromUrl) {
+    const validationError = validateQuery(safeQuery);
+
+    if (validationError) {
       if (rawQuery !== null) {
-        setError("Please provide a valid search query (min. 3 characters).");
+        setPageError(validationError);
       }
+      clearResults();
       return;
     }
 
     if (rawWindow !== null && Number(rawWindow) !== safeWindow) {
-      setError("Invalid time window. Using default value (6h).");
+      setPageError(`Invalid time window. Using default value (${DEFAULT_WINDOW}h).`);
     } else {
-      setError("");
+      setPageError("");
     }
 
-    let use_ai = USE_AI;
-    if (cheatCode === "marcopolo") {
-      use_ai = true;
-    }
-
-    setQuery(queryFromUrl);
-    setWindowHours(safeWindow);
+    const useAi = cheatCode === "marcopolo" ? true : USE_AI;
 
     run({
-      query: queryFromUrl,
+      query: safeQuery,
       windowHours: safeWindow,
-      useAi: use_ai,
+      useAi,
+      includeHeadlines: true,
+      includeChange: true,
     });
+  }, [searchParams, run, clearResults]);
 
-    console.log(results)
 
-  }, [searchParams]);
+  const executeSearch = (nextQuery: string, nextWindow: number) => {
+    const validationError = validateQuery(nextQuery);
 
-  console.log(results)
+    if (validationError) {
+      setPageError(validationError);
+      return;
+    }
+
+    setPageError("");
+
+    setSearchParams({
+      query: nextQuery.trim(),
+      window: String(nextWindow),
+    });
+  };
+
+  const onSearch = () => {
+    executeSearch(queryInput, windowHours);
+  };
+
+  const onWindowTimeChange = (nextWindow: number) => {
+    if (nextWindow === windowHours) return;
+
+    setWindowHours(nextWindow);
+    executeSearch(queryInput, nextWindow);
+  };
+
+  const displayError = pageError || error;
+  const hasResults = (data?.aggregated.article_count ?? 0) > 0;
+
+  console.log("Live analysis data:", data);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
-      {/* <a href="/" className="mb-5 inline-block text-blue-500 hover:underline">
-        &larr; Back to Home
-      </a> */}
-
-
-      <div className="flex items-center justify-between mb-1gigi px-2">
+      <div className="mb-4 flex items-center justify-between px-2">
         <a href="/" className="flex items-center gap-2 sm:gap-4">
-          <img src="/logo.png" alt="Sentio Logo" className="w-10 sm:w-12 md:w-14" />
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
+          <img
+            src="/logo.png"
+            alt="Sentio Logo"
+            className="w-10 sm:w-14 md:w-16"
+          />
+          <h1 className="font-bold tracking-tight sm:text-4xl md:text-5xl">
             Sentio
           </h1>
         </a>
 
         <ul className="flex items-center gap-2">
           <li>
-            <a href="/login" className="text-sm text-gray-600 hover:text-blue-500 hover:underline">
-                Log In
-              </a>
+            <a
+              href="/login"
+              className="text-sm text-gray-600 hover:text-blue-500 hover:underline"
+            >
+              Log In
+            </a>
           </li>
           <li>
-
-            <a href="/login" className="text-sm text-gray-600 hover:text-blue-500 hover:underline">
+            <a
+              href="/login"
+              className="text-sm text-gray-600 hover:text-blue-500 hover:underline"
+            >
               Sign In
             </a>
-
           </li>
         </ul>
       </div>
@@ -163,22 +190,21 @@ export default function Dashboard() {
         <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
           <div className="w-full">
             <SearchBar
-              value={query}
+              value={queryInput}
               onChange={(value) => {
-                setQuery(value);
-                if (error) setError("");
+                setQueryInput(value);
+                if (pageError) setPageError("");
               }}
               onSearch={onSearch}
               loading={loading}
-              error={error}
+              error={displayError}
               placeholder="e.g. Tesla, NVDA, oil prices"
               size="md"
             />
           </div>
 
           <div className="flex min-w-[220px] flex-col gap-1">
-            <span className="text-sm ">Time window</span>
-
+            <span className="text-sm">Time window</span>
             <WindowHoursSelector
               value={windowHours}
               onChange={onWindowTimeChange}
@@ -189,76 +215,73 @@ export default function Dashboard() {
 
       {loading ? (
         <Loading text="Analyzing feeds, please wait..." />
-      ) : results.aggregated && results.aggregated.article_count > 0 ? (
-
+      ) : hasResults && data ? (
         <div className="space-y-8">
-          {USE_AI && results.headlines?.ai_summary ? (
-             <div className="rounded-xl border bg-muted/20 p-4 bg-gradient-to-r from-purple-100 to-teal-100">
-                <div className="mb-2 flex items-center gap-2 text-md font-semibold">
-                  <BotIcon className="h-4 w-4" />
-                  <span>AI Summary (last {windowHours} hours)</span>
-                </div>
-                <ExpandableText text={results.headlines.ai_summary} maxLength={250} />
+          {data.ai_summary ? (
+            <div className="rounded-xl border bg-gradient-to-r from-purple-100 to-teal-100 p-4">
+              <div className="mb-2 flex items-center gap-2 text-md font-semibold">
+                <BotIcon className="h-4 w-4" />
+                <span>Live Summary (last {windowHours} hours)</span>
               </div>
+              <ExpandableText text={data.ai_summary} maxLength={250} />
+            </div>
           ) : null}
 
-          <div className="flex flex-col w-[300px]">
-            <SentimentChangeCard data={results.sentimentChange} />
-          </div>
-          
-
-            <div className="flex flex-col-reverse lg:flex-row gap-4">
-              <div className="w-full lg:w-3/4">
-                <Card className="py-2 gap-0 h-[300px] sm:h-[320px] bg-gradient-to-r from-pink-30 to-pink-50">
-                  <CardHeader className="px-5 py-2 m-0">
-                    <CardTitle className="text-lg">Latest Headlines</CardTitle>
-                  </CardHeader>
-                  <CardContent className="m-0 p-0 h-[220px]">
-                    <HeadlinesTable items={results.headlines?.headlines || []} />
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="w-full lg:w-1/4">
-                <Card className="h-[300px] sm:h-[320px] py-2 gap-0 bg-gradient-to-r from-pink-50 to-pink-100">
-                  <CardHeader className="px-4 sm:px-5 py-2">
-                    <CardTitle className="text-base sm:text-lg">Sentiment Overview</CardTitle>
-                  </CardHeader>
-
-                  <CardContent className="flex-1 px-2 sm:px-3 pb-2">
-                    <div className="relative h-[160px] sm:h-[180px] md:h-[190px]">
-                      <SentimentDoughnut
-                        distribution={results.aggregated.distribution}
-                        summaryLabel={sentimentLabelMap[results.aggregated.summary.label]}
-                      />
-                    </div>
-                  </CardContent>
-
-                  <CardFooter className="px-3 py-2">
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center px-2 bg-green-200 border-green-200 gap-1 text-[11px] sm:text-xs max-w-full"
-                    >
-                      <NewspaperIcon className="h-3.5 w-3.5" />
-                      <span>{results.aggregated.article_count} articles</span>
-                    </Badge>
-                  </CardFooter>
-                </Card>
-              </div>
-            </div>          
-
-          <section>
-            <h2 className="mb-3 text-xl font-semibold">Sentiment Change</h2>
-            <div className="overflow-x-auto rounded-xl border bg-muted/20 p-4">
-              <pre className="whitespace-pre-wrap text-sm">
-                {JSON.stringify(results.aggregated, null, 2)}
-                {JSON.stringify(results.sentimentChange, null, 2)}
-              </pre>
+          {data.change ? (
+            <div className="flex w-[300px] flex-col">
+              <SentimentChangeCard data={data.change} />
             </div>
-          </section>
+          ) : null}
+
+          <div className="flex flex-col-reverse gap-4 lg:flex-row">
+            <div className="w-full lg:w-3/4">
+              <Card className="h-[300px] gap-0 bg-gradient-to-r from-pink-30 to-pink-50 py-2 sm:h-[320px]">
+                <CardHeader className="m-0 px-5 py-2">
+                  <CardTitle className="text-lg">Latest Headlines</CardTitle>
+                </CardHeader>
+                <CardContent className="m-0 h-[220px] p-0">
+                  <HeadlinesTable items={data.headlines} />
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="w-full lg:w-1/4">
+              <Card className="h-[300px] gap-0 bg-gradient-to-r from-pink-50 to-pink-100 py-2 sm:h-[320px]">
+                <CardHeader className="px-4 py-2 sm:px-5">
+                  <CardTitle className="text-base sm:text-lg">
+                    Overall Tone
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent className="flex-1 px-2 pb-2 sm:px-3">
+                  <div className="relative h-[160px] sm:h-[180px] md:h-[190px]">
+                    <SentimentDoughnut
+                      distribution={data.aggregated.distribution}
+                      summaryLabel={
+                        sentimentLabelMap[data.aggregated.summary.label] ??
+                        data.aggregated.summary.label
+                      }
+                    />
+                  </div>
+                </CardContent>
+
+                <CardFooter className="px-3 py-2">
+                  <Badge
+                    variant="secondary"
+                    className="flex max-w-full items-center gap-1 border-green-200 bg-green-200 px-2 text-[11px] sm:text-xs"
+                  >
+                    <NewspaperIcon className="h-3.5 w-3.5" />
+                    <span>{data.aggregated.article_count} articles</span>
+                  </Badge>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
-          No news found for the given query and time window. Please try expanding the time window or using different keywords.
+          No news found for the given query and time window. Please try expanding
+          the time window or using different keywords.
         </div>
       )}
     </div>
