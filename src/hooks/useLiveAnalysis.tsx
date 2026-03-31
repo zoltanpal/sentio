@@ -23,16 +23,16 @@ export type Intent =
 export type ChangeDirection = "improving" | "worsening" | "stable";
 
 export type LiveHeadline = {
-  id: string | number;
+  id: number;
   title: string;
   title_hash?: string | null;
-  summary?: string | null;
-  link?: string | null;
+  summary: string | null;
+  link: string | null;
   published_at: string;
   source_name: string;
-  sentiment_label?: SentimentLabel | null;
-  sentiment_score?: number | null;
-  sentiment_raw?: Record<string, unknown> | string | null;
+  sentiment_label: SentimentLabel | null;
+  sentiment_score: number | null;
+  sentiment_raw: Record<string, unknown> | string | null;
 };
 
 export type LiveQueryResponse = {

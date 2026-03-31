@@ -32,7 +32,7 @@ const sentimentLabelMap: Record<string, string> = {
 
 const ALLOWED_WINDOWS = [6, 12, 24, 48, 72];
 const DEFAULT_WINDOW = 6;
-const USE_AI = false;
+const USE_AI = true;
 
 function sanitizeWindow(value: string | null): number {
   const parsed = Number(value);
@@ -223,7 +223,7 @@ export default function Dashboard() {
                 <BotIcon className="h-4 w-4" />
                 <span>Live Summary (last {windowHours} hours)</span>
               </div>
-              <ExpandableText text={data.ai_summary} maxLength={250} />
+              <ExpandableText text={data.ai_summary} maxLength={200} />
             </div>
           ) : null}
 

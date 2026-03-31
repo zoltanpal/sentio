@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Headline = {
-  id: string;
+  id: number;
   source_name: string;
   title: string;
   summary: string;
@@ -72,7 +72,7 @@ export default function HeadlinesTable({ items }: { items: Headline[] }) {
       <ScrollArea className="h-[240px]">
         <div className="divide-y">
           {items.map((item) => (
-            <HeadlineRow key={item.id} item={item} />
+            <HeadlineRow item={item} />
           ))}
         </div>
       </ScrollArea>
