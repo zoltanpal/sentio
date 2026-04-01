@@ -18,13 +18,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
-
 import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
 import { usePromptResolver } from "@/hooks/usePromptResolver";
 import {
   useSearchSession,
   type SearchSession,
 } from "@/hooks/useSearchSession";
+import {
+  DEFAULT_WINDOW,
+  sanitizeQuery,
+  sanitizeWindow,
+  validateQuery,
+} from "@/lib/searchParams";
 
 const sentimentLabelMap: Record<string, string> = {
   positive: "Positive",
@@ -35,32 +40,52 @@ const sentimentLabelMap: Record<string, string> = {
   mixed: "Mixed",
 };
 
-const ALLOWED_WINDOWS = [6, 12, 24, 48, 72];
-const DEFAULT_WINDOW = 6;
 const USE_AI = true;
 const USE_AI_PROMPT_RESOLVER = true;
 
-function sanitizeWindow(value: string | null): number {
-  const parsed = Number(value);
-  return ALLOWED_WINDOWS.includes(parsed) ? parsed : DEFAULT_WINDOW;
-}
+type DashboardViewStateParams = {
+  pageError: string;
+  resolveError: string;
+  analysisError: string;
+  loading: boolean;
+  resolving: boolean;
+  isPreparingSearch: boolean;
+  articleCount: number;
+  hasAttemptedSearch: boolean;
+  resolvedRawPrompt: string | null;
+  promptInput: string;
+};
 
-function sanitizeQuery(value: string | null): string {
-  return (value ?? "").trim();
-}
+function getDashboardViewState({
+  pageError,
+  resolveError,
+  analysisError,
+  loading,
+  resolving,
+  isPreparingSearch,
+  articleCount,
+  hasAttemptedSearch,
+  resolvedRawPrompt,
+  promptInput,
+}: DashboardViewStateParams) {
+  const displayError = pageError || resolveError || analysisError;
+  const isBusy = loading || resolving || isPreparingSearch;
+  const hasResults = articleCount > 0;
+  const hasUnsavedPromptChanges =
+    Boolean(resolvedRawPrompt) &&
+    promptInput.trim() !== (resolvedRawPrompt ?? "").trim();
+  const showEmptyState =
+    hasAttemptedSearch && !isBusy && !displayError && !hasResults;
+  const showIdleState = !hasAttemptedSearch && !isBusy;
 
-function validateQuery(query: string): string {
-  const trimmed = query.trim();
-
-  if (!trimmed) {
-    return "Please enter at least one keyword.";
-  }
-
-  if (trimmed.length < 3) {
-    return "Please enter at least 3 characters.";
-  }
-
-  return "";
+  return {
+    displayError,
+    hasResults,
+    hasUnsavedPromptChanges,
+    isBusy,
+    showEmptyState,
+    showIdleState,
+  };
 }
 
 export default function Dashboard() {
@@ -96,8 +121,8 @@ export default function Dashboard() {
 
   const {
     data,
-    loading,
     error,
+    loading,
     run,
     clearResults,
   } = useLiveAnalysis();
@@ -139,7 +164,6 @@ export default function Dashboard() {
 
     const pendingPrompt = getPendingPrompt();
     const safePrompt = sanitizeQuery(pendingPrompt);
-
     const validationError = validateQuery(safePrompt);
 
     if (validationError) {
@@ -179,10 +203,8 @@ export default function Dashboard() {
 
       setSession(nextSession);
       setResolvedSession(nextSession);
-
       setActiveQuery(resolved.query);
       setWindowHours(resolved.window_hours);
-
       clearPendingPrompt();
 
       setSearchParams({
@@ -215,7 +237,6 @@ export default function Dashboard() {
     const rawWindow = searchParams.get("window");
     const safeQuery = sanitizeQuery(rawQuery);
     const safeWindow = sanitizeWindow(rawWindow);
-
     const validationError = validateQuery(safeQuery);
 
     if (validationError) {
@@ -297,7 +318,6 @@ export default function Dashboard() {
 
     setSession(nextSession);
     setResolvedSession(nextSession);
-
     setActiveQuery(resolved.query);
     setWindowHours(resolved.window_hours);
 
@@ -315,16 +335,32 @@ export default function Dashboard() {
     executeSearch(activeQuery, nextWindow);
   };
 
-  const displayError = pageError || resolveError || error;
-  const isBusy = loading || resolving || isPreparingSearch;
-  const hasResults = (data?.aggregated.article_count ?? 0) > 0;
-  const hasUnsavedPromptChanges =
-    resolvedSession?.source === "prompt" &&
-    Boolean(resolvedSession.rawPrompt) &&
-    promptInput.trim() !== (resolvedSession.rawPrompt ?? "").trim();
-  const showEmptyState = hasAttemptedSearch && !isBusy && !displayError && !hasResults;
-  const showIdleState = !hasAttemptedSearch && !isBusy;
+  const onPromptInputChange = (value: string) => {
+    setPromptInput(value);
+    if (pageError) {
+      setPageError("");
+    }
+  };
 
+  const {
+    displayError,
+    isBusy,
+    hasResults,
+    hasUnsavedPromptChanges,
+    showEmptyState,
+    showIdleState,
+  } = getDashboardViewState({
+    pageError,
+    resolveError,
+    analysisError: error,
+    loading,
+    resolving,
+    isPreparingSearch,
+    articleCount: data?.aggregated.article_count ?? 0,
+    hasAttemptedSearch,
+    resolvedRawPrompt: resolvedSession?.rawPrompt ?? null,
+    promptInput,
+  });
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
@@ -346,10 +382,7 @@ export default function Dashboard() {
           <div className="w-full">
             <SearchBar
               value={promptInput}
-              onChange={(value) => {
-                setPromptInput(value);
-                if (pageError) setPageError("");
-              }}
+              onChange={onPromptInputChange}
               onSearch={onSearch}
               loading={isBusy}
               error={displayError}
@@ -374,9 +407,9 @@ export default function Dashboard() {
             Searching for:{" "}
             <span className="font-medium text-gray-700">{activeQuery}</span>
           </div>
-        ) : null} */}
+        ) : null}
 
-        {/* {hasUnsavedPromptChanges ? (
+        {hasUnsavedPromptChanges ? (
           <div className="mt-2 text-sm text-gray-500">
             Time window changes still apply to the current parsed query until
             you search again.

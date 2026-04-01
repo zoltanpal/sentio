@@ -3,20 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import SearchBar from "@/components/search/SearchBar";
 import { useSearchSession } from "@/hooks/useSearchSession";
-
-function validateQuery(query: string): string {
-  const trimmed = query.trim();
-
-  if (!trimmed) {
-    return "Please enter at least one keyword.";
-  }
-
-  if (trimmed.length < 3) {
-    return "Please enter at least 3 characters.";
-  }
-
-  return "";
-}
+import { validateQuery } from "@/lib/searchParams";
 
 export default function Home() {
   const [query, setQuery] = useState("");
