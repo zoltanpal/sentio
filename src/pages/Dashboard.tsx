@@ -299,6 +299,7 @@ export default function Dashboard() {
   const isBusy = loading || resolving;
   const hasResults = (data?.aggregated.article_count ?? 0) > 0;
 
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
       <div className="mb-4 flex items-center justify-between px-2">
