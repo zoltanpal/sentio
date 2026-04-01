@@ -24,11 +24,19 @@ export function useSearchSession() {
   }, []);
 
   const setSession = useCallback((value: SearchSession) => {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(value));
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(value));
+    } catch {
+      // Ignore storage write failures and keep the flow functional in restricted environments.
+    }
   }, []);
 
   const clearSession = useCallback(() => {
-    sessionStorage.removeItem(SESSION_KEY);
+    try {
+      sessionStorage.removeItem(SESSION_KEY);
+    } catch {
+      // Ignore storage write failures and keep the flow functional in restricted environments.
+    }
   }, []);
 
   const getPendingPrompt = useCallback((): string => {
@@ -36,11 +44,19 @@ export function useSearchSession() {
   }, []);
 
   const setPendingPrompt = useCallback((prompt: string) => {
-    sessionStorage.setItem(PENDING_PROMPT_KEY, prompt);
+    try {
+      sessionStorage.setItem(PENDING_PROMPT_KEY, prompt);
+    } catch {
+      // Ignore storage write failures and keep the flow functional in restricted environments.
+    }
   }, []);
 
   const clearPendingPrompt = useCallback(() => {
-    sessionStorage.removeItem(PENDING_PROMPT_KEY);
+    try {
+      sessionStorage.removeItem(PENDING_PROMPT_KEY);
+    } catch {
+      // Ignore storage write failures and keep the flow functional in restricted environments.
+    }
   }, []);
 
   return {

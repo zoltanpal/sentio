@@ -85,6 +85,12 @@ export default function Dashboard() {
   const [activeQuery, setActiveQuery] = useState(queryFromUrl);
   const [windowHours, setWindowHours] = useState(windowFromUrl);
   const [pageError, setPageError] = useState("");
+  const [isPreparingSearch, setIsPreparingSearch] = useState(
+    modeFromUrl === "prompt" || Boolean(queryFromUrl)
+  );
+  const [hasAttemptedSearch, setHasAttemptedSearch] = useState(
+    modeFromUrl === "prompt" || Boolean(queryFromUrl)
+  );
   const [resolvedSession, setResolvedSession] =
     useState<SearchSession | null>(null);
 
@@ -138,6 +144,7 @@ export default function Dashboard() {
 
     if (validationError) {
       setPageError(validationError);
+      setIsPreparingSearch(false);
       clearResults();
       clearPendingPrompt();
       return;
@@ -147,6 +154,8 @@ export default function Dashboard() {
 
     setPromptInput(safePrompt);
     setPageError("");
+    setIsPreparingSearch(true);
+    setHasAttemptedSearch(true);
 
     const resolveAndRedirect = async () => {
       const resolved = await resolvePrompt({
@@ -155,6 +164,9 @@ export default function Dashboard() {
       });
 
       if (!resolved || cancelled) {
+        if (!cancelled) {
+          setIsPreparingSearch(false);
+        }
         return;
       }
 
@@ -210,6 +222,8 @@ export default function Dashboard() {
       if (rawQuery !== null) {
         setPageError(validationError);
       }
+      setIsPreparingSearch(false);
+      setHasAttemptedSearch(false);
       clearResults();
       return;
     }
@@ -223,6 +237,8 @@ export default function Dashboard() {
     }
 
     setActiveQuery(safeQuery);
+    setIsPreparingSearch(false);
+    setHasAttemptedSearch(true);
 
     run({
       query: safeQuery,
@@ -259,6 +275,8 @@ export default function Dashboard() {
     }
 
     setPageError("");
+    setIsPreparingSearch(true);
+    setHasAttemptedSearch(true);
 
     const resolved = await resolvePrompt({
       prompt: trimmedPrompt,
@@ -266,6 +284,7 @@ export default function Dashboard() {
     });
 
     if (!resolved) {
+      setIsPreparingSearch(false);
       return;
     }
 
@@ -292,12 +311,19 @@ export default function Dashboard() {
     if (nextWindow === windowHours) return;
 
     setWindowHours(nextWindow);
+    setHasAttemptedSearch(true);
     executeSearch(activeQuery, nextWindow);
   };
 
   const displayError = pageError || resolveError || error;
-  const isBusy = loading || resolving;
+  const isBusy = loading || resolving || isPreparingSearch;
   const hasResults = (data?.aggregated.article_count ?? 0) > 0;
+  const hasUnsavedPromptChanges =
+    resolvedSession?.source === "prompt" &&
+    Boolean(resolvedSession.rawPrompt) &&
+    promptInput.trim() !== (resolvedSession.rawPrompt ?? "").trim();
+  const showEmptyState = hasAttemptedSearch && !isBusy && !displayError && !hasResults;
+  const showIdleState = !hasAttemptedSearch && !isBusy;
 
 
   return (
@@ -341,14 +367,21 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {resolvedSession?.source === "prompt" &&
+        {/* {resolvedSession?.source === "prompt" &&
         resolvedSession.rawPrompt &&
         activeQuery ? (
           <div className="mt-3 text-sm text-gray-500">
             Searching for:{" "}
             <span className="font-medium text-gray-700">{activeQuery}</span>
           </div>
-        ) : null}
+        ) : null} */}
+
+        {/* {hasUnsavedPromptChanges ? (
+          <div className="mt-2 text-sm text-gray-500">
+            Time window changes still apply to the current parsed query until
+            you search again.
+          </div>
+        ) : null} */}
       </div>
 
       {isBusy ? (
@@ -416,12 +449,17 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      ) : (
+      ) : showEmptyState ? (
         <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
           No news found for the given query and time window. Please try expanding
           the time window or using different keywords.
         </div>
-      )}
+      ) : showIdleState ? (
+        <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
+          Enter a topic to start analyzing live news sentiment.
+        </div>
+      ) : null
+      }
     </div>
   );
 }

@@ -9,12 +9,6 @@ interface ClearableInputProps
   rightElement?: React.ReactNode
 }
 
-interface ClearableInputProps
-  extends React.ComponentProps<typeof Input> {
-  onClear?: () => void
-  rightElement?: React.ReactNode
-}
-
 export function ClearableInput({
   className,
   value,

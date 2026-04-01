@@ -4,9 +4,9 @@ type Headline = {
   id: number;
   source_name: string;
   title: string;
-  summary: string;
+  summary: string | null;
   published_at: string;
-  sentiment_label: "positive" | "neutral" | "negative";
+  sentiment_label: "positive" | "neutral" | "negative" | null;
 };
 
 const sentimentStyles = {
@@ -24,6 +24,8 @@ const sentimentStyles = {
   },
 };
 
+const fallbackSentimentStyle = sentimentStyles.neutral;
+
 function formatTimeAgo(date: string) {
   const diff = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
 
@@ -33,7 +35,10 @@ function formatTimeAgo(date: string) {
 }
 
 function HeadlineRow({ item }: { item: Headline }) {
-  const style = sentimentStyles[item.sentiment_label];
+  const style = item.sentiment_label
+    ? sentimentStyles[item.sentiment_label]
+    : fallbackSentimentStyle;
+  const sentimentLabel = item.sentiment_label ?? "unknown";
 
   return (
     <div className="flex items-start justify-between gap-4 px-5 py-3 transition hover:bg-muted/40">
@@ -61,7 +66,7 @@ function HeadlineRow({ item }: { item: Headline }) {
       <span
         className={`inline-flex h-8 w-24 shrink-0 items-center justify-center rounded-full border text-sm font-medium capitalize ${style.badge}`}
       >
-        {item.sentiment_label}
+        {sentimentLabel}
       </span>
     </div>
   );
@@ -72,7 +77,7 @@ export default function HeadlinesTable({ items }: { items: Headline[] }) {
       <ScrollArea className="h-[240px]">
         <div className="divide-y">
           {items.map((item) => (
-            <HeadlineRow item={item} />
+            <HeadlineRow key={item.id} item={item} />
           ))}
         </div>
       </ScrollArea>

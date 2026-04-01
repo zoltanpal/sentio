@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { buildSentioApiUrl, getSentioApiHeaders } from "@/config/api";
 
 const API_HOST = buildSentioApiUrl("/live/parse_prompt");
@@ -33,7 +33,8 @@ const EMPTY_STATE: UsePromptResolverState = {
 };
 
 async function resolvePrompt(
-  { prompt, useAi = true }: ResolveParams
+  { prompt, useAi = true }: ResolveParams,
+  signal?: AbortSignal
 ): Promise<PromptResolveResponse> {
   const headers = getSentioApiHeaders({
     "Content-Type": "application/json",
@@ -42,6 +43,7 @@ async function resolvePrompt(
   const response = await fetch(API_HOST, {
     method: "POST",
     headers,
+    signal,
     body: JSON.stringify({
       prompt: prompt.trim(),
       use_ai: useAi,
@@ -58,6 +60,13 @@ async function resolvePrompt(
 
 export function usePromptResolver() {
   const [state, setState] = useState<UsePromptResolverState>(EMPTY_STATE);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const run = useCallback(async ({ prompt, useAi = true }: ResolveParams) => {
     const cleanedPrompt = prompt.trim();
@@ -70,6 +79,10 @@ export function usePromptResolver() {
       return;
     }
 
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setState({
       loading: true,
       error: "",
@@ -79,7 +92,11 @@ export function usePromptResolver() {
       const data = await resolvePrompt({
         prompt: cleanedPrompt,
         useAi,
-      });
+      }, controller.signal);
+
+      if (abortRef.current !== controller) {
+        return;
+      }
 
       setState({
         loading: false,
@@ -88,6 +105,10 @@ export function usePromptResolver() {
 
       return data;
     } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return;
+      }
+
       console.error("Error resolving prompt:", err);
 
       setState({

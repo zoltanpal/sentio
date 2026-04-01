@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import SearchBar from "@/components/search/SearchBar";
@@ -23,7 +23,13 @@ export default function Home() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { setPendingPrompt } = useSearchSession();
+  const { clearPendingPrompt, clearSession, setPendingPrompt } =
+    useSearchSession();
+
+  useEffect(() => {
+    clearPendingPrompt();
+    clearSession();
+  }, [clearPendingPrompt, clearSession]);
 
   const onSearch = () => {
     const validationError = validateQuery(query);
