@@ -11,6 +11,7 @@ import ExpandableText from "@/components/elements/ExpandableText";
 import SentimentChangeCard from "@/components/elements/SentimentChangeCard";
 
 import { Badge } from "@/components/ui/badge";
+// import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -18,6 +19,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+
+import {
+  Menubar,
+  MenubarContent,
+  MenubarGroup,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+
 
 import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
 
@@ -32,7 +55,7 @@ const sentimentLabelMap: Record<string, string> = {
 
 const ALLOWED_WINDOWS = [6, 12, 24, 48, 72];
 const DEFAULT_WINDOW = 6;
-const USE_AI = true;
+const USE_AI = false;
 
 function sanitizeWindow(value: string | null): number {
   const parsed = Number(value);
@@ -166,26 +189,19 @@ export default function Dashboard() {
           </h1>
         </a>
 
-        <ul className="flex items-center gap-2">
-          <li>
-            <a
-              href="/login"
-              className="text-sm text-gray-600 hover:text-blue-500 hover:underline"
-            >
-              Log In
-            </a>
-          </li>
-          <li>
-            <a
-              href="/login"
-              className="text-sm text-gray-600 hover:text-blue-500 hover:underline"
-            >
-              Sign In
-            </a>
-          </li>
-        </ul>
+        <div className="flex items-center">
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink className="">LogIn</NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>SignUp</NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
       </div>
-
       <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
           <div className="w-full">
