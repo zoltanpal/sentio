@@ -1,6 +1,10 @@
-import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon, InfoIcon } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/shared/ui/card";
 
 type ChangeDirection = "improving" | "worsening" | "stable";
 
@@ -23,10 +27,6 @@ type Props = {
   title?: string;
 };
 
-function formatScore(value: number): string {
-  return `${value > 0 ? "+" : ""}${value.toFixed(2)}`;
-}
-
 function getIntensityLabel(delta: number, direction: ChangeDirection): string {
   const abs = Math.abs(delta);
 
@@ -44,8 +44,6 @@ function getDirectionMeta(direction: ChangeDirection, delta: number) {
       return {
         label,
         Icon: ArrowUpIcon,
-        badgeClass:
-          "border-emerald-200 bg-emerald-400 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300",
         iconWrapClass:
           "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
         deltaClass: "text-emerald-700 dark:text-emerald-300",
@@ -55,8 +53,6 @@ function getDirectionMeta(direction: ChangeDirection, delta: number) {
       return {
         label,
         Icon: ArrowDownIcon,
-        badgeClass:
-          "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300",
         iconWrapClass:
           "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
         deltaClass: "text-red-700 dark:text-red-300",
@@ -66,8 +62,6 @@ function getDirectionMeta(direction: ChangeDirection, delta: number) {
       return {
         label,
         Icon: ArrowRightIcon,
-        badgeClass:
-          "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300",
         iconWrapClass:
           "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
         deltaClass: "text-amber-700 dark:text-amber-300",
@@ -79,11 +73,9 @@ export default function SentimentChangeCard({
   data,
   title = "Tone Shift",
 }: Props) {
-  const { current, previous, direction, delta } = data;
+  const { direction, delta } = data;
 
   const meta = getDirectionMeta(direction, delta);
-  const totalArticles = current.article_count + previous.article_count;
-  const lowVolume = totalArticles < 10;
 
   return (
     <Card className="rounded-xl border bg-gradient-to-r from-yellow-30 to-yellow-50">

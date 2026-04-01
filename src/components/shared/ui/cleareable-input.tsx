@@ -1,6 +1,6 @@
 import * as React from "react"
 import { X } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/shared/ui/input"
 import { cn } from "@/lib/utils"
 
 interface ClearableInputProps

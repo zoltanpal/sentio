@@ -82,7 +82,7 @@ export default function SentimentDoughnut({
         const { ctx, chartArea } = chart;
         if (!chartArea) return;
 
-        const { left, right, top, bottom, width, height } = chartArea;
+        const { left, top, width, height } = chartArea;
         const centerX = left + width / 2;
         const centerY = top + height / 2;
 

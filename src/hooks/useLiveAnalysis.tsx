@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
+import { buildSentioApiUrl, getSentioApiHeaders } from "@/config/api";
 
-const API_HOST = "https://devapi.palzoltan.net/sentio/live/query";
-const API_TOKEN = "testtoken";
+const API_HOST = buildSentioApiUrl("/live/query");
 
 export type SentimentLabel = "positive" | "neutral" | "negative";
 
@@ -79,8 +79,6 @@ type RunParams = {
   query: string;
   windowHours: number;
   useAi?: boolean;
-  includeHeadlines?: boolean;
-  includeChange?: boolean;
 };
 
 type UseLiveAnalysisState = {
@@ -99,15 +97,11 @@ function buildUrl({
   query,
   windowHours,
   useAi = false,
-  includeHeadlines = true,
-  includeChange = true,
 }: RunParams) {
   const params = new URLSearchParams({
     query: query.trim(),
     window_hours: String(windowHours),
     use_ai: String(useAi),
-    include_headlines: String(includeHeadlines),
-    include_change: String(includeChange),
   });
 
   return `${API_HOST}?${params.toString()}`;
@@ -117,11 +111,7 @@ async function fetchLiveAnalysis(
   params: RunParams,
   signal?: AbortSignal
 ): Promise<LiveQueryResponse> {
-  const headers: HeadersInit = {};
-
-  if (API_TOKEN) {
-    headers.Authorization = `Bearer ${API_TOKEN}`;
-  }
+  const headers = getSentioApiHeaders();
 
   const response = await fetch(buildUrl(params), {
     method: "GET",
@@ -153,8 +143,6 @@ export function useLiveAnalysis() {
       query,
       windowHours,
       useAi = false,
-      includeHeadlines = true,
-      includeChange = true,
     }: RunParams) => {
       const cleanedQuery = query.trim();
 
@@ -183,8 +171,6 @@ export function useLiveAnalysis() {
             query: cleanedQuery,
             windowHours,
             useAi,
-            includeHeadlines,
-            includeChange,
           },
           controller.signal
         );

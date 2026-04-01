@@ -2,27 +2,29 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { BotIcon, NewspaperIcon } from "lucide-react";
 
-import SearchBar from "@/components/Searchbar";
-import Loading from "@/components/elements/Loading";
-import WindowHoursSelector from "@/components/elements/WindowHoursSelector";
-import HeadlinesTable from "@/components/HeadlinesTable";
-import SentimentDoughnut from "@/components/elements/SentimentDoughnut";
-import ExpandableText from "@/components/elements/ExpandableText";
-import SentimentChangeCard from "@/components/elements/SentimentChangeCard";
+import SearchBar from "@/components/search/SearchBar";
+import Loading from "@/components/analysis/LoadingState";
+import WindowHoursSelector from "@/components/search/WindowHoursSelector";
+import HeadlinesTable from "@/components/analysis/HeadlinesTable";
+import SentimentDoughnut from "@/components/analysis/SentimentDoughnut";
+import ExpandableText from "@/components/analysis/ExpandableText";
+import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 
-import { Badge } from "@/components/ui/badge";
-
+import { Badge } from "@/components/shared/ui/badge";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-
-
+} from "@/components/shared/ui/card";
 
 import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
+import { usePromptResolver } from "@/hooks/usePromptResolver";
+import {
+  useSearchSession,
+  type SearchSession,
+} from "@/hooks/useSearchSession";
 
 const sentimentLabelMap: Record<string, string> = {
   positive: "Positive",
@@ -35,7 +37,8 @@ const sentimentLabelMap: Record<string, string> = {
 
 const ALLOWED_WINDOWS = [6, 12, 24, 48, 72];
 const DEFAULT_WINDOW = 6;
-const USE_AI = false;
+const USE_AI = true;
+const USE_AI_PROMPT_RESOLVER = true;
 
 function sanitizeWindow(value: string | null): number {
   const parsed = Number(value);
@@ -73,25 +76,131 @@ export default function Dashboard() {
     [searchParams]
   );
 
-  const [queryInput, setQueryInput] = useState(queryFromUrl);
+  const modeFromUrl = useMemo(
+    () => sanitizeQuery(searchParams.get("mode")),
+    [searchParams]
+  );
+
+  const [promptInput, setPromptInput] = useState("");
+  const [activeQuery, setActiveQuery] = useState(queryFromUrl);
   const [windowHours, setWindowHours] = useState(windowFromUrl);
   const [pageError, setPageError] = useState("");
+  const [resolvedSession, setResolvedSession] =
+    useState<SearchSession | null>(null);
 
-  const { data, loading, error, run, clearResults } = useLiveAnalysis();
+  const {
+    data,
+    loading,
+    error,
+    run,
+    clearResults,
+  } = useLiveAnalysis();
+
+  const {
+    run: resolvePrompt,
+    loading: resolving,
+    error: resolveError,
+  } = usePromptResolver();
+
+  const {
+    getSession,
+    setSession,
+    getPendingPrompt,
+    clearPendingPrompt,
+  } = useSearchSession();
 
   useEffect(() => {
-    setQueryInput(queryFromUrl);
-  }, [queryFromUrl]);
+    const session = getSession();
+    setResolvedSession(session);
+
+    if (session?.source === "prompt" && session.rawPrompt) {
+      setPromptInput(session.rawPrompt);
+      setActiveQuery(session.resolvedQuery);
+    } else {
+      setPromptInput(queryFromUrl);
+      setActiveQuery(queryFromUrl);
+    }
+  }, [getSession, queryFromUrl]);
 
   useEffect(() => {
     setWindowHours(windowFromUrl);
   }, [windowFromUrl]);
 
   useEffect(() => {
+    if (modeFromUrl !== "prompt") {
+      return;
+    }
+
+    const pendingPrompt = getPendingPrompt();
+    const safePrompt = sanitizeQuery(pendingPrompt);
+
+    const validationError = validateQuery(safePrompt);
+
+    if (validationError) {
+      setPageError(validationError);
+      clearResults();
+      clearPendingPrompt();
+      return;
+    }
+
+    let cancelled = false;
+
+    setPromptInput(safePrompt);
+    setPageError("");
+
+    const resolveAndRedirect = async () => {
+      const resolved = await resolvePrompt({
+        prompt: safePrompt,
+        useAi: USE_AI_PROMPT_RESOLVER,
+      });
+
+      if (!resolved || cancelled) {
+        return;
+      }
+
+      const nextSession: SearchSession = {
+        source: "prompt",
+        rawPrompt: safePrompt,
+        resolvedQuery: resolved.query,
+        resolvedWindowHours: resolved.window_hours,
+      };
+
+      setSession(nextSession);
+      setResolvedSession(nextSession);
+
+      setActiveQuery(resolved.query);
+      setWindowHours(resolved.window_hours);
+
+      clearPendingPrompt();
+
+      setSearchParams({
+        query: resolved.query,
+        window: String(resolved.window_hours),
+      });
+    };
+
+    resolveAndRedirect();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    modeFromUrl,
+    resolvePrompt,
+    getPendingPrompt,
+    setSession,
+    clearPendingPrompt,
+    setSearchParams,
+    clearResults,
+  ]);
+
+  useEffect(() => {
+    if (modeFromUrl === "prompt") {
+      return;
+    }
+
     const rawQuery = searchParams.get("query");
     const rawWindow = searchParams.get("window");
-    const cheatCode = searchParams.get("cheat");
-
     const safeQuery = sanitizeQuery(rawQuery);
     const safeWindow = sanitizeWindow(rawWindow);
 
@@ -106,25 +215,43 @@ export default function Dashboard() {
     }
 
     if (rawWindow !== null && Number(rawWindow) !== safeWindow) {
-      setPageError(`Invalid time window. Using default value (${DEFAULT_WINDOW}h).`);
+      setPageError(
+        `Invalid time window. Using default value (${DEFAULT_WINDOW}h).`
+      );
     } else {
       setPageError("");
     }
 
-    const useAi = cheatCode === "marcopolo" ? true : USE_AI;
+    setActiveQuery(safeQuery);
 
     run({
       query: safeQuery,
       windowHours: safeWindow,
-      useAi,
-      includeHeadlines: true,
-      includeChange: true,
+      useAi: USE_AI,
     });
-  }, [searchParams, run, clearResults]);
-
+  }, [searchParams, modeFromUrl, run, clearResults]);
 
   const executeSearch = (nextQuery: string, nextWindow: number) => {
-    const validationError = validateQuery(nextQuery);
+    const trimmedQuery = nextQuery.trim();
+    const validationError = validateQuery(trimmedQuery);
+
+    if (validationError) {
+      setPageError(validationError);
+      return;
+    }
+
+    setPageError("");
+    setActiveQuery(trimmedQuery);
+
+    setSearchParams({
+      query: trimmedQuery,
+      window: String(nextWindow),
+    });
+  };
+
+  const onSearch = async () => {
+    const trimmedPrompt = promptInput.trim();
+    const validationError = validateQuery(trimmedPrompt);
 
     if (validationError) {
       setPageError(validationError);
@@ -133,27 +260,44 @@ export default function Dashboard() {
 
     setPageError("");
 
-    setSearchParams({
-      query: nextQuery.trim(),
-      window: String(nextWindow),
+    const resolved = await resolvePrompt({
+      prompt: trimmedPrompt,
+      useAi: USE_AI_PROMPT_RESOLVER,
     });
-  };
 
-  const onSearch = () => {
-    executeSearch(queryInput, windowHours);
+    if (!resolved) {
+      return;
+    }
+
+    const nextSession: SearchSession = {
+      source: "prompt",
+      rawPrompt: trimmedPrompt,
+      resolvedQuery: resolved.query,
+      resolvedWindowHours: resolved.window_hours,
+    };
+
+    setSession(nextSession);
+    setResolvedSession(nextSession);
+
+    setActiveQuery(resolved.query);
+    setWindowHours(resolved.window_hours);
+
+    setSearchParams({
+      query: resolved.query,
+      window: String(resolved.window_hours),
+    });
   };
 
   const onWindowTimeChange = (nextWindow: number) => {
     if (nextWindow === windowHours) return;
 
     setWindowHours(nextWindow);
-    executeSearch(queryInput, nextWindow);
+    executeSearch(activeQuery, nextWindow);
   };
 
-  const displayError = pageError || error;
+  const displayError = pageError || resolveError || error;
+  const isBusy = loading || resolving;
   const hasResults = (data?.aggregated.article_count ?? 0) > 0;
-
-  console.log("Live analysis data:", data);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
@@ -169,17 +313,18 @@ export default function Dashboard() {
           </h1>
         </a>
       </div>
+
       <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
           <div className="w-full">
             <SearchBar
-              value={queryInput}
+              value={promptInput}
               onChange={(value) => {
-                setQueryInput(value);
+                setPromptInput(value);
                 if (pageError) setPageError("");
               }}
               onSearch={onSearch}
-              loading={loading}
+              loading={isBusy}
               error={displayError}
               placeholder="e.g. Tesla, NVDA, oil prices"
               size="md"
@@ -194,9 +339,18 @@ export default function Dashboard() {
             />
           </div>
         </div>
+
+        {resolvedSession?.source === "prompt" &&
+        resolvedSession.rawPrompt &&
+        activeQuery ? (
+          <div className="mt-3 text-sm text-gray-500">
+            Searching for:{" "}
+            <span className="font-medium text-gray-700">{activeQuery}</span>
+          </div>
+        ) : null}
       </div>
 
-      {loading ? (
+      {isBusy ? (
         <Loading text="Analyzing feeds, please wait..." />
       ) : hasResults && data ? (
         <div className="space-y-8">

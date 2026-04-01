@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import SearchBar from "@/components/Searchbar";
-
-const DEFAULT_WINDOW = 6;
+import SearchBar from "@/components/search/SearchBar";
+import { useSearchSession } from "@/hooks/useSearchSession";
 
 function validateQuery(query: string): string {
   const trimmed = query.trim();
@@ -24,6 +23,7 @@ export default function Home() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const { setPendingPrompt } = useSearchSession();
 
   const onSearch = () => {
     const validationError = validateQuery(query);
@@ -33,12 +33,11 @@ export default function Home() {
       return;
     }
 
-    const trimmedQuery = query.trim();
+    const trimmedPrompt = query.trim();
 
     setError("");
-    navigate(
-      `/results?query=${encodeURIComponent(trimmedQuery)}&window=${DEFAULT_WINDOW}`
-    );
+    setPendingPrompt(trimmedPrompt);
+    navigate("/results?mode=prompt");
   };
 
   return (

@@ -1,7 +1,7 @@
 import {
   ToggleGroup,
   ToggleGroupItem,
-} from "@/components/ui/toggle-group";
+} from "@/components/shared/ui/toggle-group";
 
 type WindowHoursSelectorProps = {
   value: number;
