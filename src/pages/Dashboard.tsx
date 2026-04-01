@@ -11,7 +11,7 @@ import ExpandableText from "@/components/elements/ExpandableText";
 import SentimentChangeCard from "@/components/elements/SentimentChangeCard";
 
 import { Badge } from "@/components/ui/badge";
-// import Link from "next/link";
+
 import {
   Card,
   CardContent,
@@ -20,26 +20,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
-
-import {
-  Menubar,
-  MenubarContent,
-  MenubarGroup,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
 
 
 import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
@@ -188,19 +168,6 @@ export default function Dashboard() {
             Sentio
           </h1>
         </a>
-
-        <div className="flex items-center">
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuLink className="">LogIn</NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>SignUp</NavigationMenuLink>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
       </div>
       <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
