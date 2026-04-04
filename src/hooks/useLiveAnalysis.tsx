@@ -73,12 +73,25 @@ export type LiveQueryResponse = {
     direction: ChangeDirection;
   } | null;
   ai_summary?: string | null;
+  drivers?: {
+    is_meaningful: boolean;
+    headlines: {
+      title: string;
+    }[];
+  } | null;
+  sentiment_scores_per_hour: {
+    bucket_start: string;
+    article_count: number;
+    avg_sentiment_score: number | null;
+  }[];
+
 };
 
 type RunParams = {
   query: string;
   windowHours: number;
   useAi?: boolean;
+  rawPrompt?: string | null;
 };
 
 type UseLiveAnalysisState = {
@@ -93,30 +106,25 @@ const EMPTY_STATE: UseLiveAnalysisState = {
   error: "",
 };
 
-function buildUrl({
-  query,
-  windowHours,
-  useAi = false,
-}: RunParams) {
-  const params = new URLSearchParams({
-    query: query.trim(),
-    window_hours: String(windowHours),
-    use_ai: String(useAi),
-  });
-
-  return `${API_HOST}?${params.toString()}`;
-}
-
 async function fetchLiveAnalysis(
   params: RunParams,
   signal?: AbortSignal
 ): Promise<LiveQueryResponse> {
-  const headers = getSentioApiHeaders();
+  const headers: HeadersInit = {
+    ...getSentioApiHeaders(),
+    "Content-Type": "application/json",
+  };
 
-  const response = await fetch(buildUrl(params), {
-    method: "GET",
+  const response = await fetch(API_HOST, {
+    method: "POST",
     headers,
     signal,
+    body: JSON.stringify({
+      query: params.query.trim(),
+      window_hours: params.windowHours,
+      use_ai: params.useAi ?? false,
+      prompt: params.rawPrompt?.trim() || null,
+    }),
   });
 
   if (!response.ok) {
@@ -142,6 +150,7 @@ export function useLiveAnalysis() {
     async ({
       query,
       windowHours,
+      rawPrompt = null,
       useAi = false,
     }: RunParams) => {
       const cleanedQuery = query.trim();
@@ -170,6 +179,7 @@ export function useLiveAnalysis() {
           {
             query: cleanedQuery,
             windowHours,
+            rawPrompt,
             useAi,
           },
           controller.signal
@@ -186,9 +196,7 @@ export function useLiveAnalysis() {
         if (err instanceof DOMException && err.name === "AbortError") {
           return;
         }
-
         console.error("Error fetching live analysis:", err);
-
         setState({
           data: null,
           loading: false,

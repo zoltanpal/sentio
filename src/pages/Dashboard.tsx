@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
 import { BotIcon, NewspaperIcon } from "lucide-react";
 
 import SearchBar from "@/components/search/SearchBar";
@@ -9,6 +8,7 @@ import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 import SentimentDoughnut from "@/components/analysis/SentimentDoughnut";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
+import { ChangeCard } from "@/components/analysis/ChangeCard";
 
 import { Badge } from "@/components/shared/ui/badge";
 import {
@@ -30,6 +30,7 @@ import {
   sanitizeWindow,
   validateQuery,
 } from "@/lib/searchParams";
+import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 
 const sentimentLabelMap: Record<string, string> = {
   positive: "Positive",
@@ -49,11 +50,8 @@ type DashboardViewStateParams = {
   analysisError: string;
   loading: boolean;
   resolving: boolean;
-  isPreparingSearch: boolean;
   articleCount: number;
   hasAttemptedSearch: boolean;
-  resolvedRawPrompt: string | null;
-  promptInput: string;
 };
 
 function getDashboardViewState({
@@ -62,18 +60,12 @@ function getDashboardViewState({
   analysisError,
   loading,
   resolving,
-  isPreparingSearch,
   articleCount,
   hasAttemptedSearch,
-  resolvedRawPrompt,
-  promptInput,
 }: DashboardViewStateParams) {
   const displayError = pageError || resolveError || analysisError;
-  const isBusy = loading || resolving || isPreparingSearch;
+  const isBusy = loading || resolving;
   const hasResults = articleCount > 0;
-  const hasUnsavedPromptChanges =
-    Boolean(resolvedRawPrompt) &&
-    promptInput.trim() !== (resolvedRawPrompt ?? "").trim();
   const showEmptyState =
     hasAttemptedSearch && !isBusy && !displayError && !hasResults;
   const showIdleState = !hasAttemptedSearch && !isBusy;
@@ -81,7 +73,6 @@ function getDashboardViewState({
   return {
     displayError,
     hasResults,
-    hasUnsavedPromptChanges,
     isBusy,
     showEmptyState,
     showIdleState,
@@ -89,44 +80,15 @@ function getDashboardViewState({
 }
 
 export default function Dashboard() {
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const queryFromUrl = useMemo(
-    () => sanitizeQuery(searchParams.get("query")),
-    [searchParams]
-  );
-
-  const windowFromUrl = useMemo(
-    () => sanitizeWindow(searchParams.get("window")),
-    [searchParams]
-  );
-
-  const modeFromUrl = useMemo(
-    () => sanitizeQuery(searchParams.get("mode")),
-    [searchParams]
-  );
-
   const [promptInput, setPromptInput] = useState("");
-  const [activeQuery, setActiveQuery] = useState(queryFromUrl);
-  const [windowHours, setWindowHours] = useState(windowFromUrl);
+  const [activeQuery, setActiveQuery] = useState("");
+  const [windowHours, setWindowHours] = useState(DEFAULT_WINDOW);
   const [pageError, setPageError] = useState("");
-  const [isPreparingSearch, setIsPreparingSearch] = useState(
-    modeFromUrl === "prompt" || Boolean(queryFromUrl)
-  );
-  const [hasAttemptedSearch, setHasAttemptedSearch] = useState(
-    modeFromUrl === "prompt" || Boolean(queryFromUrl)
-  );
+  const [hasAttemptedSearch, setHasAttemptedSearch] = useState(false);
   const [resolvedSession, setResolvedSession] =
     useState<SearchSession | null>(null);
 
-  const {
-    data,
-    error,
-    loading,
-    run,
-    clearResults,
-  } = useLiveAnalysis();
-
+  const { data, error, loading, run, clearResults } = useLiveAnalysis();
   const {
     run: resolvePrompt,
     loading: resolving,
@@ -136,155 +98,117 @@ export default function Dashboard() {
   const {
     getSession,
     setSession,
+    clearSession,
     getPendingPrompt,
     clearPendingPrompt,
   } = useSearchSession();
 
-  useEffect(() => {
-    const session = getSession();
-    setResolvedSession(session);
+  const executeResolvedSearch = useCallback(
+    async (session: SearchSession) => {
+      const resolvedQuery = sanitizeQuery(session.resolvedQuery);
+      const resolvedWindow = sanitizeWindow(String(session.resolvedWindowHours));
+      const rawPrompt = sanitizeQuery(session.rawPrompt);
+      const validationError = validateQuery(resolvedQuery);
 
-    if (session?.source === "prompt" && session.rawPrompt) {
-      setPromptInput(session.rawPrompt);
-      setActiveQuery(session.resolvedQuery);
-    } else {
-      setPromptInput(queryFromUrl);
-      setActiveQuery(queryFromUrl);
-    }
-  }, [getSession, queryFromUrl]);
-
-  useEffect(() => {
-    setWindowHours(windowFromUrl);
-  }, [windowFromUrl]);
-
-  useEffect(() => {
-    if (modeFromUrl !== "prompt") {
-      return;
-    }
-
-    const pendingPrompt = getPendingPrompt();
-    const safePrompt = sanitizeQuery(pendingPrompt);
-    const validationError = validateQuery(safePrompt);
-
-    if (validationError) {
-      setPageError(validationError);
-      setIsPreparingSearch(false);
-      clearResults();
-      clearPendingPrompt();
-      return;
-    }
-
-    let cancelled = false;
-
-    setPromptInput(safePrompt);
-    setPageError("");
-    setIsPreparingSearch(true);
-    setHasAttemptedSearch(true);
-
-    const resolveAndRedirect = async () => {
-      const resolved = await resolvePrompt({
-        prompt: safePrompt,
-        useAi: USE_AI_PROMPT_RESOLVER,
-      });
-
-      if (!resolved || cancelled) {
-        if (!cancelled) {
-          setIsPreparingSearch(false);
-        }
+      if (validationError) {
+        setPageError(validationError);
+        setHasAttemptedSearch(false);
+        setResolvedSession(null);
+        clearResults();
+        clearSession();
         return;
       }
 
-      const nextSession: SearchSession = {
-        source: "prompt",
-        rawPrompt: safePrompt,
-        resolvedQuery: resolved.query,
-        resolvedWindowHours: resolved.window_hours,
-      };
-
-      setSession(nextSession);
-      setResolvedSession(nextSession);
-      setActiveQuery(resolved.query);
-      setWindowHours(resolved.window_hours);
-      clearPendingPrompt();
-
-      setSearchParams({
-        query: resolved.query,
-        window: String(resolved.window_hours),
+      setPageError("");
+      setHasAttemptedSearch(true);
+      setResolvedSession(session);
+      setPromptInput(rawPrompt || resolvedQuery);
+      setActiveQuery(resolvedQuery);
+      setWindowHours(resolvedWindow);
+      setSession({
+        ...session,
+        resolvedQuery,
+        resolvedWindowHours: resolvedWindow,
+        rawPrompt: rawPrompt || null,
       });
-    };
 
-    resolveAndRedirect();
+      await run({
+        query: resolvedQuery,
+        windowHours: resolvedWindow,
+        rawPrompt: rawPrompt || null,
+        useAi: USE_AI,
+      });
+    },
+    [clearResults, clearSession, run, setSession]
+  );
+
+  useEffect(() => {
+    const pendingPrompt = sanitizeQuery(getPendingPrompt());
+    const session = getSession();
+    let cancelled = false;
+
+    if (pendingPrompt) {
+      void (async () => {
+        const validationError = validateQuery(pendingPrompt);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (validationError) {
+          setPageError(validationError);
+          clearResults();
+          clearPendingPrompt();
+          return;
+        }
+
+        setPromptInput(pendingPrompt);
+        setHasAttemptedSearch(true);
+        setPageError("");
+
+        const resolved = await resolvePrompt({
+          prompt: pendingPrompt,
+          useAi: USE_AI_PROMPT_RESOLVER,
+        });
+
+        if (!resolved || cancelled) {
+          return;
+        }
+
+        clearPendingPrompt();
+
+        const nextSession: SearchSession = {
+          source: "prompt",
+          rawPrompt: pendingPrompt,
+          resolvedQuery: resolved.query,
+          resolvedWindowHours: resolved.window_hours,
+        };
+
+        await executeResolvedSearch(nextSession);
+      })();
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (!session) {
+      return;
+    }
+
+    void executeResolvedSearch(session);
 
     return () => {
       cancelled = true;
     };
   }, [
-    modeFromUrl,
-    resolvePrompt,
-    getPendingPrompt,
-    setSession,
     clearPendingPrompt,
-    setSearchParams,
     clearResults,
+    executeResolvedSearch,
+    getPendingPrompt,
+    getSession,
+    resolvePrompt,
   ]);
-
-  useEffect(() => {
-    if (modeFromUrl === "prompt") {
-      return;
-    }
-
-    const rawQuery = searchParams.get("query");
-    const rawWindow = searchParams.get("window");
-    const safeQuery = sanitizeQuery(rawQuery);
-    const safeWindow = sanitizeWindow(rawWindow);
-    const validationError = validateQuery(safeQuery);
-
-    if (validationError) {
-      if (rawQuery !== null) {
-        setPageError(validationError);
-      }
-      setIsPreparingSearch(false);
-      setHasAttemptedSearch(false);
-      clearResults();
-      return;
-    }
-
-    if (rawWindow !== null && Number(rawWindow) !== safeWindow) {
-      setPageError(
-        `Invalid time window. Using default value (${DEFAULT_WINDOW}h).`
-      );
-    } else {
-      setPageError("");
-    }
-
-    setActiveQuery(safeQuery);
-    setIsPreparingSearch(false);
-    setHasAttemptedSearch(true);
-
-    run({
-      query: safeQuery,
-      windowHours: safeWindow,
-      useAi: USE_AI,
-    });
-  }, [searchParams, modeFromUrl, run, clearResults]);
-
-  const executeSearch = (nextQuery: string, nextWindow: number) => {
-    const trimmedQuery = nextQuery.trim();
-    const validationError = validateQuery(trimmedQuery);
-
-    if (validationError) {
-      setPageError(validationError);
-      return;
-    }
-
-    setPageError("");
-    setActiveQuery(trimmedQuery);
-
-    setSearchParams({
-      query: trimmedQuery,
-      window: String(nextWindow),
-    });
-  };
 
   const onSearch = async () => {
     const trimmedPrompt = promptInput.trim();
@@ -296,7 +220,6 @@ export default function Dashboard() {
     }
 
     setPageError("");
-    setIsPreparingSearch(true);
     setHasAttemptedSearch(true);
 
     const resolved = await resolvePrompt({
@@ -305,7 +228,6 @@ export default function Dashboard() {
     });
 
     if (!resolved) {
-      setIsPreparingSearch(false);
       return;
     }
 
@@ -316,23 +238,31 @@ export default function Dashboard() {
       resolvedWindowHours: resolved.window_hours,
     };
 
-    setSession(nextSession);
-    setResolvedSession(nextSession);
-    setActiveQuery(resolved.query);
-    setWindowHours(resolved.window_hours);
-
-    setSearchParams({
-      query: resolved.query,
-      window: String(resolved.window_hours),
-    });
+    await executeResolvedSearch(nextSession);
   };
 
   const onWindowTimeChange = (nextWindow: number) => {
-    if (nextWindow === windowHours) return;
+    const normalizedWindow = sanitizeWindow(String(nextWindow));
 
-    setWindowHours(nextWindow);
+    if (normalizedWindow === windowHours) {
+      return;
+    }
+
+    setWindowHours(normalizedWindow);
     setHasAttemptedSearch(true);
-    executeSearch(activeQuery, nextWindow);
+
+    if (!activeQuery) {
+      return;
+    }
+
+    const nextSession: SearchSession = {
+      source: resolvedSession?.source ?? "prompt",
+      rawPrompt: resolvedSession?.rawPrompt ?? (promptInput.trim() || null),
+      resolvedQuery: activeQuery,
+      resolvedWindowHours: normalizedWindow,
+    };
+
+    void executeResolvedSearch(nextSession);
   };
 
   const onPromptInputChange = (value: string) => {
@@ -346,7 +276,6 @@ export default function Dashboard() {
     displayError,
     isBusy,
     hasResults,
-    hasUnsavedPromptChanges,
     showEmptyState,
     showIdleState,
   } = getDashboardViewState({
@@ -355,12 +284,11 @@ export default function Dashboard() {
     analysisError: error,
     loading,
     resolving,
-    isPreparingSearch,
     articleCount: data?.aggregated.article_count ?? 0,
     hasAttemptedSearch,
-    resolvedRawPrompt: resolvedSession?.rawPrompt ?? null,
-    promptInput,
   });
+
+  console.log(data);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
@@ -399,22 +327,6 @@ export default function Dashboard() {
             />
           </div>
         </div>
-
-        {/* {resolvedSession?.source === "prompt" &&
-        resolvedSession.rawPrompt &&
-        activeQuery ? (
-          <div className="mt-3 text-sm text-gray-500">
-            Searching for:{" "}
-            <span className="font-medium text-gray-700">{activeQuery}</span>
-          </div>
-        ) : null}
-
-        {hasUnsavedPromptChanges ? (
-          <div className="mt-2 text-sm text-gray-500">
-            Time window changes still apply to the current parsed query until
-            you search again.
-          </div>
-        ) : null} */}
       </div>
 
       {isBusy ? (
@@ -431,11 +343,22 @@ export default function Dashboard() {
             </div>
           ) : null}
 
-          {data.change ? (
-            <div className="flex w-[300px] flex-col">
-              <SentimentChangeCard data={data.change} />
+          
+          <div className="flex flex-col-reverse gap-4 lg:flex-row">
+            <div className="w-full lg:w-3/4">
+              <Card className="h-[300px] gap-0 bg-gradient-to-r from-blue-30 to-blue-50 py-2 sm:h-[320px]">
+                <SentimentTimelineChart data={data.sentiment_scores_per_hour} />
+              </Card>
             </div>
-          ) : null}
+            <div className="w-full lg:w-1/4">
+              <SentimentChangeCard
+                data={data.change}
+                drivers={data.drivers}
+                windowHours={data.window_hours}
+              />
+            </div>
+
+          </div>
 
           <div className="flex flex-col-reverse gap-4 lg:flex-row">
             <div className="w-full lg:w-3/4">
@@ -491,8 +414,7 @@ export default function Dashboard() {
         <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
           Enter a topic to start analyzing live news sentiment.
         </div>
-      ) : null
-      }
+      ) : null}
     </div>
   );
 }

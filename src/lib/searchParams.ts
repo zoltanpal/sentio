@@ -17,7 +17,7 @@ export function validateQuery(query: string): string {
     return "Please enter at least one keyword.";
   }
 
-  if (trimmed.length < 3) {
+  if (trimmed.length < 2) {
     return "Please enter at least 3 characters.";
   }
 

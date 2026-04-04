@@ -19,20 +19,34 @@ type SentimentChangeData = {
   };
   delta: number;
   direction: ChangeDirection;
-  // window_hours: number;
 };
+
+type DriverHeadline = {
+  title: string;
+};
+
+type DriversData = {
+  is_meaningful: boolean;
+  headlines: DriverHeadline[];
+} | null;
 
 type Props = {
   data: SentimentChangeData;
+  drivers?: DriversData;
+  windowHours: number;
   title?: string;
 };
 
 function getIntensityLabel(delta: number, direction: ChangeDirection): string {
   const abs = Math.abs(delta);
 
-  if (direction === "stable" || abs < 0.05) return "Stable";
-  if (abs >= 0.25) return direction === "improving" ? "Sharply improving" : "Sharply worsening";
-  if (abs >= 0.12) return direction === "improving" ? "Improving" : "Worsening";
+  if (direction === "stable" || abs < 0.04) return "Stable";
+  if (abs >= 0.20) {
+    return direction === "improving" ? "Sharply improving" : "Sharply worsening";
+  }
+  if (abs >= 0.10) {
+    return direction === "improving" ? "Improving" : "Worsening";
+  }
   return direction === "improving" ? "Slightly improving" : "Slightly worsening";
 }
 
@@ -69,26 +83,33 @@ function getDirectionMeta(direction: ChangeDirection, delta: number) {
   }
 }
 
+function formatDelta(delta: number): string {
+  const sign = delta > 0 ? "+" : "";
+  return `${sign}${delta.toFixed(2)}`;
+}
+
 export default function SentimentChangeCard({
   data,
+  drivers = null,
+  windowHours,
   title = "Tone Shift",
 }: Props) {
-  const { direction, delta } = data;
-
+  const { direction, delta, current } = data;
   const meta = getDirectionMeta(direction, delta);
 
+
+  const showDrivers =
+    Boolean(drivers?.is_meaningful) && (drivers?.headlines?.length ?? 0) > 0;
+
   return (
-    <Card className="rounded-xl border bg-gradient-to-r from-yellow-30 to-yellow-50">
+    <Card className="rounded-xl gap-2 px-0 border bg-gradient-to-r from-yellow-30 to-yellow-50">
       <CardHeader className="py-0 gap-2">
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-base">{title}</CardTitle>
-          {/* <Badge variant="outline" className="rounded-full">
-            Last {window_hours}h vs previous {window_hours}h
-          </Badge> */}
         </div>
       </CardHeader>
 
-      <CardContent className="py-0">
+      <CardContent className="py-0 space-y-4">
         <div className="flex items-start gap-4">
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${meta.iconWrapClass}`}
@@ -98,53 +119,41 @@ export default function SentimentChangeCard({
 
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-3xl font-semibold ${meta.deltaClass}`}>{meta.label}</span>
-              {/* <Badge
-                variant="outline"
-                className={`rounded-full ${meta.badgeClass}`}
-              >
-                {formatScore(delta)}
-              </Badge> */}
+              <span className={`text-3xl font-semibold ${meta.deltaClass}`}>
+                {meta.label}
+              </span>
             </div>
 
-            {/* <p className="text-sm text-muted-foreground">
-              From <span className="font-medium text-foreground">{formatScore(previous.avg_sentiment_score)}</span>{" "}
-              to <span className="font-medium text-foreground">{formatScore(current.avg_sentiment_score)}</span>
+            <p className={`text-sm font-medium ${meta.deltaClass}`} 
+              title={`Sentiment moved by ${formatDelta(delta)} points on a -1 to +1 scale`}>
+              {/* {direction === "improving"
+                ? "↑"
+                : direction === "worsening"
+                ? "↓"
+                : "→"}{" "} */}
+              {formatDelta(delta)} in last {windowHours} hours
+            </p>
+
+            {/* <p className="text-xs text-muted-foreground">
+              {current.article_count} article{current.article_count === 1 ? "" : "s"}
             </p> */}
           </div>
         </div>
 
-        {/* <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl border p-3">
-            <div className="text-xs text-muted-foreground">Current window</div>
-            <div className="mt-1 text-2xl font-semibold">
-              {formatScore(current.avg_sentiment_score)}
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {current.article_count} article{current.article_count === 1 ? "" : "s"}
-            </div>
-          </div>
+        {showDrivers && (
+          <div className="rounded-xl border bg-background/70 p-3">
+            <p className="mb-2 text-sm font-medium">Driven by</p>
 
-          <div className="rounded-xl border p-3">
-            <div className="text-xs text-muted-foreground">Previous window</div>
-            <div className="mt-1 text-2xl font-semibold">
-              {formatScore(previous.avg_sentiment_score)}
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {previous.article_count} article{previous.article_count === 1 ? "" : "s"}
-            </div>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {drivers!.headlines.slice(0, 3).map((headline, index) => (
+                <li key={`${headline.title}-${index}`} className="flex gap-2">
+                  <span className="mt-1 text-foreground">•</span>
+                  <span className="line-clamp-2">{headline.title}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div> */}
-
-        {/* {lowVolume && (
-          <div className="flex mt-4 items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300">
-            <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
-            <p className="text-xs leading-5">
-              Low article volume. This change is based on only {totalArticles} article
-              {totalArticles === 1 ? "" : "s"}, so the signal may be noisy.
-            </p>
-          </div>
-        )} */}
+        )}
       </CardContent>
     </Card>
   );

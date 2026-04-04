@@ -30,7 +30,7 @@ export default function Home() {
 
     setError("");
     setPendingPrompt(trimmedPrompt);
-    navigate("/results?mode=prompt");
+    navigate("/results");
   };
 
   return (
