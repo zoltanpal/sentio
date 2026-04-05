@@ -97,6 +97,7 @@ export default function SentimentChangeCard({
   const { direction, delta, current } = data;
   const meta = getDirectionMeta(direction, delta);
 
+  console.log("SentimentChangeCard data:", data);
 
   const showDrivers =
     Boolean(drivers?.is_meaningful) && (drivers?.headlines?.length ?? 0) > 0;
@@ -104,39 +105,32 @@ export default function SentimentChangeCard({
   return (
     <Card className="rounded-xl gap-2 px-0 border bg-gradient-to-r from-yellow-30 to-yellow-50">
       <CardHeader className="py-0 gap-2">
-        <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-base">{title}</CardTitle>
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-base">Recent Change</CardTitle>
         </div>
       </CardHeader>
 
       <CardContent className="py-0 space-y-4">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3">
           <div
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${meta.iconWrapClass}`}
+            className={`flex h-14 w-10 shrink-0 items-center justify-center rounded-2xl ${meta.iconWrapClass}`}
           >
             <meta.Icon className="h-6 w-6" />
           </div>
 
           <div className="min-w-0 space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-3xl font-semibold ${meta.deltaClass}`}>
+            <div className="flex flex-wrap items-center gap-1">
+              <span className={`text-2xl font-semibold ${meta.deltaClass}`}>
                 {meta.label}
               </span>
             </div>
-
-            <p className={`text-sm font-medium ${meta.deltaClass}`} 
-              title={`Sentiment moved by ${formatDelta(delta)} points on a -1 to +1 scale`}>
-              {/* {direction === "improving"
-                ? "↑"
-                : direction === "worsening"
-                ? "↓"
-                : "→"}{" "} */}
-              {formatDelta(delta)} in last {windowHours} hours
+            <p className={`text-sm font-bold ${meta.deltaClass}`}>
+              {data.previous.avg_sentiment_score.toFixed(2)}
+              &nbsp;→&nbsp;
+              {data.current.avg_sentiment_score.toFixed(2)}
+              {/* {formatDelta(delta)} in last {windowHours} hours */}
             </p>
-
-            {/* <p className="text-xs text-muted-foreground">
-              {current.article_count} article{current.article_count === 1 ? "" : "s"}
-            </p> */}
+            <small>Δ&nbsp;{delta.toFixed(2)}&nbsp;vs previous {windowHours} hours</small>
           </div>
         </div>
 

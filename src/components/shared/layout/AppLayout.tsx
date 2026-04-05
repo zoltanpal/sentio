@@ -4,6 +4,7 @@ import { useEffect } from "react";
 const routeTitleMap: Record<string, string> = {
   "/": "Home",
   "/results": "Dashboard",
+  "/about": "About",
 };
 
 
@@ -30,6 +31,10 @@ export default function Layout() {
           <div className="text-center">
             <a href="/" className="inline-block text-blue-500 hover:underline">
               Home
+            </a>
+            &nbsp;|&nbsp;
+            <a href="/about" className="inline-block text-blue-500 hover:underline">
+              About
             </a>
             <p className="mt-2 text-center text-muted-foreground">
               &copy; {new Date().getFullYear()} Sentio. All rights reserved.

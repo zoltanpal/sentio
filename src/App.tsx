@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import AppLayout from "@/components/shared/layout/AppLayout";
 const Home = lazy(() => import("@/pages/Home"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const About = lazy(() => import("@/pages/About"));
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Home />} />
           <Route path="results" element={<Dashboard />} />
+          <Route path="about" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

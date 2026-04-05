@@ -66,7 +66,7 @@ function getSentimentColor(value: number | null): string {
 
 export default function SentimentTimelineChart({
   data,
-  title = "Sentiment Trend",
+  title = "Sentiment Over Time",
 }: Props) {
   const labels = data.map((point) => formatBucketLabel(point.bucket_start));
 
