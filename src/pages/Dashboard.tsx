@@ -9,6 +9,7 @@ import SentimentDoughnut from "@/components/analysis/SentimentDoughnut";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import { ChangeCard } from "@/components/analysis/ChangeCard";
+import { MainNavigationMenu } from "@/components/layout/nav";
 
 import { Badge } from "@/components/shared/ui/badge";
 import {
@@ -30,6 +31,18 @@ import {
   sanitizeWindow,
   validateQuery,
 } from "@/lib/searchParams";
+
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/shared/ui/navigation-menu"
+
+
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 
 const sentimentLabelMap: Record<string, string> = {
@@ -41,8 +54,8 @@ const sentimentLabelMap: Record<string, string> = {
   mixed: "Mixed",
 };
 
-const USE_AI = true;
-const USE_AI_PROMPT_RESOLVER = true;
+const USE_AI = false;
+const USE_AI_PROMPT_RESOLVER = false;
 
 type DashboardViewStateParams = {
   pageError: string;
@@ -288,21 +301,24 @@ export default function Dashboard() {
     hasAttemptedSearch,
   });
 
-  console.log(data);
-
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
-      <div className="mb-4 flex items-center justify-between px-2">
-        <a href="/" className="flex items-center gap-2 sm:gap-4">
-          <img
-            src="/logo.png"
-            alt="Sentio Logo"
-            className="w-10 sm:w-14 md:w-16"
-          />
-          <h1 className="font-bold tracking-tight sm:text-4xl md:text-5xl">
-            Sentio
-          </h1>
-        </a>
+      <div className="flex justify-between px-2">
+        <div className="pb-4 items-center">
+          <a href="/" className="flex items-center gap-2 sm:gap-4">
+            <img
+              src="/logo.png"
+              alt="Sentio Logo"
+              className="w-10 sm:w-14 md:w-16"
+            />
+            <h1 className="font-bold tracking-tight sm:text-4xl md:text-5xl">
+              Sentio
+            </h1>
+          </a>
+        </div>
+        <div className="md:flex items-bottom">
+          <MainNavigationMenu></MainNavigationMenu>
+        </div>
       </div>
 
       <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">

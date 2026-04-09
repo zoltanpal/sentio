@@ -1,23 +1,34 @@
+import { MainNavigationMenu } from "@/components/layout/nav";
 import { Separator } from "@/components/shared/ui/separator"
 
 
 export default function NotFound() {
     return (
         <div className="mx-auto w-full ">
-            <section className="mx-auto max-w-4xl px-6 py-5 sm:px-4 sm:py-10 lg:px-10">
-               <div className="mb-10 flex items-center justify-between px-2">
-                    <a href="/" className="flex items-center gap-2 sm:gap-4">
-                    <img
-                        src="/logo.png"
-                        alt="Sentio Logo"
-                        className="w-10 sm:w-14 md:w-16"
-                    />
-                    <h1 className="font-bold tracking-tight sm:text-4xl md:text-5xl">
-                        Sentio
-                    </h1>
-                    </a>
+            <section className="mx-auto max-w-4xl sm:px-4 sm:py-10 lg:px-10">
+               
+               <div className="grid items-end gap-4 md:grid-cols-[1fr_auto] items-center justify-between">
+                    <div className="flex justify-between">
+                        <div className="pb-4 items-center">
+                            <a href="/" className="flex items-center gap-2 sm:gap-4">
+                                <img
+                                    src="/logo.png"
+                                    alt="Sentio Logo"
+                                    className="w-10 sm:w-14 md:w-16"
+                                />
+                                <h1 className="font-bold tracking-tight sm:text-4xl md:text-5xl">
+                                    Sentio
+                                </h1>
+                            </a>
+                        </div>
+                        <div className="md:flex items-bottom">
+                            <MainNavigationMenu></MainNavigationMenu>
+                        </div>
+                    </div>
                 </div>
-                    <div className="mb-10">
+                <Separator className="mb-5" />
+
+                <div className="mb-10">
                     <h1
                         className="mt-5 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl"
                     >
