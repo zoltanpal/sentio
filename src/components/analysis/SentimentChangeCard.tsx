@@ -103,7 +103,7 @@ export default function SentimentChangeCard({
     Boolean(drivers?.is_meaningful) && (drivers?.headlines?.length ?? 0) > 0;
 
   return (
-    <Card className="rounded-xl gap-2 px-0 border bg-gradient-to-r from-yellow-30 to-yellow-50">
+    <Card className="rounded-xl gap-1 px-2 py-2 px-0 border bg-gradient-to-r from-yellow-30 to-yellow-50">
       <CardHeader className="py-0 gap-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base">Recent Change</CardTitle>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BotIcon, NewspaperIcon } from "lucide-react";
+import { BotIcon, GlobeIcon, NewspaperIcon } from "lucide-react";
 
 import SearchBar from "@/components/search/SearchBar";
 import Loading from "@/components/analysis/LoadingState";
@@ -358,7 +358,6 @@ export default function Dashboard() {
               <ExpandableText text={data.ai_summary} maxLength={200} />
             </div>
           ) : null}
-
           
           <div className="flex flex-col-reverse gap-4 lg:flex-row">
             <div className="w-full lg:w-3/4">
@@ -373,7 +372,6 @@ export default function Dashboard() {
                 windowHours={data.window_hours}
               />
             </div>
-
           </div>
 
           <div className="flex flex-col-reverse gap-4 lg:flex-row">
@@ -396,7 +394,7 @@ export default function Dashboard() {
                   </CardTitle>
                 </CardHeader>
 
-                <CardContent className="flex-1 px-2 pb-2 sm:px-3">
+                <CardContent className="flex-1 px-2 pb-0 sm:px-3">
                   <div className="relative h-[160px] sm:h-[180px] md:h-[190px]">
                     <SentimentDoughnut
                       distribution={data.aggregated.distribution}
@@ -408,13 +406,20 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
 
-                <CardFooter className="px-3 py-2">
+                <CardFooter className="px-3 py-2 gap-1">
                   <Badge
                     variant="secondary"
                     className="flex max-w-full items-center gap-1 border-green-200 bg-green-200 px-2 text-[11px] sm:text-xs"
                   >
                     <NewspaperIcon className="h-3.5 w-3.5" />
                     <span>{data.aggregated.article_count} articles</span>
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="flex max-w-full items-center gap-1 border-blue-200 bg-blue-200 px-2 text-[11px] sm:text-xs"
+                  >
+                    <GlobeIcon className="h-3.5 w-3.5" />
+                    <span>{countSources} sources</span>
                   </Badge>
                 </CardFooter>
               </Card>
