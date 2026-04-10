@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BotIcon, GlobeIcon, NewspaperIcon } from "lucide-react";
+import { BotIcon, ClockIcon, GlobeIcon, NewspaperIcon } from "lucide-react";
 
 import SearchBar from "@/components/search/SearchBar";
 import Loading from "@/components/analysis/LoadingState";
@@ -10,6 +10,8 @@ import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import { ChangeCard } from "@/components/analysis/ChangeCard";
 import { MainNavigationMenu } from "@/components/layout/nav";
+import { formatTimeAgo } from "@/lib/utils";
+
 
 import { Badge } from "@/components/shared/ui/badge";
 import {
@@ -285,6 +287,12 @@ export default function Dashboard() {
     }
   };
 
+  const countSources = new Set(data?.headlines.map((h) => h.source_name)).size;
+  const lastUpdated = data?.headlines.reduce((latest, headline) => {
+    const publishedAt = new Date(headline.published_at).getTime();
+    return publishedAt > latest ? publishedAt : latest;
+  }, 0);
+
   const {
     displayError,
     isBusy,
@@ -420,6 +428,13 @@ export default function Dashboard() {
                   >
                     <GlobeIcon className="h-3.5 w-3.5" />
                     <span>{countSources} sources</span>
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="flex max-w-full items-center gap-1 border-blue-200 bg-blue-200 px-2 text-[11px] sm:text-xs"
+                  >
+                    <ClockIcon className="h-3.5 w-3.5" />
+                    <span>{formatTimeAgo(lastUpdated)}</span>
                   </Badge>
                 </CardFooter>
               </Card>
