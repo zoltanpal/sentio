@@ -46,8 +46,8 @@ const sentimentLabelMap: Record<string, string> = {
   mixed: "Mixed",
 };
 
-const USE_AI = false;
-const USE_AI_PROMPT_RESOLVER = false;
+const USE_AI = true;
+const USE_AI_PROMPT_RESOLVER = true;
 
 type DashboardViewStateParams = {
   pageError: string;
