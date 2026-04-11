@@ -34,16 +34,6 @@ import {
   validateQuery,
 } from "@/lib/searchParams";
 
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/shared/ui/navigation-menu"
-
 
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 
@@ -434,7 +424,7 @@ export default function Dashboard() {
                     className="flex max-w-full items-center gap-1 border-blue-200 bg-blue-200 px-2 text-[11px] sm:text-xs"
                   >
                     <ClockIcon className="h-3.5 w-3.5" />
-                    <span>{formatTimeAgo(lastUpdated)}</span>
+                    {/* <span>{formatTimeAgo(lastUpdated)}</span> */}
                   </Badge>
                 </CardFooter>
               </Card>
