@@ -7,7 +7,7 @@ export default function NotFound() {
       <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center justify-between gap-4">
-            <a href="/" className="flex items-center gap-2 sm:gap-4">
+            <a href="/" className="flex items-center gap-2 sm:gap-2">
               <img
                 src="/logo.png"
                 alt="Sentio Logo"

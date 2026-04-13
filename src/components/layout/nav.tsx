@@ -19,7 +19,7 @@ export function MainNavigationMenu() {
 
   return (
     <NavigationMenu>
-      <NavigationMenuList className="flex gap-4">
+      <NavigationMenuList className="flex">
         {components.map((item) => {
           const isActive =
             item.href === "/"
