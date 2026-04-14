@@ -1,7 +1,7 @@
 import { MainNavigationMenu } from "@/components/layout/nav";
 import { Separator } from "@/components/shared/ui/separator";
 
-export default function NotFound() {
+export default function About() {
   return (
     <div className="mx-auto w-full">
       <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">

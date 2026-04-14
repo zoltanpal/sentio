@@ -5,6 +5,8 @@ const routeTitleMap: Record<string, string> = {
   "/": "Home",
   "/results": "Dashboard",
   "/about": "About",
+  "/help": "Help",
+  "/contact": "Contact",
 };
 
 
@@ -35,6 +37,10 @@ export default function Layout() {
             &nbsp;|&nbsp;
             <a href="/about" className="inline-block text-blue-500 hover:underline">
               About
+            </a>
+            &nbsp;|&nbsp;
+            <a href="/contact" className="inline-block text-blue-500 hover:underline">
+              Contact
             </a>
             <p className="mt-2 text-center text-muted-foreground">
               &copy; {new Date().getFullYear()} Sentio. All rights reserved.

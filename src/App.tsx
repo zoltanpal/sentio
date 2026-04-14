@@ -5,7 +5,8 @@ import AppLayout from "@/components/shared/layout/AppLayout";
 const Home = lazy(() => import("@/pages/Home"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const About = lazy(() => import("@/pages/About"));
-
+const Contact = lazy(() => import("@/pages/Contact"));
+const Help = lazy(() => import("@/pages/Help"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export default function App() {
@@ -16,6 +17,8 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="results" element={<Dashboard />} />
           <Route path="about" element={<About />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="help" element={<Help />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

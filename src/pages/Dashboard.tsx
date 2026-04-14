@@ -8,7 +8,6 @@ import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 import SentimentDoughnut from "@/components/analysis/SentimentDoughnut";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
-import { ChangeCard } from "@/components/analysis/ChangeCard";
 import { MainNavigationMenu } from "@/components/layout/nav";
 import { formatTimeAgo } from "@/lib/utils";
 
