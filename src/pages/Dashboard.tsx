@@ -46,8 +46,8 @@ const sentimentLabelMap: Record<string, string> = {
   mixed: "Mixed",
 };
 
-const USE_AI = true;
-const USE_AI_PROMPT_RESOLVER = true;
+const USE_AI = false;
+const USE_AI_PROMPT_RESOLVER = false;
 
 type DashboardViewStateParams = {
   pageError: string;
@@ -279,8 +279,8 @@ export default function Dashboard() {
 
   const countSources = new Set(data?.headlines.map((h) => h.source_name)).size;
   const lastUpdated = data?.headlines.reduce((latest, headline) => {
-    const publishedAt = new Date(headline.published_at).getTime();
-    return publishedAt > latest ? publishedAt : latest;
+    const publishedAt_str = new Date(headline.published_at).getTime();
+    return publishedAt_str > latest ? publishedAt_str : latest;
   }, 0);
 
   const {
@@ -424,7 +424,7 @@ export default function Dashboard() {
                     className="flex max-w-full items-center gap-1 border-blue-200 bg-blue-200 px-2 text-[11px] sm:text-xs"
                   >
                     <ClockIcon className="h-3.5 w-3.5" />
-                    {/* <span>{formatTimeAgo(lastUpdated)}</span> */}
+                    <span>{formatTimeAgo(lastUpdated)}</span>
                   </Badge>
                 </CardFooter>
               </Card>

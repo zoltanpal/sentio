@@ -6,7 +6,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatTimeAgo(date: string) {
+export function formatTimeAgo(date: number | string) {
+  if (typeof date === "string") {
+    date = new Date(date).getTime();
+  } 
   const diff = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
 
   if (diff < 60) return `${diff} min ago`;
