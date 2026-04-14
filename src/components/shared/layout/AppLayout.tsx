@@ -13,7 +13,7 @@ const routeTitleMap: Record<string, string> = {
 export default function Layout() {
   const location = useLocation();
   const pageTitle = routeTitleMap[location.pathname] || "Page Not Found";
-  const metaTitle = pageTitle
+  const metaTitle = pageTitle;
 
   useEffect(() => {
     document.title = `${metaTitle} | Sentio`;

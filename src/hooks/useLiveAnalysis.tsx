@@ -2,6 +2,8 @@ import { useCallback, useRef, useState } from "react";
 import { buildSentioApiUrl, getSentioApiHeaders } from "@/config/api";
 
 const API_HOST = buildSentioApiUrl("/live/query");
+const CACHE_PREFIX = "sentio_live_analysis";
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export type SentimentLabel = "positive" | "neutral" | "negative";
 
@@ -84,7 +86,6 @@ export type LiveQueryResponse = {
     article_count: number;
     avg_sentiment_score: number | null;
   }[];
-
 };
 
 type RunParams = {
@@ -92,6 +93,7 @@ type RunParams = {
   windowHours: number;
   useAi?: boolean;
   rawPrompt?: string | null;
+  forceRefresh?: boolean;
 };
 
 type UseLiveAnalysisState = {
@@ -100,11 +102,74 @@ type UseLiveAnalysisState = {
   error: string;
 };
 
+type CachedLiveAnalysisEntry = {
+  savedAt: number;
+  data: LiveQueryResponse;
+};
+
 const EMPTY_STATE: UseLiveAnalysisState = {
   data: null,
   loading: false,
   error: "",
 };
+
+function buildCacheKey({
+  query,
+  windowHours,
+  useAi,
+}: {
+  query: string;
+  windowHours: number;
+  useAi: boolean;
+}) {
+  return `${CACHE_PREFIX}:${query.trim().toLowerCase()}:${windowHours}:ai=${useAi}`;
+}
+
+function readCachedLiveAnalysis(key: string): LiveQueryResponse | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as CachedLiveAnalysisEntry;
+
+    if (!parsed?.savedAt || !parsed?.data) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+
+    const isExpired = Date.now() - parsed.savedAt > CACHE_TTL_MS;
+    if (isExpired) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+
+    return parsed.data;
+  } catch {
+    sessionStorage.removeItem(key);
+    return null;
+  }
+}
+
+function writeCachedLiveAnalysis(key: string, data: LiveQueryResponse) {
+  try {
+    const entry: CachedLiveAnalysisEntry = {
+      savedAt: Date.now(),
+      data,
+    };
+
+    sessionStorage.setItem(key, JSON.stringify(entry));
+  } catch {
+    // Ignore storage failures silently.
+  }
+}
+
+function removeCachedLiveAnalysis(key: string) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // Ignore storage failures silently.
+  }
+}
 
 async function fetchLiveAnalysis(
   params: RunParams,
@@ -146,12 +211,33 @@ export function useLiveAnalysis() {
     setState(EMPTY_STATE);
   }, []);
 
+  const clearCacheFor = useCallback(
+    ({
+      query,
+      windowHours,
+      useAi = false,
+    }: {
+      query: string;
+      windowHours: number;
+      useAi?: boolean;
+    }) => {
+      const key = buildCacheKey({
+        query,
+        windowHours,
+        useAi,
+      });
+      removeCachedLiveAnalysis(key);
+    },
+    []
+  );
+
   const run = useCallback(
     async ({
       query,
       windowHours,
       rawPrompt = null,
       useAi = false,
+      forceRefresh = false,
     }: RunParams) => {
       const cleanedQuery = query.trim();
 
@@ -162,6 +248,26 @@ export function useLiveAnalysis() {
           error: "Please provide a search input.",
         });
         return;
+      }
+
+      const cacheKey = buildCacheKey({
+        query: cleanedQuery,
+        windowHours,
+        useAi,
+      });
+
+      if (!forceRefresh) {
+        const cachedData = readCachedLiveAnalysis(cacheKey);
+
+        if (cachedData) {
+          abortRef.current?.abort();
+          setState({
+            data: cachedData,
+            loading: false,
+            error: "",
+          });
+          return cachedData;
+        }
       }
 
       abortRef.current?.abort();
@@ -185,6 +291,8 @@ export function useLiveAnalysis() {
           controller.signal
         );
 
+        writeCachedLiveAnalysis(cacheKey, data);
+
         setState({
           data,
           loading: false,
@@ -196,6 +304,7 @@ export function useLiveAnalysis() {
         if (err instanceof DOMException && err.name === "AbortError") {
           return;
         }
+
         console.error("Error fetching live analysis:", err);
         setState({
           data: null,
@@ -213,5 +322,6 @@ export function useLiveAnalysis() {
     error: state.error,
     run,
     clearResults,
+    clearCacheFor,
   };
 }
