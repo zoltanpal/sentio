@@ -34,9 +34,7 @@ export default function Help() {
       
         <Separator className="my-5" />
     
-
-
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-justify">
           <div className="w-full max-w-3xl">
             {/* Header */}
             <div className="text-left">
