@@ -23,11 +23,129 @@ export default function Help() {
             <MainNavigationMenu />
           </div>
         </div>
-
+      
         <Separator className="my-5" />
-        ...
-        </section>
+    
 
+
+        <div className="flex flex-col items-center">
+          <div className="w-full max-w-3xl">
+            {/* Header */}
+            <div className="text-left">
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                How Sentio works
+              </h1>
+              <p className="mt-4 text-gray-600 text-lg">
+                Understand what you’re seeing — and why it matters.
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="mt-10 space-y-5 text-gray-700">
+              <section>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                  What is Sentio?
+                </h2>
+                <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
+                  Sentio analyzes recent news and shows how the tone around a topic
+                  is changing in real time.
+                </p>
+                <p className="text-sm leading-7 text-slate-600 sm:text-base">
+                  It helps you quickly understand whether sentiment is becoming more
+                  positive, negative, or staying stable — and what headlines are
+                  driving it.
+                </p>
+              </section>
+              <Separator className="my-5" />
+
+              {/* How to search */}
+              <section>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                  How to search
+                </h2>
+                <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
+                  You can search using keywords like <strong>Tesla</strong> or{" "}
+                  <strong>Bitcoin</strong>, or ask a question like{" "}
+                  <em>“How is sentiment on oil changing?”</em>.
+                </p>
+              </section>
+
+              <Separator className="my-5" />
+
+              <section>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                  Understanding the results
+                </h2>
+
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <p className="font-medium">Sentiment Trend</p>
+                    <p className="text-sm text-gray-600">
+                      Shows how the average sentiment changes over time.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">Change</p>
+                    <p className="text-sm text-gray-600">
+                      Compares the current period to the previous one.
+                    </p>
+                    <ul className="mt-1 text-sm text-gray-600 list-disc list-inside">
+                      <li>Improving → becoming more positive</li>
+                      <li>Worsening → becoming more negative</li>
+                      <li>Stable → little or no change</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">Overall Tone</p>
+                    <p className="text-sm text-gray-600">
+                      The dominant sentiment across all articles in the selected
+                      time window.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">Headlines</p>
+                    <p className="text-sm text-gray-600">
+                      The news driving the sentiment. Use these to understand what’s
+                      behind the trend.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <Separator className="my-5" />
+              
+              <section>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                  How sentiment is calculated
+                </h2>
+                <p className="mt-2">
+                  Each article is analyzed and classified as positive, neutral, or
+                  negative.
+                </p>
+                <p className="mt-2">
+                  These are aggregated to show average sentiment, distribution, and
+                  changes over time.
+                </p>
+              </section>
+
+              {/* Notes */}
+              <section>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                  Things to keep in mind
+                </h2>
+                <ul className="mt-2 space-y-1 text-sm text-gray-600 list-disc list-inside">
+                  <li>Results depend on available news volume</li>
+                  <li>Small datasets can cause larger swings</li>
+                  <li>Sentiment reflects media tone, not absolute truth</li>
+                </ul>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

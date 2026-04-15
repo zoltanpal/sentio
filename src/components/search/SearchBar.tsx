@@ -1,4 +1,4 @@
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SearchBarProps = {
@@ -27,6 +27,7 @@ export default function SearchBar({
   size = "lg",
 }: SearchBarProps) {
   const isDisabled = !value.trim() || loading;
+  const hasValue = value.length > 0;
 
   const sizeStyles = {
     lg: {
@@ -34,12 +35,14 @@ export default function SearchBar({
       input: "px-4 py-3 text-base sm:px-5 sm:py-4 sm:text-xl md:px-6 md:text-2xl",
       button: "px-4 sm:px-5 md:px-6",
       icon: "h-4 w-4 sm:h-5 sm:w-5",
+      clear: "mr-2 h-4 w-4 sm:mr-3 sm:h-5 sm:w-5",
     },
     md: {
       wrapper: "rounded-xl",
       input: "px-3 py-2 text-sm sm:px-4 sm:py-3 sm:text-base md:text-lg",
       button: "px-3 sm:px-4 md:px-5",
       icon: "h-4 w-4 sm:h-5 sm:w-5",
+      clear: "mr-2 h-4 w-4 sm:h-5 sm:w-5",
     },
   };
 
@@ -48,6 +51,10 @@ export default function SearchBar({
   const handleSearch = () => {
     if (isDisabled) return;
     onSearch();
+  };
+
+  const handleClear = () => {
+    onChange("");
   };
 
   return (
@@ -60,7 +67,7 @@ export default function SearchBar({
         )}
       >
         <input
-          type="search"
+          type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
@@ -77,6 +84,17 @@ export default function SearchBar({
             inputClassName
           )}
         />
+
+        {hasValue && !loading ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="flex shrink-0 items-center justify-center text-gray-400 transition hover:text-gray-600"
+            aria-label="Clear search"
+          >
+            <XIcon className={currentSize.clear} />
+          </button>
+        ) : null}
 
         <button
           type="button"

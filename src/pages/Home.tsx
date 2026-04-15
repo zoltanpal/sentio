@@ -51,12 +51,12 @@ export default function Home() {
           Turn news into signal, not noise.
         </p>
 
-        <p className="mx-auto mt-6 max-w-2xl text-base text-gray-600 sm:text-lg">
+        <p className="mx-auto mt-3 max-w-2xl text-base text-gray-600 sm:text-lg">
           See how sentiment is shifting on any topic — across global news — right
           now.
         </p>
 
-        <div className="mx-auto mt-10 w-full max-w-3xl sm:mt-14">
+        <div className="mx-auto mt-8 w-full max-w-3xl sm:mt-10">
           <SearchBar
             value={query}
             onChange={(value) => {
@@ -68,6 +68,9 @@ export default function Home() {
             placeholder="e.g. Tesla, NVDA, oil prices"
             size="lg"
           />
+          <p className="mt-2 left text-sm text-gray-300 italic antialiased">
+            Try a topic or ask a question — e.g. “What’s happening with Tesla today?”
+          </p>
         </div>
       </div>
     </div>
