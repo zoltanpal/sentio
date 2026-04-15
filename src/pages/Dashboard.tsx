@@ -8,6 +8,7 @@ import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 import SentimentDoughnut from "@/components/analysis/SentimentDoughnut";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
+import OverallTone from "@/components/analysis/OverallTone";
 import { MainNavigationMenu } from "@/components/layout/nav";
 import { formatTimeAgo } from "@/lib/utils";
 
@@ -384,49 +385,7 @@ export default function Dashboard() {
             </div>
 
             <div className="w-full lg:w-1/4">
-              <Card className="h-[300px] gap-0 bg-gradient-to-r from-pink-50 to-pink-100 py-2 sm:h-[320px]">
-                <CardHeader className="px-4 py-2 sm:px-5">
-                  <CardTitle className="text-base sm:text-lg">
-                    Overall Tone
-                  </CardTitle>
-                </CardHeader>
-
-                <CardContent className="flex-1 px-2 pb-0 sm:px-3">
-                  <div className="relative h-[160px] sm:h-[180px] md:h-[190px]">
-                    <SentimentDoughnut
-                      distribution={data.aggregated.distribution}
-                      summaryLabel={
-                        sentimentLabelMap[data.aggregated.summary.label] ??
-                        data.aggregated.summary.label
-                      }
-                    />
-                  </div>
-                </CardContent>
-
-                <CardFooter className="px-3 py-2 gap-1">
-                  <Badge
-                    variant="secondary"
-                    className="flex max-w-full items-center gap-1 border-green-200 bg-green-200 px-2 text-[11px] sm:text-xs"
-                  >
-                    <NewspaperIcon className="h-3.5 w-3.5" />
-                    <span>{data.aggregated.article_count} articles</span>
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="flex max-w-full items-center gap-1 border-blue-200 bg-blue-200 px-2 text-[11px] sm:text-xs"
-                  >
-                    <GlobeIcon className="h-3.5 w-3.5" />
-                    <span>{countSources} sources</span>
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="flex max-w-full items-center gap-1 border-blue-200 bg-blue-200 px-2 text-[11px] sm:text-xs"
-                  >
-                    <ClockIcon className="h-3.5 w-3.5" />
-                    <span>{formatTimeAgo(lastUpdated)}</span>
-                  </Badge>
-                </CardFooter>
-              </Card>
+              <OverallTone data={data} countSources={countSources} lastUpdated={lastUpdated} />
             </div>
           </div>
         </div>

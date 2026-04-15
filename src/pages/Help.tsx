@@ -1,5 +1,13 @@
 import { MainNavigationMenu } from "@/components/layout/nav";
 import { Separator } from "@/components/shared/ui/separator";
+import { 
+  CircleQuestionMarkIcon, 
+  SearchIcon,
+  ShapesIcon,
+  CircleAlertIcon,
+  LightbulbIcon,
+  SigmaIcon,
+} from "lucide-react";
 
 export default function Help() {
   return (
@@ -40,11 +48,10 @@ export default function Help() {
               </p>
             </div>
 
-            {/* Content */}
             <div className="mt-10 space-y-5 text-gray-700">
               <section>
                 <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-                  What is Sentio?
+                  <CircleQuestionMarkIcon className="mr-2 inline-block" />What is Sentio?
                 </h2>
                 <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
                   Sentio analyzes recent news and shows how the tone around a topic
@@ -56,12 +63,12 @@ export default function Help() {
                   driving it.
                 </p>
               </section>
+
               <Separator className="my-5" />
 
-              {/* How to search */}
               <section>
                 <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-                  How to search
+                  <SearchIcon className="mr-2 inline-block" />How to search
                 </h2>
                 <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
                   You can search using keywords like <strong>Tesla</strong> or{" "}
@@ -74,7 +81,7 @@ export default function Help() {
 
               <section>
                 <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-                  Understanding the results
+                  <LightbulbIcon className="mr-2 inline-block" />Understanding the results
                 </h2>
 
                 <div className="mt-4 space-y-4">
@@ -119,7 +126,7 @@ export default function Help() {
               
               <section>
                 <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-                  How sentiment is calculated
+                  <SigmaIcon className="mr-2 inline-block" />How sentiment is calculated
                 </h2>
                 <p className="mt-2">
                   Each article is analyzed and classified as positive, neutral, or
@@ -134,7 +141,7 @@ export default function Help() {
               {/* Notes */}
               <section>
                 <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-                  Things to keep in mind
+                  <CircleAlertIcon className="mr-2 inline-block" />Things to keep in mind
                 </h2>
                 <ul className="mt-2 space-y-1 text-sm text-gray-600 list-disc list-inside">
                   <li>Results depend on available news volume</li>
