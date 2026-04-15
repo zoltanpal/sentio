@@ -136,7 +136,8 @@ export default function Help() {
                 </p>
               </section>
 
-              {/* Notes */}
+              <Separator className="my-5" />
+              
               <section>
                 <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
                   <CircleAlertIcon className="mr-2 inline-block" />Things to keep in mind
