@@ -10,13 +10,14 @@ import {
   Filler,
   BarController,
   LineController,
-//   type ChartOptions,
-//   type TooltipItem,
-//   type ScriptableContext,
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
 
-import type { ChartData, ChartOptions, TooltipItem, ScriptableContext } from "chart.js";
+import type {
+  ChartData,
+  ChartOptions,
+  TooltipItem,
+} from "chart.js";
 import type { ScriptableLineSegmentContext } from "chart.js";
 
 ChartJS.register(
@@ -58,25 +59,24 @@ function formatBucketLabel(value: string): string {
 }
 
 function getSentimentColor(value: number | null): string {
-  if (value === null || value === undefined) return "#a1a1aa"; // zinc-400
-  if (value >= POSITIVE_THRESHOLD) return "#16a34a"; // green-600
-  if (value <= NEGATIVE_THRESHOLD) return "#dc2626"; // red-600
-  return "#d97706"; // amber-600
+  if (value === null || value === undefined) return "#a1a1aa";
+  if (value >= POSITIVE_THRESHOLD) return "#16a34a";
+  if (value <= NEGATIVE_THRESHOLD) return "#dc2626";
+  return "#d97706";
 }
 
 export default function SentimentTimelineChart({
   data,
-  title = "Sentiment Over Time",
+  title,
 }: Props) {
   const labels = data.map((point) => formatBucketLabel(point.bucket_start));
-
   const sentimentValues = data.map((point) => point.avg_sentiment_score);
   const articleCounts = data.map((point) => point.article_count);
 
-    const chartData: ChartData<"bar" | "line", (number | null)[], string> = {
+  const chartData: ChartData<"bar" | "line", (number | null)[], string> = {
     labels,
     datasets: [
-        {
+      {
         type: "bar",
         label: "Articles",
         data: articleCounts,
@@ -86,8 +86,8 @@ export default function SentimentTimelineChart({
         borderWidth: 1,
         borderRadius: 6,
         order: 2,
-        },
-        {
+      },
+      {
         type: "line",
         label: "Avg sentiment",
         data: sentimentValues,
@@ -101,29 +101,38 @@ export default function SentimentTimelineChart({
         borderWidth: 2,
         order: 1,
         segment: {
-            borderColor: (ctx: ScriptableLineSegmentContext) => {
-                const y = ctx.p1.parsed.y as number | null;
-                return getSentimentColor(y);
-            },
+          borderColor: (ctx: ScriptableLineSegmentContext) => {
+            const y = ctx.p1.parsed.y as number | null;
+            return getSentimentColor(y);
+          },
         },
-        },
+      },
     ],
-    };
+  };
 
   const options: ChartOptions<"bar" | "line"> = {
     responsive: true,
     maintainAspectRatio: false,
+    resizeDelay: 0,
     interaction: {
       mode: "index",
       intersect: false,
     },
+    layout: {
+      padding: 0,
+    },
     plugins: {
       legend: {
         position: "top",
+        labels: {
+          boxWidth: 12,
+          boxHeight: 12,
+          padding: 12,
+        },
       },
       title: {
-        display: true,
-        text: title,
+        display: !!title,
+        text: title ?? "",
       },
       tooltip: {
         callbacks: {
@@ -133,13 +142,13 @@ export default function SentimentTimelineChart({
 
             if (label === "Avg sentiment") {
               if (raw === null || raw === undefined) {
-                return "Avg sentiment: no data";
+                return " Avg sentiment: no data";
               }
-              return `Avg sentiment: ${Number(raw).toFixed(2)}`;
+              return ` Avg sentiment: ${Number(raw).toFixed(2)}`;
             }
 
             if (label === "Articles") {
-              return `Articles: ${raw}`;
+              return ` Articles: ${raw}`;
             }
 
             return `${label}: ${Number(raw).toFixed(2)}`;
@@ -152,6 +161,11 @@ export default function SentimentTimelineChart({
         grid: {
           display: false,
         },
+        ticks: {
+          autoSkip: true,
+          maxRotation: 0,
+          minRotation: 0,
+        },
       },
       ySentiment: {
         type: "linear",
@@ -159,8 +173,7 @@ export default function SentimentTimelineChart({
         min: -1,
         max: 1,
         title: {
-          display: true,
-          text: "Sentiment",
+          display: false,
         },
         ticks: {
           callback(value) {
@@ -173,8 +186,7 @@ export default function SentimentTimelineChart({
         position: "right",
         beginAtZero: true,
         title: {
-          display: true,
-          text: "Articles",
+          display: false,
         },
         grid: {
           drawOnChartArea: false,
@@ -187,7 +199,7 @@ export default function SentimentTimelineChart({
   };
 
   return (
-    <div className="h-[320px] w-full">
+    <div className="h-full w-full min-h-0">
       <Chart type="bar" data={chartData} options={options} />
     </div>
   );

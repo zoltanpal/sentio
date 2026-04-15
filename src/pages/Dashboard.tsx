@@ -1,23 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
-import { BotIcon, ClockIcon, GlobeIcon, NewspaperIcon } from "lucide-react";
+import { BotIcon } from "lucide-react";
 
 import SearchBar from "@/components/search/SearchBar";
 import Loading from "@/components/analysis/LoadingState";
 import WindowHoursSelector from "@/components/search/WindowHoursSelector";
 import HeadlinesTable from "@/components/analysis/HeadlinesTable";
-import SentimentDoughnut from "@/components/analysis/SentimentDoughnut";
+
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import OverallTone from "@/components/analysis/OverallTone";
 import { MainNavigationMenu } from "@/components/layout/nav";
-import { formatTimeAgo } from "@/lib/utils";
 
-
-import { Badge } from "@/components/shared/ui/badge";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
@@ -36,15 +32,6 @@ import {
 
 
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
-
-const sentimentLabelMap: Record<string, string> = {
-  positive: "Positive",
-  negative: "Negative",
-  neutral: "Neutral",
-  mostly_positive: "Mostly Positive",
-  mostly_negative: "Mostly Negative",
-  mixed: "Mixed",
-};
 
 const USE_AI = true;
 const USE_AI_PROMPT_RESOLVER = true;
@@ -359,8 +346,16 @@ export default function Dashboard() {
           
           <div className="flex flex-col-reverse gap-4 lg:flex-row">
             <div className="w-full lg:w-3/4">
-              <Card className="h-[300px] gap-0 bg-gradient-to-r from-blue-30 to-blue-50 py-2 sm:h-[320px]">
-                <SentimentTimelineChart data={data.sentiment_scores_per_hour} />
+              <Card className="flex h-[300px] flex-col gap-0 bg-gradient-to-r from-blue-30 to-blue-50 py-2 sm:h-[360px]">
+                <CardHeader className="m-0 px-5 py-0">
+                  <CardTitle className="text-lg">Sentiment Trend</CardTitle>
+                </CardHeader>
+
+                <CardContent className="flex min-h-0 flex-1 items-stretch p-2 sm:p-2">
+                  <div className="h-full w-full min-h-0">
+                    <SentimentTimelineChart data={data.sentiment_scores_per_hour} />
+                  </div>
+                </CardContent>
               </Card>
             </div>
             <div className="w-full lg:w-1/4">

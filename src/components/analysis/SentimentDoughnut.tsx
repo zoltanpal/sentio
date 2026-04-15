@@ -66,7 +66,7 @@ export default function SentimentDoughnut({
             //   );
             //   const pct = total ? ((value / total) * 100).toFixed(1) : "0.0";
             //   return `${context.label}: ${value} (${pct}%)`;
-              return `${context.label}: ${value}`;
+              return ` ${context.label}: ${value}`;
             },
           },
         },
