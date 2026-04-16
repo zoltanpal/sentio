@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-100 py-5">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center gap-2 text-sm text-gray-600 sm:flex-row sm:justify-between">
+        <div className="flex flex-col items-center gap-2 text-sm text-gray-600 sm:flex-row sm:justify-center">
           
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
@@ -24,8 +24,7 @@ export default function Footer() {
               Privacy
             </Link>
           </div>
-
-          {/* Copyright */}
+          |
           <div className="text-center sm:text-right text-gray-500">
             &copy; {new Date().getFullYear()} Sentio
           </div>

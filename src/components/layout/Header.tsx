@@ -18,7 +18,7 @@ export default function Header() {
     <div className="flex flex-col gap-4 mb-4 md:flex-row md:items-center md:justify-between">
       
       <div className="flex items-center justify-between gap-4">
-        <Link to={homeUrl} className="flex items-center gap-2 sm:gap-2">
+        <Link to={homeUrl} className="flex items-center gap-2 sm:gap-2" title={session ? "Go back to your last search" : "Start a new search"}>
           <img
             src="/logo.png"
             alt="Sentio Logo"

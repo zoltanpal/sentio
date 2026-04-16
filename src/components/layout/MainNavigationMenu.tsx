@@ -19,9 +19,9 @@ export function MainNavigationMenu() {
 
   return (
     <NavigationMenu>
-      <NavigationMenuList className="flex items-center gap-3 whitespace-nowrap">
+      <NavigationMenuList className="flex gap-3 whitespace-nowrap">
         {components.map((item) => {
-          const Icon = item.icon;
+          // const Icon = item.icon;
 
           const isActive =
             item.href === "/"
@@ -33,13 +33,13 @@ export function MainNavigationMenu() {
               <NavigationMenuLink asChild>
                 <Link
                   to={item.href}
-                  className={`flex items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-gray-600 transition-colors ${
+                  className={`min-w-0 justify-center gap-1.5 whitespace-nowrap text-sm font-semibold text-gray-600 transition-colors ${
                     isActive
                       ? "text-gray-900 underline underline-offset-2"
                       : "hover:text-gray-900"
                   }`}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  {/* <Icon className="h-4 w-4 shrink-0" /> */}
                   <span className="whitespace-nowrap">{item.title}</span>
                 </Link>
               </NavigationMenuLink>
