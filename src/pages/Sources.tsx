@@ -1,19 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Header from "@/components/layout/Header";
 import { Separator } from "@/components/shared/ui/separator";
 import { dummySources } from "@/constants/constants";
 
 
+const API_TOKEN = "";
+
 export default function Sources() {
     const [query, setQuery] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [sources, setSources] = useState<any[]>([]);
+
+    const url = 'https://devapi.palzoltan.net/sentio/detailed_sources';
+    
+    useEffect(() => {
+      fetchSources();
+    }, []);
+
+    const fetchSources = async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${API_TOKEN}` },
+          });
+          const result = await response.json();
+          setSources(result);
+        } catch (err) {
+          console.error("Error fetching feeds:", err);
+        } finally {
+          setLoading(false);
+        }
+    }
 
     const filteredSources =
         query.length >= 3
-            ? dummySources.filter((source) =>
+            ? sources.filter((source) =>
                 source.name.toLowerCase().includes(query.toLowerCase())
             )
-            : dummySources;
+            : sources;
 
 
   return (
