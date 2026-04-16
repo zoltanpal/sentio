@@ -9,7 +9,7 @@ import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import OverallTone from "@/components/analysis/OverallTone";
-import { MainNavigationMenu } from "@/components/layout/nav";
+import { MainNavigationMenu } from "@/components/layout/MainNavigationMenu";
 
 import {
   Card,
