@@ -69,11 +69,11 @@ export default function Sources() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
             {filteredSources.map((source) => (
-                <a  key={source.name} href={source.url} target="_blank" rel="noopener noreferrer" 
+                <a  key={source.name} href={source.site_url} target="_blank" rel="noopener noreferrer" 
                     className="block rounded-lg border border-gray-200 p-4 transition hover:border-gray-300 bg-white">
                     <h2 className="text-lg font-semibold text-gray-900">{source.name}</h2>
                     <p className="mt-1 text-sm text-gray-600">Category: {source.category}</p>
-                    <p className="mt-1 text-sm text-gray-600">Articles Analyzed: {source.articleCount}</p>
+                    <p className="mt-1 text-sm text-gray-600">Articles Analyzed: {source.current_article_count}</p>
                 </a>
             ))}
         </div>
