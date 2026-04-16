@@ -97,8 +97,6 @@ export default function SentimentChangeCard({
   const { direction, delta, current } = data;
   const meta = getDirectionMeta(direction, delta);
 
-  console.log("SentimentChangeCard data:", data);
-
   const showDrivers =
     Boolean(drivers?.is_meaningful) && (drivers?.headlines?.length ?? 0) > 0;
 
