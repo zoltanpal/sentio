@@ -78,4 +78,5 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
+            chown -R appuser:www-data "${{ steps.vars.outputs.deploy_path }}"
             chmod -R 755 "${{ steps.vars.outputs.deploy_path }}"
