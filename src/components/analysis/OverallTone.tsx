@@ -48,10 +48,10 @@ export default function OverallTone({
         </div>
       </CardContent>
 
-      <CardFooter className="flex flex-wrap items-stretch gap-1 px-3 py-3">
+      <CardFooter className="flex flex-wrap items-stretch gap-1 px-3 py-2">
         <Badge
           variant="secondary"
-          className="min-w-0 flex-1 justify-center gap-1 border-green-200 bg-green-200 px-1.5 py-1 text-[11px] sm:flex-none sm:text-xs"
+          className="min-w-0 flex-1 justify-center gap-1 border-green-200 bg-emerald-100 px-1.5 py-1 text-[11px] sm:flex-none sm:text-xs"
         >
           <NewspaperIcon className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{data.aggregated.article_count} articles</span>
@@ -59,7 +59,7 @@ export default function OverallTone({
 
         <Badge
           variant="secondary"
-          className="min-w-0 flex-1 justify-center gap-1 border-blue-200 bg-blue-200 px-1.5 py-1 text-[11px] sm:flex-none sm:text-xs"
+          className="min-w-0 flex-1 justify-center gap-1 border-teal-200 bg-cyan-100 px-1.5 py-1 text-[11px] sm:flex-none sm:text-xs"
         >
           <GlobeIcon className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{countSources} sources</span>
@@ -67,7 +67,7 @@ export default function OverallTone({
 
         <Badge
           variant="secondary"
-          className="min-w-0 w-full justify-center gap-1 border-blue-200 bg-blue-200 px-1.5 py-1 text-[11px] xs:w-auto xs:flex-1 sm:w-auto sm:flex-none sm:text-xs"
+          className="min-w-0 w-full justify-center gap-1 border-yellow-200 bg-amber-100 px-1.5 py-1 text-[11px] xs:w-auto xs:flex-1 sm:w-auto sm:flex-none sm:text-xs"
         >
           <ClockIcon className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{formatTimeAgo(lastUpdated)}</span>
