@@ -20,9 +20,9 @@ export default function Footer() {
             <Link to="/contact" className="hover:underline">
               Contact
             </Link>
-            <Link to="/privacy" className="hover:underline">
+            {/* <Link to="/privacy" className="hover:underline">
               Privacy
-            </Link>
+            </Link> */}
           </div>
           |
           <div className="text-center sm:text-right text-gray-500">
