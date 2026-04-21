@@ -319,6 +319,7 @@ export default function Dashboard() {
         <Loading text="Analyzing feeds, please wait..." />
       ) : hasResults && data ? (
         <div className="space-y-8">
+          {/* AI Summary */}
           {data.ai_summary ? (
             <div className="rounded-xl border bg-gradient-to-r from-purple-100 to-teal-100 p-4">
               <div className="mb-2 flex items-center gap-2 text-md font-semibold">
@@ -328,7 +329,27 @@ export default function Dashboard() {
               <ExpandableText text={data.ai_summary} maxLength={200} />
             </div>
           ) : null}
+
+
+          {/* Latest Headlines and Overall Tone */}
+          <div className="flex flex-col gap-4 lg:flex-row">
+            <div className="w-full lg:w-1/4">
+              <OverallTone data={data} countSources={countSources} lastUpdated={lastUpdated} />
+            </div>
+            <div className="w-full lg:w-3/4">
+              <Card className="h-[300px] gap-0 bg-gradient-to-r from-pink-30 to-pink-50 py-2 sm:h-[320px]">
+                <CardHeader className="m-0 px-5 py-2">
+                  <CardTitle className="text-lg">Latest Headlines</CardTitle>
+                </CardHeader>
+                <CardContent className="m-0 h-[220px] p-0">
+                  <HeadlinesTable items={data.headlines} />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
           
+          {/* Sentiment Trend and Change */}
           <div className="flex flex-col-reverse gap-4 lg:flex-row">
             <div className="w-full lg:w-3/4">
               <Card className="flex h-[300px] flex-col gap-0 bg-gradient-to-r from-blue-30 to-blue-50 py-2 sm:h-[360px]">
@@ -352,22 +373,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col-reverse gap-4 lg:flex-row">
-            <div className="w-full lg:w-3/4">
-              <Card className="h-[300px] gap-0 bg-gradient-to-r from-pink-30 to-pink-50 py-2 sm:h-[320px]">
-                <CardHeader className="m-0 px-5 py-2">
-                  <CardTitle className="text-lg">Latest Headlines</CardTitle>
-                </CardHeader>
-                <CardContent className="m-0 h-[220px] p-0">
-                  <HeadlinesTable items={data.headlines} />
-                </CardContent>
-              </Card>
-            </div>
 
-            <div className="w-full lg:w-1/4">
-              <OverallTone data={data} countSources={countSources} lastUpdated={lastUpdated} />
-            </div>
-          </div>
         </div>
       ) : showEmptyState ? (
         <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
