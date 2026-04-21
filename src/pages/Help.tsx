@@ -67,6 +67,23 @@ export default function Help() {
                 </h2>
 
                 <div className="mt-4 space-y-4">
+                  
+                  <div>
+                    <p className="font-medium">Overall Tone</p>
+                    <p className="text-sm text-gray-600">
+                      The dominant sentiment across all articles in the selected
+                      time window.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">Headlines</p>
+                    <p className="text-sm text-gray-600">
+                      The news driving the sentiment. Use these to understand what’s
+                      behind the trend.
+                    </p>
+                  </div>
+                  
                   <div>
                     <p className="font-medium">Sentiment Trend</p>
                     <p className="text-sm text-gray-600">
@@ -86,21 +103,7 @@ export default function Help() {
                     </ul>
                   </div>
 
-                  <div>
-                    <p className="font-medium">Overall Tone</p>
-                    <p className="text-sm text-gray-600">
-                      The dominant sentiment across all articles in the selected
-                      time window.
-                    </p>
-                  </div>
 
-                  <div>
-                    <p className="font-medium">Headlines</p>
-                    <p className="text-sm text-gray-600">
-                      The news driving the sentiment. Use these to understand what’s
-                      behind the trend.
-                    </p>
-                  </div>
                 </div>
               </section>
 
