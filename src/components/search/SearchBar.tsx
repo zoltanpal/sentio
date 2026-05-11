@@ -69,6 +69,7 @@ export default function SearchBar({
         <input
           type="text"
           value={value}
+          autoFocus
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
