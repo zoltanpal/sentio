@@ -38,16 +38,13 @@ export default function Home() {
       <div className="w-full max-w-2xl text-center">
         <div className="flex items-center justify-center gap-3 sm:gap-4">
           <img
-            src="/logo.png"
+            src="/logo/sentio_logo.png"
             alt="Sentio Logo"
-            className="w-14 sm:w-20 md:w-26"
+            className="w-14 sm:w-20 md:w-98"
           />
-          <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl">
-            Sentio
-          </h1>
         </div>
 
-        <p className="mt-8 text-3xl font-bold tracking-tight text-gray-700 sm:text-4xl">
+        <p className="mt-7 text-3xl font-bold tracking-tight text-gray-700 sm:text-4xl">
           Turn news into signal, not noise.
         </p>
 
