@@ -20,13 +20,10 @@ export default function Header() {
       <div className="flex items-center justify-between gap-4">
         <Link to={homeUrl} className="flex items-center gap-2 sm:gap-2" title={session ? "Go back to your last search" : "Start a new search"}>
           <img
-            src="/logo.png"
+            src="/logo/sentio_logo.png"
             alt="Sentio Logo"
-            className="w-10 sm:w-12 md:w-16"
+            className="w-60 sm:w-32 md:w-64"
           />
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-5xl">
-            Sentio
-          </h1>
         </Link>
       </div>
 
