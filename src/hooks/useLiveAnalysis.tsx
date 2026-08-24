@@ -86,6 +86,12 @@ export type LiveQueryResponse = {
     article_count: number;
     avg_sentiment_score: number | null;
   }[];
+  top_entities: {
+    name: string;
+    type: string;
+    count: number;
+  }[];
+  what_driving?: {}
 };
 
 type RunParams = {
