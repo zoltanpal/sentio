@@ -16,12 +16,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
-import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { usePromptResolver } from "@/hooks/usePromptResolver";
 import {
-  useSearchSession,
+  clearPendingPrompt,
+  clearSearchSession,
+  getPendingPrompt,
+  getSearchSession,
+  setSearchSession,
   type SearchSession,
-} from "@/hooks/useSearchSession";
+} from "@/lib/searchSession";
 import {
   DEFAULT_WINDOW,
   sanitizeQuery,
@@ -80,20 +84,12 @@ export default function Dashboard() {
   const [resolvedSession, setResolvedSession] =
     useState<SearchSession | null>(null);
 
-  const { data, error, loading, run, clearResults } = useLiveAnalysis();
+  const { data, error, loading, run, clearResults } = useDashboardData();
   const {
     run: resolvePrompt,
     loading: resolving,
     error: resolveError,
   } = usePromptResolver();
-
-  const {
-    getSession,
-    setSession,
-    clearSession,
-    getPendingPrompt,
-    clearPendingPrompt,
-  } = useSearchSession();
 
   const executeResolvedSearch = useCallback(
     async (session: SearchSession) => {
@@ -107,7 +103,7 @@ export default function Dashboard() {
         setHasAttemptedSearch(false);
         setResolvedSession(null);
         clearResults();
-        clearSession();
+        clearSearchSession();
         return;
       }
 
@@ -117,7 +113,7 @@ export default function Dashboard() {
       setPromptInput(rawPrompt || resolvedQuery);
       setActiveQuery(resolvedQuery);
       setWindowHours(resolvedWindow);
-      setSession({
+      setSearchSession({
         ...session,
         resolvedQuery,
         resolvedWindowHours: resolvedWindow,
@@ -131,12 +127,12 @@ export default function Dashboard() {
         useAi: USE_AI,
       });
     },
-    [clearResults, clearSession, run, setSession]
+    [clearResults, run]
   );
 
   useEffect(() => {
     const pendingPrompt = sanitizeQuery(getPendingPrompt());
-    const session = getSession();
+    const session = getSearchSession();
     let cancelled = false;
 
     if (pendingPrompt) {
@@ -194,11 +190,8 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, [
-    clearPendingPrompt,
     clearResults,
     executeResolvedSearch,
-    getPendingPrompt,
-    getSession,
     resolvePrompt,
   ]);
 

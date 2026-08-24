@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { buildSentioApiUrl, getSentioApiHeaders } from "@/config/api";
+import { DEFAULT_WINDOW } from "@/lib/searchParams";
 
 const API_HOST = buildSentioApiUrl("/live/query");
 const CACHE_PREFIX = "sentio_live_analysis";
@@ -96,24 +97,24 @@ export type LiveQueryResponse = {
 
 type RunParams = {
   query: string;
-  windowHours: number;
+  windowHours?: number;
   useAi?: boolean;
   rawPrompt?: string | null;
   forceRefresh?: boolean;
 };
 
-type UseLiveAnalysisState = {
+type UseDashboardDataState = {
   data: LiveQueryResponse | null;
   loading: boolean;
   error: string;
 };
 
-type CachedLiveAnalysisEntry = {
+type CachedDashboardDataEntry = {
   savedAt: number;
   data: LiveQueryResponse;
 };
 
-const EMPTY_STATE: UseLiveAnalysisState = {
+const EMPTY_STATE: UseDashboardDataState = {
   data: null,
   loading: false,
   error: "",
@@ -131,12 +132,12 @@ function buildCacheKey({
   return `${CACHE_PREFIX}:${query.trim().toLowerCase()}:${windowHours}:ai=${useAi}`;
 }
 
-function readCachedLiveAnalysis(key: string): LiveQueryResponse | null {
+function readCachedDashboardData(key: string): LiveQueryResponse | null {
   try {
     const raw = sessionStorage.getItem(key);
     if (!raw) return null;
 
-    const parsed = JSON.parse(raw) as CachedLiveAnalysisEntry;
+    const parsed = JSON.parse(raw) as CachedDashboardDataEntry;
 
     if (!parsed?.savedAt || !parsed?.data) {
       sessionStorage.removeItem(key);
@@ -156,9 +157,9 @@ function readCachedLiveAnalysis(key: string): LiveQueryResponse | null {
   }
 }
 
-function writeCachedLiveAnalysis(key: string, data: LiveQueryResponse) {
+function writeCachedDashboardData(key: string, data: LiveQueryResponse) {
   try {
-    const entry: CachedLiveAnalysisEntry = {
+    const entry: CachedDashboardDataEntry = {
       savedAt: Date.now(),
       data,
     };
@@ -169,7 +170,7 @@ function writeCachedLiveAnalysis(key: string, data: LiveQueryResponse) {
   }
 }
 
-function removeCachedLiveAnalysis(key: string) {
+function removeCachedDashboardData(key: string) {
   try {
     sessionStorage.removeItem(key);
   } catch {
@@ -192,7 +193,7 @@ async function fetchLiveAnalysis(
     signal,
     body: JSON.stringify({
       query: params.query.trim(),
-      window_hours: params.windowHours,
+      window_hours: params.windowHours ?? DEFAULT_WINDOW,
       use_ai: params.useAi ?? false,
       prompt: params.rawPrompt?.trim() || null,
     }),
@@ -208,9 +209,15 @@ async function fetchLiveAnalysis(
   return response.json();
 }
 
-export function useLiveAnalysis() {
-  const [state, setState] = useState<UseLiveAnalysisState>(EMPTY_STATE);
+export function useDashboardData() {
+  const [state, setState] = useState<UseDashboardDataState>(EMPTY_STATE);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const clearResults = useCallback(() => {
     abortRef.current?.abort();
@@ -232,7 +239,7 @@ export function useLiveAnalysis() {
         windowHours,
         useAi,
       });
-      removeCachedLiveAnalysis(key);
+      removeCachedDashboardData(key);
     },
     []
   );
@@ -240,7 +247,7 @@ export function useLiveAnalysis() {
   const run = useCallback(
     async ({
       query,
-      windowHours,
+      windowHours = DEFAULT_WINDOW,
       rawPrompt = null,
       useAi = false,
       forceRefresh = false,
@@ -263,7 +270,7 @@ export function useLiveAnalysis() {
       });
 
       if (!forceRefresh) {
-        const cachedData = readCachedLiveAnalysis(cacheKey);
+        const cachedData = readCachedDashboardData(cacheKey);
 
         if (cachedData) {
           abortRef.current?.abort();
@@ -297,7 +304,7 @@ export function useLiveAnalysis() {
           controller.signal
         );
 
-        writeCachedLiveAnalysis(cacheKey, data);
+        writeCachedDashboardData(cacheKey, data);
 
         setState({
           data,

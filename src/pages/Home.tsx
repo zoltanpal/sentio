@@ -2,21 +2,23 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import SearchBar from "@/components/search/SearchBar";
-import { useSearchSession } from "@/hooks/useSearchSession";
 import { validateQuery } from "@/lib/searchParams";
+import {
+  clearPendingPrompt,
+  clearSearchSession,
+  setPendingPrompt,
+} from "@/lib/searchSession";
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { clearPendingPrompt, clearSession, setPendingPrompt } =
-    useSearchSession();
 
   useEffect(() => {
     clearPendingPrompt();
-    clearSession();
-  }, [clearPendingPrompt, clearSession]);
+    clearSearchSession();
+  }, []);
 
   const onSearch = () => {
     const validationError = validateQuery(query);
@@ -40,11 +42,11 @@ export default function Home() {
           <img
             src="/logo/sentio_logo.png"
             alt="Sentio Logo"
-            className="w-14 sm:w-20 md:w-98"
+            className="w-85 sm:w-20 md:w-98"
           />
         </div>
 
-        <p className="mt-7 text-3xl font-bold tracking-tight text-gray-700 sm:text-4xl">
+        <p className="mt-4 text-3xl font-bold tracking-tight text-gray-700 sm:text-4xl">
           Turn news into signal, not noise.
         </p>
 
