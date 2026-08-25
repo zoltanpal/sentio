@@ -9,8 +9,8 @@ import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import OverallTone from "@/components/analysis/OverallTone";
-import TopEntities from "@/components/analysis/TopEntities";
-import DashboardHeading from "@/components/analysis/DashboardHeading";
+// import TopEntities from "@/components/analysis/TopEntities";
+// import DashboardHeading from "@/components/analysis/DashboardHeading";
 
 import {
   Card,
@@ -132,27 +132,27 @@ export default function Dashboard() {
     [clearResults, run]
   );
 
-  const onEntitySelect = useCallback(
-    async (entityText: string) => {
-      const query = sanitizeQuery(entityText);
-      const validationError = validateQuery(query);
+  // const onEntitySelect = useCallback(
+  //   async (entityText: string) => {
+  //     const query = sanitizeQuery(entityText);
+  //     const validationError = validateQuery(query);
 
-      if (validationError) {
-        setPageError(validationError);
-        return;
-      }
+  //     if (validationError) {
+  //       setPageError(validationError);
+  //       return;
+  //     }
 
-      const nextSession: SearchSession = {
-        source: "entity",
-        rawPrompt: query,
-        resolvedQuery: query,
-        resolvedWindowHours: windowHours,
-      };
+  //     const nextSession: SearchSession = {
+  //       source: "entity",
+  //       rawPrompt: query,
+  //       resolvedQuery: query,
+  //       resolvedWindowHours: windowHours,
+  //     };
 
-      await executeResolvedSearch(nextSession);
-    },
-    [executeResolvedSearch, windowHours]
-  );
+  //     await executeResolvedSearch(nextSession);
+  //   },
+  //   [executeResolvedSearch, windowHours]
+  // );
 
   useEffect(() => {
     const pendingPrompt = sanitizeQuery(getPendingPrompt());
