@@ -10,7 +10,8 @@ import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import OverallTone from "@/components/analysis/OverallTone";
 import DashboardSummaryCard from "@/components/analysis/DashboardSummaryCard";
-// import TopEntities from "@/components/analysis/TopEntities";
+import DriversCard from "@/components/analysis/DriversCard";
+import TopEntities from "@/components/analysis/TopEntities";
 // import DashboardHeading from "@/components/analysis/DashboardHeading";
 
 import {
@@ -133,27 +134,27 @@ export default function Dashboard() {
     [clearResults, run]
   );
 
-  // const onEntitySelect = useCallback(
-  //   async (entityText: string) => {
-  //     const query = sanitizeQuery(entityText);
-  //     const validationError = validateQuery(query);
+  const onEntitySelect = useCallback(
+    async (entityText: string) => {
+      const query = sanitizeQuery(entityText);
+      const validationError = validateQuery(query);
 
-  //     if (validationError) {
-  //       setPageError(validationError);
-  //       return;
-  //     }
+      if (validationError) {
+        setPageError(validationError);
+        return;
+      }
 
-  //     const nextSession: SearchSession = {
-  //       source: "entity",
-  //       rawPrompt: query,
-  //       resolvedQuery: query,
-  //       resolvedWindowHours: windowHours,
-  //     };
+      const nextSession: SearchSession = {
+        source: "entity",
+        rawPrompt: query,
+        resolvedQuery: query,
+        resolvedWindowHours: windowHours,
+      };
 
-  //     await executeResolvedSearch(nextSession);
-  //   },
-  //   [executeResolvedSearch, windowHours]
-  // );
+      await executeResolvedSearch(nextSession);
+    },
+    [executeResolvedSearch, windowHours]
+  );
 
   useEffect(() => {
     const pendingPrompt = sanitizeQuery(getPendingPrompt());
@@ -353,25 +354,44 @@ export default function Dashboard() {
             </div>
           ) : null}
 
-          <DashboardSummaryCard data={data} sourceCount={countSources} />
           {/* Top Entities */}
-          {/* <div>
+          <div>
             <TopEntities 
               data={data.top_entities} 
               windowHours={data.window_hours} 
               onSelect={(entity) => {
                 void onEntitySelect(entity.entity_text);
               }}
-  />
-          </div> */}
+            />
+          </div>
+
+          <DashboardSummaryCard data={data} sourceCount={countSources} />
+
+          <div className="flex flex-col-reverse gap-4 lg:flex-row">
+            <div className="w-full lg:w-2/4">
+              <DriversCard drivers={data.what_driving} />
+            </div>
+            
+            <div className="w-full lg:w-2/4">
+              <Card className="flex h-[300px] flex-col gap-0 py-2 sm:h-[360px]">
+                <CardHeader className="my-3- px-5 py-0">
+                  <CardTitle className="text-lg">Sentiment Over Time</CardTitle>
+                </CardHeader>
+
+                <CardContent className="flex min-h-0 flex-1 items-stretch p-2 sm:p-2">
+                  <div className="h-full w-full min-h-0">
+                    <SentimentTimelineChart data={data.sentiment_scores_per_hour} />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
 
           {/* Latest Headlines and Overall Tone */}
           <div className="flex flex-col gap-4 lg:flex-row">
-            <div className="w-full lg:w-1/4">
-              <OverallTone data={data} countSources={countSources} lastUpdated={lastUpdated} />
-            </div>
-            <div className="w-full lg:w-3/4">
-              <Card className="h-[300px] gap-0 bg-gradient-to-r from-pink-30 to-pink-50 py-2 sm:h-[320px]">
+            <div className="w-full">
+              <Card className="h-[300px] gap-0 py-2 sm:h-[320px]">
                 <CardHeader className="m-0 px-5 py-2">
                   <CardTitle className="text-lg">Latest Headlines</CardTitle>
                 </CardHeader>
@@ -382,30 +402,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          
-          {/* Sentiment Trend and Change */}
-          <div className="flex flex-col-reverse gap-4 lg:flex-row">
-            <div className="w-full lg:w-3/4">
-              <Card className="flex h-[300px] flex-col gap-0 bg-gradient-to-r from-blue-30 to-blue-50 py-2 sm:h-[360px]">
-                <CardHeader className="m-0 px-5 py-0">
-                  <CardTitle className="text-lg">Sentiment Trend</CardTitle>
-                </CardHeader>
-
-                <CardContent className="flex min-h-0 flex-1 items-stretch p-2 sm:p-2">
-                  <div className="h-full w-full min-h-0">
-                    <SentimentTimelineChart data={data.sentiment_scores_per_hour} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="w-full lg:w-1/4">
-              <SentimentChangeCard
-                data={data.change}
-                drivers={data.drivers}
-                windowHours={data.window_hours}
-              />
-            </div>
-          </div>
 
         </div>
       ) : showEmptyState ? (

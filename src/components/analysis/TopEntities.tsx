@@ -1,5 +1,13 @@
 import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/shared/ui/card";
 
 type Entity = {
   entity_text: string;
@@ -39,16 +47,16 @@ export default function TopEntities({ data, windowHours, onSelect }: Props) {
   }
 
   return (
-    <section>
-        <div className="mb-3">
-        <h2 className="text-lg font-semibold">Key Entities</h2>
-        <p className="text-sm text-muted-foreground">
-            Most mentioned in the selected period
-        </p>
-        </div>
-
+    <Card className="flex flex-col gap-4">
+      <CardHeader>
+        <CardTitle className="text-lg mt-0 py-0">Key Entities</CardTitle>
+        <CardDescription>
+          Most mentioned in the selected period
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
       <div className="flex flex-wrap gap-2">
-        {data.map((item) => (
+             {data.map((item) => (
         <Button
             key={`${item.entity_type}-${item.entity_text}`}
             variant="outline"
@@ -68,8 +76,11 @@ export default function TopEntities({ data, windowHours, onSelect }: Props) {
                 {item.article_count}
             </span>
         </Button>
-        ))}
+        ))}   
       </div>
-    </section>
+      </CardContent>
+
+
+    </Card>
   );
 }

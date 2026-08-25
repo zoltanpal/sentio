@@ -7,16 +7,6 @@ type DashboardSummaryCardProps = {
 
 type SentimentDirection = "improving" | "worsening" | "stable";
 
-function getDriverTitle(drivers: unknown): string | null {
-  if (!drivers || typeof drivers !== "object") return null;
-
-  const headlines = (drivers as { headlines?: unknown }).headlines;
-  if (!Array.isArray(headlines)) return null;
-
-  const title = (headlines[0] as { title?: unknown } | undefined)?.title;
-  return typeof title === "string" && title.trim() ? title : null;
-}
-
 function DirectionSparkline({
   direction,
 }: {
