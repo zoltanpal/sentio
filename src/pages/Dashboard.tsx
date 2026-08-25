@@ -9,6 +9,8 @@ import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import OverallTone from "@/components/analysis/OverallTone";
+import TopEntities from "@/components/analysis/TopEntities";
+import DashboardHeading from "@/components/analysis/DashboardHeading";
 
 import {
   Card,
@@ -37,8 +39,8 @@ import {
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 import Header from "@/components/layout/Header";
 
-const USE_AI = true;
-const USE_AI_PROMPT_RESOLVER = true;
+const USE_AI = false; // Set to true to enable AI-powered search resolution
+const USE_AI_PROMPT_RESOLVER = false; // Set to true to enable AI-powered prompt resolution
 
 type DashboardViewStateParams = {
   pageError: string;
@@ -128,6 +130,28 @@ export default function Dashboard() {
       });
     },
     [clearResults, run]
+  );
+
+  const onEntitySelect = useCallback(
+    async (entityText: string) => {
+      const query = sanitizeQuery(entityText);
+      const validationError = validateQuery(query);
+
+      if (validationError) {
+        setPageError(validationError);
+        return;
+      }
+
+      const nextSession: SearchSession = {
+        source: "entity",
+        rawPrompt: query,
+        resolvedQuery: query,
+        resolvedWindowHours: windowHours,
+      };
+
+      await executeResolvedSearch(nextSession);
+    },
+    [executeResolvedSearch, windowHours]
   );
 
   useEffect(() => {
@@ -283,6 +307,7 @@ export default function Dashboard() {
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
       <Header />
 
+      {/* Search Bar and Time Window Selector */}
       <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
           <div className="w-full">
@@ -311,6 +336,13 @@ export default function Dashboard() {
         <Loading text="Analyzing feeds, please wait..." />
       ) : hasResults && data ? (
         <div className="space-y-8">
+          <DashboardHeading
+            query={activeQuery}
+            windowHours={windowHours}
+          />
+
+
+
           {/* AI Summary */}
           {data.ai_summary ? (
             <div className="rounded-xl border bg-gradient-to-r from-purple-100 to-teal-100 p-4">
@@ -322,6 +354,16 @@ export default function Dashboard() {
             </div>
           ) : null}
 
+          {/* Top Entities */}
+          <div>
+            <TopEntities 
+              data={data.top_entities} 
+              windowHours={data.window_hours} 
+              onSelect={(entity) => {
+                void onEntitySelect(entity.entity_text);
+              }}
+  />
+          </div>
 
           {/* Latest Headlines and Overall Tone */}
           <div className="flex flex-col gap-4 lg:flex-row">
