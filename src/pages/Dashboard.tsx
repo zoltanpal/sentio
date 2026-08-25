@@ -9,6 +9,7 @@ import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import OverallTone from "@/components/analysis/OverallTone";
+import DashboardSummaryCard from "@/components/analysis/DashboardSummaryCard";
 // import TopEntities from "@/components/analysis/TopEntities";
 // import DashboardHeading from "@/components/analysis/DashboardHeading";
 
@@ -352,6 +353,7 @@ export default function Dashboard() {
             </div>
           ) : null}
 
+          <DashboardSummaryCard data={data} sourceCount={countSources} />
           {/* Top Entities */}
           {/* <div>
             <TopEntities 
