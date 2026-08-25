@@ -336,12 +336,10 @@ export default function Dashboard() {
         <Loading text="Analyzing feeds, please wait..." />
       ) : hasResults && data ? (
         <div className="space-y-8">
-          <DashboardHeading
+          {/* <DashboardHeading
             query={activeQuery}
             windowHours={windowHours}
-          />
-
-
+          /> */}
 
           {/* AI Summary */}
           {data.ai_summary ? (
@@ -355,7 +353,7 @@ export default function Dashboard() {
           ) : null}
 
           {/* Top Entities */}
-          <div>
+          {/* <div>
             <TopEntities 
               data={data.top_entities} 
               windowHours={data.window_hours} 
@@ -363,7 +361,7 @@ export default function Dashboard() {
                 void onEntitySelect(entity.entity_text);
               }}
   />
-          </div>
+          </div> */}
 
           {/* Latest Headlines and Overall Tone */}
           <div className="flex flex-col gap-4 lg:flex-row">
