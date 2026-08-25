@@ -1,13 +1,9 @@
 import { Link } from "react-router-dom";
-import {
-  useSearchSession,
-} from "@/hooks/useSearchSession";
 import { MainNavigationMenu } from "@/components/layout/MainNavigationMenu";
+import { getSearchSession } from "@/lib/searchSession";
 
 export default function Header() {
-  const { getSession } = useSearchSession();
-
-  const session = getSession();
+  const session = getSearchSession();
 
   let homeUrl = "/";
   if (session) {

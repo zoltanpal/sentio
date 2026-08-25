@@ -1,5 +1,5 @@
 export const ALLOWED_WINDOWS = [6, 12, 24, 48, 72];
-export const DEFAULT_WINDOW = 6;
+export const DEFAULT_WINDOW = 24;
 
 export function sanitizeWindow(value: string | null): number {
   const parsed = Number(value);

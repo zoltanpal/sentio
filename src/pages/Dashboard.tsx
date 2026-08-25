@@ -9,7 +9,8 @@ import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 import ExpandableText from "@/components/analysis/ExpandableText";
 import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
 import OverallTone from "@/components/analysis/OverallTone";
-import { MainNavigationMenu } from "@/components/layout/MainNavigationMenu";
+// import TopEntities from "@/components/analysis/TopEntities";
+// import DashboardHeading from "@/components/analysis/DashboardHeading";
 
 import {
   Card,
@@ -17,12 +18,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
-import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { usePromptResolver } from "@/hooks/usePromptResolver";
 import {
-  useSearchSession,
+  clearPendingPrompt,
+  clearSearchSession,
+  getPendingPrompt,
+  getSearchSession,
+  setSearchSession,
   type SearchSession,
-} from "@/hooks/useSearchSession";
+} from "@/lib/searchSession";
 import {
   DEFAULT_WINDOW,
   sanitizeQuery,
@@ -34,8 +39,8 @@ import {
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 import Header from "@/components/layout/Header";
 
-const USE_AI = true;
-const USE_AI_PROMPT_RESOLVER = true;
+const USE_AI = false; // Set to true to enable AI-powered search resolution
+const USE_AI_PROMPT_RESOLVER = false; // Set to true to enable AI-powered prompt resolution
 
 type DashboardViewStateParams = {
   pageError: string;
@@ -81,20 +86,12 @@ export default function Dashboard() {
   const [resolvedSession, setResolvedSession] =
     useState<SearchSession | null>(null);
 
-  const { data, error, loading, run, clearResults } = useLiveAnalysis();
+  const { data, error, loading, run, clearResults } = useDashboardData();
   const {
     run: resolvePrompt,
     loading: resolving,
     error: resolveError,
   } = usePromptResolver();
-
-  const {
-    getSession,
-    setSession,
-    clearSession,
-    getPendingPrompt,
-    clearPendingPrompt,
-  } = useSearchSession();
 
   const executeResolvedSearch = useCallback(
     async (session: SearchSession) => {
@@ -108,7 +105,7 @@ export default function Dashboard() {
         setHasAttemptedSearch(false);
         setResolvedSession(null);
         clearResults();
-        clearSession();
+        clearSearchSession();
         return;
       }
 
@@ -118,7 +115,7 @@ export default function Dashboard() {
       setPromptInput(rawPrompt || resolvedQuery);
       setActiveQuery(resolvedQuery);
       setWindowHours(resolvedWindow);
-      setSession({
+      setSearchSession({
         ...session,
         resolvedQuery,
         resolvedWindowHours: resolvedWindow,
@@ -132,12 +129,34 @@ export default function Dashboard() {
         useAi: USE_AI,
       });
     },
-    [clearResults, clearSession, run, setSession]
+    [clearResults, run]
   );
+
+  // const onEntitySelect = useCallback(
+  //   async (entityText: string) => {
+  //     const query = sanitizeQuery(entityText);
+  //     const validationError = validateQuery(query);
+
+  //     if (validationError) {
+  //       setPageError(validationError);
+  //       return;
+  //     }
+
+  //     const nextSession: SearchSession = {
+  //       source: "entity",
+  //       rawPrompt: query,
+  //       resolvedQuery: query,
+  //       resolvedWindowHours: windowHours,
+  //     };
+
+  //     await executeResolvedSearch(nextSession);
+  //   },
+  //   [executeResolvedSearch, windowHours]
+  // );
 
   useEffect(() => {
     const pendingPrompt = sanitizeQuery(getPendingPrompt());
-    const session = getSession();
+    const session = getSearchSession();
     let cancelled = false;
 
     if (pendingPrompt) {
@@ -195,11 +214,8 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, [
-    clearPendingPrompt,
     clearResults,
     executeResolvedSearch,
-    getPendingPrompt,
-    getSession,
     resolvePrompt,
   ]);
 
@@ -291,6 +307,7 @@ export default function Dashboard() {
     <div className="mx-auto w-full max-w-6xl px-4 py-3">
       <Header />
 
+      {/* Search Bar and Time Window Selector */}
       <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
           <div className="w-full">
@@ -319,6 +336,11 @@ export default function Dashboard() {
         <Loading text="Analyzing feeds, please wait..." />
       ) : hasResults && data ? (
         <div className="space-y-8">
+          {/* <DashboardHeading
+            query={activeQuery}
+            windowHours={windowHours}
+          /> */}
+
           {/* AI Summary */}
           {data.ai_summary ? (
             <div className="rounded-xl border bg-gradient-to-r from-purple-100 to-teal-100 p-4">
@@ -330,6 +352,16 @@ export default function Dashboard() {
             </div>
           ) : null}
 
+          {/* Top Entities */}
+          {/* <div>
+            <TopEntities 
+              data={data.top_entities} 
+              windowHours={data.window_hours} 
+              onSelect={(entity) => {
+                void onEntitySelect(entity.entity_text);
+              }}
+  />
+          </div> */}
 
           {/* Latest Headlines and Overall Tone */}
           <div className="flex flex-col gap-4 lg:flex-row">
@@ -372,7 +404,6 @@ export default function Dashboard() {
               />
             </div>
           </div>
-
 
         </div>
       ) : showEmptyState ? (

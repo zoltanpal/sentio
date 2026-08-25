@@ -52,9 +52,9 @@ src/
   config/
     api.ts
   hooks/
-    useLiveAnalysis.tsx
+    useDashboardData.tsx
     usePromptResolver.tsx
-    useSearchSession.tsx
+    searchSession.ts
   lib/
     searchParams.ts
     utils.tsx
@@ -79,8 +79,8 @@ Structure rules used in this project:
 - `src/pages/Home.tsx`: prompt entry point
 - `src/pages/Dashboard.tsx`: dashboard UI and search flow orchestration
 - `src/hooks/usePromptResolver.tsx`: prompt parsing API logic
-- `src/hooks/useLiveAnalysis.tsx`: live analysis API logic
-- `src/hooks/useSearchSession.tsx`: session storage helpers
+- `src/hooks/useDashboardData.tsx`: dashboard data and live analysis API logic
+- `src/lib/searchSession.ts`: session storage helpers
 - `src/config/api.ts`: env-based API configuration
 
 ## Environment Variables
