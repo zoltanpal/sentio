@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BotIcon, FileTextIcon, Grid2X2Icon, CircleQuestionMarkIcon } from "lucide-react";
+import { BotIcon, FileTextIcon, Grid2X2Icon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import SearchBar from "@/components/search/SearchBar";
@@ -147,7 +147,6 @@ export default function Dashboard() {
         resolvedWindowHours: windowHours,
       };
 
-      scrollTo({ top: 0, behavior: "smooth" });
       await executeResolvedSearch(nextSession);
     },
     [executeResolvedSearch, windowHours]
@@ -305,64 +304,67 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f4f7fb] text-slate-950">
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full mx-auto max-w-7xl items-center gap-3 sm:gap-5">
-          <Link to="/" className="shrink-0" aria-label="Sentio home">
-            <img
-              src="/logo/sentio_logo.png"
-              alt="Sentio"
-              className="h-auto w-32 sm:w-42"
-            />
-          </Link>
-          <nav className="hidden items-center gap-1 md:flex">
-            <span className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
-              <Grid2X2Icon className="h-4 w-4" />
-              Dashboard
-            </span>
-            <Link
-              to="/sources"
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
-            >
-              <FileTextIcon className="h-4 w-4" />
-              Sources
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-10">
+          <div className="flex h-16 items-center gap-3 sm:gap-5">
+            <Link to="/" className="shrink-0" aria-label="Sentio home">
+              <img
+                src="/logo/sentio_logo.png"
+                alt="Sentio"
+                className="h-auto w-32 sm:w-48"
+              />
             </Link>
-            <Link
-              to="/help"
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
-            >
-              <CircleQuestionMarkIcon className="h-4 w-4" />
-              How it works
-            </Link>
-          </nav>
-          <div className="ml-auto hidden w-full max-w-[30rem] lg:block">
-            <SearchBar
-              value={promptInput}
-              onChange={onPromptInputChange}
-              onSearch={onSearch}
-              loading={isBusy}
-              error={displayError}
-              placeholder="e.g. Tesla, NVDA, oil prices"
-              size="md"
-              inputClassName="py-1.5 text-sm sm:py-1.5"
-              buttonClassName="px-3 sm:px-3"
-            />
+            <nav className="hidden items-center gap-1 lg:flex">
+              <span className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
+                <Grid2X2Icon className="h-4 w-4" />
+                Dashboard
+              </span>
+              <Link
+                to="/sources"
+                className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
+              >
+                <FileTextIcon className="h-4 w-4" />
+                Sources
+              </Link>
+              <Link
+                to="/help"
+                className="rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
+              >
+                How it works
+              </Link>
+            </nav>
+            <div className="ml-auto hidden w-full max-w-[30rem] lg:block">
+              <SearchBar
+                value={promptInput}
+                onChange={onPromptInputChange}
+                onSearch={onSearch}
+                loading={isBusy}
+                error={displayError}
+                placeholder="e.g. Tesla, NVDA, oil prices"
+                size="md"
+                inputClassName="py-1.5 text-sm sm:py-1.5"
+                buttonClassName="px-3 sm:px-3"
+              />
+            </div>
+
+            <div className="ml-auto min-w-0 flex-1 lg:hidden">
+              <SearchBar
+                value={promptInput}
+                onChange={onPromptInputChange}
+                onSearch={onSearch}
+                loading={isBusy}
+                error={displayError}
+                placeholder="Search..."
+                size="md"
+                inputClassName="min-w-0 py-1.5 text-sm"
+                buttonClassName="px-3"
+              />
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="min-w-0 px-4 py-5 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-5 lg:hidden">
-            <SearchBar
-              value={promptInput}
-              onChange={onPromptInputChange}
-              onSearch={onSearch}
-              loading={isBusy}
-              error={displayError}
-              placeholder="Search topics, companies, or sources..."
-              size="md"
-            />
-          </div>
-
+      <main className="min-w-0 mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
+        <div className="mx-auto max-w-[1440px]">
           <div className="mb-5 flex flex-col justify-between gap-4 sm:mb-6 sm:flex-row sm:items-end">
             <div className="min-w-0">
               {hasResults && data ? (
