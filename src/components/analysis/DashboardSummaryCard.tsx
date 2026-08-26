@@ -1,7 +1,8 @@
 import { FileTextIcon, SearchCheckIcon, TrendingDownIcon, TrendingUpIcon } from "lucide-react";
+import type { LiveQueryResponse } from "@/hooks/useDashboardData";
 
 type DashboardSummaryCardProps = {
-  data: any;
+  data: LiveQueryResponse;
   sourceCount: number;
 };
 
@@ -41,7 +42,7 @@ function DirectionSparkline({
 }
 
 export default function DashboardSummaryCard({ data, sourceCount }: DashboardSummaryCardProps) {
-  const { aggregated, change, drivers } = data;
+  const { aggregated, change } = data;
   const isImproving = change?.direction === "improving";
   const isWorsening = change?.direction === "worsening";
   const direction = isImproving ? "Improving" : isWorsening ? "Worsening" : "Stable";
@@ -58,11 +59,7 @@ export default function DashboardSummaryCard({ data, sourceCount }: DashboardSum
         ? "#dc2626"
         : "#64748b";
   const total = Math.max(aggregated.article_count, 1);
-  // const reason =
-  //   typeof data.what_driving === "string" && data.what_driving.trim()
-  //     ? data.what_driving
-  //     : getDriverTitle(drivers);
-  const reason = null; // Temporarily disable the reason until we have a better way to determine it
+  const reason = data.what_driving?.[0]?.representative_title ?? null;
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -105,9 +102,8 @@ export default function DashboardSummaryCard({ data, sourceCount }: DashboardSum
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Main reason</p>
           <div className="mt-4 flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500"><SearchCheckIcon className="h-5 w-5" /></span>
-            <p className="text-sm font-semibold leading-5 text-slate-800">
-              {reason ?? "No primary reason available"}
-              
+            <p className="line-clamp-2 text-sm font-semibold leading-5 text-slate-800">
+              {reason ?? "No dominant story identified yet"}
             </p>
           </div>
         </div>

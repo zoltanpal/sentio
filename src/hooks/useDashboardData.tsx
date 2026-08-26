@@ -25,6 +25,11 @@ export type Intent =
 
 export type ChangeDirection = "improving" | "worsening" | "stable";
 
+export type CoverageDriver = {
+  representative_title: string;
+  article_count: number;
+};
+
 export type LiveHeadline = {
   id: number;
   title: string;
@@ -92,7 +97,7 @@ export type LiveQueryResponse = {
     type: string;
     count: number;
   }[];
-  what_driving?: {}
+  what_driving?: CoverageDriver[];
 };
 
 type RunParams = {

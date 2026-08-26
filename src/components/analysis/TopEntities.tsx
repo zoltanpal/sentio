@@ -4,21 +4,30 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
 
 type Entity = {
-  entity_text: string;
-  entity_type: string;
-  article_count: number;
+  name?: string;
+  entity_text?: string;
+  type?: string;
+  entity_type?: string;
+  count?: number;
+  article_count?: number;
+};
+
+type NormalizedEntity = {
+  name: string;
+  type: string;
+  count: number;
 };
 
 type Props = {
-  data: Entity[];
-  windowHours: number;
-  onSelect?: (entity: Entity) => void;
+  data?: Entity[] | null;
+  onSelect?: (entity: NormalizedEntity) => void;
+  windowHours?: number;
+  variant?: "card" | "inline";
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -37,47 +46,72 @@ const TYPE_COLORS: Record<string, string> = {
 const DEFAULT_COLOR =
   "border-border bg-muted/40 text-muted-foreground";
 
-function colorForType(type: string): string {
-  return TYPE_COLORS[type.toUpperCase()] ?? DEFAULT_COLOR;
+function colorForType(type?: string): string {
+  return TYPE_COLORS[type?.toUpperCase() ?? ""] ?? DEFAULT_COLOR;
 }
 
-export default function TopEntities({ data, windowHours, onSelect }: Props) {
-  if (!data.length) {
+export default function TopEntities({
+  data,
+  onSelect,
+  windowHours,
+  variant = "card",
+}: Props) {
+  const entities = (data ?? []).map((item): NormalizedEntity => ({
+    // Support both the current API shape and older cached responses.
+    name: item.name ?? item.entity_text ?? "Unnamed entity",
+    type: item.type ?? item.entity_type ?? "",
+    count: item.count ?? item.article_count ?? 0,
+  }));
+
+  if (!entities.length) {
     return null;
   }
 
+  const entityButtons = (
+    <div className="flex flex-wrap gap-2">
+      {entities.map((item) => (
+        <Button
+          key={`${item.type}-${item.name}`}
+          variant="outline"
+          size="sm"
+          onClick={() => onSelect?.(item)}
+          className={cn(
+            "h-auto rounded-lg px-3 py-1.5 shadow-none",
+            "transition-colors hover:brightness-95",
+            colorForType(item.type),
+          )}
+        >
+          <span className="font-medium">{item.name}</span>
+          <span className="ml-1 text-xs opacity-60">{item.count}</span>
+        </Button>
+      ))}
+    </div>
+  );
+
+  if (variant === "inline") {
+    return (
+      <Card className="mt-5 gap-3 border-slate-200 py-0 shadow-sm">
+        <CardHeader className="px-5 pt-4 sm:px-6">
+          <CardTitle className="text-base text-slate-900">Most mentioned</CardTitle>
+          <CardDescription>Entities mentioned in the last {windowHours ?? 24} hours</CardDescription>
+        </CardHeader>
+        <CardContent className="px-5 pb-5 sm:px-6">
+          {entityButtons}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="flex flex-col gap-4">
-      <CardHeader>
-        <CardTitle className="text-lg mt-0 py-0">Key Entities</CardTitle>
+    <Card className="flex flex-col gap-3 border-slate-200 py-0 shadow-sm">
+      <CardHeader className="px-5 pt-4 sm:px-6">
+        <CardTitle className="text-lg text-slate-900">Key entities</CardTitle>
         <CardDescription>
           Most mentioned in the selected period
         </CardDescription>
       </CardHeader>
-      <CardContent>
-      <div className="flex flex-wrap gap-2">
-             {data.map((item) => (
-        <Button
-            key={`${item.entity_type}-${item.entity_text}`}
-            variant="outline"
-            size="sm"
-            onClick={() => onSelect?.(item)}
-            className={cn(
-                "h-auto rounded-lg px-3 py-1.5 shadow-none",
-                "transition-colors hover:brightness-95",
-                colorForType(item.entity_type),
-            )}
-            >
-            <span className="font-medium">
-                {item.entity_text}
-            </span>
-
-            <span className="ml-1 text-xs opacity-60">
-                {item.article_count}
-            </span>
-        </Button>
-        ))}   
-      </div>
+      <CardContent className="px-5 pb-5 sm:px-6">
+        {entityButtons}
       </CardContent>
 
 

@@ -1,4 +1,5 @@
-import { ChevronRightIcon, LightbulbIcon } from "lucide-react";
+import { LightbulbIcon } from "lucide-react";
+import type { CoverageDriver } from "@/hooks/useDashboardData";
 import {
   Card,
   CardContent,
@@ -7,7 +8,7 @@ import {
 } from "@/components/shared/ui/card";
 
 type DriversCardProps = {
-  drivers: any;
+  drivers?: CoverageDriver[];
 };
 
 export default function DriversCard({ drivers }: DriversCardProps) {
@@ -15,8 +16,8 @@ export default function DriversCard({ drivers }: DriversCardProps) {
 
 
   return (
-    <Card className="flex flex-col gap-0">
-      <CardHeader className="px-3 py-1 sm:py-1 sm:px-4">
+    <Card className="flex flex-col gap-0 border-slate-200 py-0 shadow-sm">
+      <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6">
         <CardTitle>
           <div className="flex items-center gap-2">
             <LightbulbIcon className="h-5 w-5 text-blue-500" />
@@ -24,9 +25,9 @@ export default function DriversCard({ drivers }: DriversCardProps) {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="mt-3 px-2">
-        {drivers.length ? drivers.map((item, index) => (
-          <article key={`${item}-${index}`} className="flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-3 hover:bg-slate-50 transition">
+      <CardContent className="space-y-2 p-3 sm:p-4">
+        {drivers?.length ? drivers.map((item, index) => (
+          <article key={`${item.representative_title}-${index}`} className="flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-3 transition hover:border-blue-100 hover:bg-blue-50/40">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600">{index + 1}</span>
             <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800" title={item.representative_title}>
               {item.representative_title}
