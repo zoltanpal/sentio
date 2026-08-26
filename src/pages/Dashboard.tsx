@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import { BotIcon, FileTextIcon, Grid2X2Icon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  BotIcon,
+  FileTextIcon,
+  Grid2X2Icon,
+  CircleQuestionMarkIcon,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 import SearchBar from "@/components/search/SearchBar";
 import Loading from "@/components/analysis/LoadingState";
-import WindowHoursSelector from "@/components/search/WindowHoursSelector";
 import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 
 import ExpandableText from "@/components/analysis/ExpandableText";
@@ -19,6 +23,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/shared/ui/select";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { usePromptResolver } from "@/hooks/usePromptResolver";
 import {
@@ -39,6 +50,7 @@ import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart
 
 const USE_AI = false; // Set to true to enable AI-powered search resolution
 const USE_AI_PROMPT_RESOLVER = false; // Set to true to enable AI-powered prompt resolution
+const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
 
 type DashboardViewStateParams = {
   pageError: string;
@@ -75,6 +87,14 @@ function getDashboardViewState({
   };
 }
 
+function formatWindow(hours: number) {
+  if (hours >= 24 && hours % 24 === 0) {
+    return `${hours / 24}d`;
+  }
+
+  return `${hours}h`;
+}
+
 export default function Dashboard() {
   const [promptInput, setPromptInput] = useState("");
   const [activeQuery, setActiveQuery] = useState("");
@@ -83,6 +103,7 @@ export default function Dashboard() {
   const [hasAttemptedSearch, setHasAttemptedSearch] = useState(false);
   const [resolvedSession, setResolvedSession] =
     useState<SearchSession | null>(null);
+  const resultsTopRef = useRef<HTMLDivElement>(null);
 
   const { data, error, loading, run, clearResults } = useDashboardData();
   const {
@@ -130,6 +151,17 @@ export default function Dashboard() {
     [clearResults, run]
   );
 
+  const scrollToResults = useCallback(() => {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    resultsTopRef.current?.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }, []);
+
   const onEntitySelect = useCallback(
     async (entityText: string) => {
       const query = sanitizeQuery(entityText);
@@ -147,9 +179,10 @@ export default function Dashboard() {
         resolvedWindowHours: windowHours,
       };
 
+      scrollToResults();
       await executeResolvedSearch(nextSession);
     },
-    [executeResolvedSearch, windowHours]
+    [executeResolvedSearch, scrollToResults, windowHours]
   );
 
   useEffect(() => {
@@ -310,7 +343,7 @@ export default function Dashboard() {
               <img
                 src="/logo/sentio_logo.png"
                 alt="Sentio"
-                className="h-auto w-32 sm:w-48"
+                className="h-auto w-28 sm:w-32"
               />
             </Link>
             <nav className="hidden items-center gap-1 lg:flex">
@@ -327,8 +360,9 @@ export default function Dashboard() {
               </Link>
               <Link
                 to="/help"
-                className="rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
+                className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
               >
+                <CircleQuestionMarkIcon className="h-4 w-4" />
                 How it works
               </Link>
             </nav>
@@ -365,7 +399,10 @@ export default function Dashboard() {
 
       <main className="min-w-0 mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
         <div className="mx-auto max-w-[1440px]">
-          <div className="mb-5 flex flex-col justify-between gap-4 sm:mb-6 sm:flex-row sm:items-end">
+          <div
+            ref={resultsTopRef}
+            className="mb-5 flex scroll-mt-20 items-start justify-between gap-3 sm:mb-6 sm:items-end sm:gap-4"
+          >
             <div className="min-w-0">
               {hasResults && data ? (
                 <DashboardHeading
@@ -383,14 +420,69 @@ export default function Dashboard() {
                 </>
               )}
             </div>
-            <div className="w-full shrink-0 sm:w-52 lg:w-60">
-              <span className="mb-2 block text-[0.7rem] font-bold uppercase tracking-[0.12em] text-slate-500">
-                Time window
-              </span>
-              <WindowHoursSelector
-                value={windowHours}
-                onChange={onWindowTimeChange}
-              />
+            <div className="shrink-0">
+              <div className="sm:hidden">
+                <Select
+                  value={String(windowHours)}
+                  onValueChange={(value) =>
+                    onWindowTimeChange(Number(value))
+                  }
+                  disabled={isBusy}
+                >
+                  <SelectTrigger
+                    className="h-10 w-[5.25rem] rounded-xl border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-none focus:ring-2 focus:ring-blue-100"
+                    aria-label="Time window"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    align="end"
+                    className="min-w-[7rem] rounded-xl border-slate-200 p-1"
+                  >
+                    {WINDOW_OPTIONS.map((hours) => (
+                      <SelectItem
+                        key={hours}
+                        value={String(hours)}
+                        className="h-10 rounded-lg text-sm font-medium"
+                      >
+                        {formatWindow(hours)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="hidden sm:block">
+                <span className="mb-2 block text-[0.7rem] font-bold uppercase tracking-[0.12em] text-slate-500">
+                  Time window
+                </span>
+                <div
+                  className="inline-flex rounded-xl border border-slate-200 bg-white p-1"
+                  role="group"
+                  aria-label="Time window"
+                >
+                  {WINDOW_OPTIONS.map((hours) => {
+                    const isSelected = hours === windowHours;
+
+                    return (
+                      <button
+                        key={hours}
+                        type="button"
+                        onClick={() => onWindowTimeChange(hours)}
+                        disabled={isBusy}
+                        aria-pressed={isSelected}
+                        className={`h-8 min-w-11 rounded-sm px-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                          isSelected
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                        }`}
+                      >
+                        {formatWindow(hours)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -406,7 +498,7 @@ export default function Dashboard() {
                     </span>
                     <span>Live brief</span>
                     <span className="font-normal text-slate-500">
-                      · last {windowHours} hours
+                      · last {formatWindow(windowHours)}
                     </span>
                   </div>
                   <ExpandableText
@@ -432,7 +524,7 @@ export default function Dashboard() {
                           Sentiment over time
                         </CardTitle>
                         <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
-                          {windowHours}H
+                          {formatWindow(windowHours)}
                         </span>
                       </div>
                       <p className="text-sm text-slate-500">
@@ -463,7 +555,7 @@ export default function Dashboard() {
                 <Card className="gap-0 overflow-hidden rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none">
                   <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-slate-100 px-4 py-4 sm:px-6">
                     <CardTitle className="text-base text-slate-950 sm:text-lg">
-                      Latest Headlines ({windowHours}h)
+                      Latest Headlines ({formatWindow(windowHours)})
                     </CardTitle>
                     <span className="shrink-0 text-sm font-medium text-slate-500">
                       {data.headlines.length} articles

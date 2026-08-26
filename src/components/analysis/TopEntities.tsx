@@ -103,7 +103,7 @@ export default function TopEntities({
         </div>
       </CardHeader>
 
-      <CardContent className="px-0 pb-4 sm:px-6 sm:pb-5">
+      <CardContent className="px-3 pb-2 sm:px-6 sm:pb-4">
         <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {entities.map((item) => (
             <Button
