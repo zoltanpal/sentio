@@ -195,7 +195,9 @@ export default function Dashboard() {
           source: "prompt",
           rawPrompt: pendingPrompt,
           resolvedQuery: resolved.query,
-          resolvedWindowHours: resolved.window_hours,
+          // The resolver may return its own fallback window (currently 6h).
+          // A new dashboard search starts with the 24-hour default instead.
+          resolvedWindowHours: DEFAULT_WINDOW,
         };
 
         await executeResolvedSearch(nextSession);
@@ -246,7 +248,9 @@ export default function Dashboard() {
       source: "prompt",
       rawPrompt: trimmedPrompt,
       resolvedQuery: resolved.query,
-      resolvedWindowHours: resolved.window_hours,
+      // A new search should retain the user's selected window. On a fresh
+      // dashboard visit this is DEFAULT_WINDOW (24 hours).
+      resolvedWindowHours: windowHours,
     };
 
     await executeResolvedSearch(nextSession);
