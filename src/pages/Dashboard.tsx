@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BotIcon, FileTextIcon, Grid2X2Icon } from "lucide-react";
+import { BotIcon, FileTextIcon, Grid2X2Icon, CircleQuestionMarkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import SearchBar from "@/components/search/SearchBar";
@@ -35,8 +35,6 @@ import {
   sanitizeWindow,
   validateQuery,
 } from "@/lib/searchParams";
-
-
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 
 const USE_AI = false; // Set to true to enable AI-powered search resolution
@@ -149,6 +147,7 @@ export default function Dashboard() {
         resolvedWindowHours: windowHours,
       };
 
+      scrollTo({ top: 0, behavior: "smooth" });
       await executeResolvedSearch(nextSession);
     },
     [executeResolvedSearch, windowHours]
@@ -304,16 +303,35 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-5">
+    <div className="min-h-screen bg-[#f4f7fb] text-slate-950">
+      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full mx-auto max-w-7xl items-center gap-3 sm:gap-5">
           <Link to="/" className="shrink-0" aria-label="Sentio home">
-            <img src="/logo/sentio_logo.png" alt="Sentio" className="h-auto w-36" />
+            <img
+              src="/logo/sentio_logo.png"
+              alt="Sentio"
+              className="h-auto w-32 sm:w-42"
+            />
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
-            <span className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"><Grid2X2Icon className="h-4 w-4" />Dashboard</span>
-            <Link to="/sources" className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-950"><FileTextIcon className="h-4 w-4" />Sources</Link>
-            <Link to="/help" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-950">How it works</Link>
+            <span className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
+              <Grid2X2Icon className="h-4 w-4" />
+              Dashboard
+            </span>
+            <Link
+              to="/sources"
+              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
+            >
+              <FileTextIcon className="h-4 w-4" />
+              Sources
+            </Link>
+            <Link
+              to="/help"
+              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
+            >
+              <CircleQuestionMarkIcon className="h-4 w-4" />
+              How it works
+            </Link>
           </nav>
           <div className="ml-auto hidden w-full max-w-[30rem] lg:block">
             <SearchBar
@@ -331,94 +349,142 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Workspace navigation is intentionally disabled until its routes are available. */}
-      <main className="min-w-0 px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-6 grid gap-3 lg:hidden">
-              <SearchBar value={promptInput} onChange={onPromptInputChange} onSearch={onSearch} loading={isBusy} error={displayError} placeholder="Search topics, companies, or sources..." size="md" />
-            </div>
-
-            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
-                {hasResults && data ? <DashboardHeading query={activeQuery} windowHours={windowHours} /> : <><h1 className="text-3xl font-bold tracking-tight">Dashboard</h1><p className="mt-1 text-slate-500">Search a topic to understand the news behind the signal.</p></>}
-              </div>
-              <div className="w-full sm:w-44 lg:w-56">
-                <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Time window</span>
-                <WindowHoursSelector value={windowHours} onChange={onWindowTimeChange} />
-              </div>
-            </div>
-
-      {isBusy ? (
-        <Loading text="Analyzing feeds, please wait..." />
-      ) : hasResults && data ? (
-        <div className="space-y-6">
-          {data.ai_summary ? (
-            <section className="rounded-2xl border border-indigo-100 bg-[linear-gradient(110deg,#f5f3ff_0%,#eef8ff_100%)] p-4 sm:p-5">
-              <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm"><BotIcon className="h-4 w-4" /></span>
-                <span>Live brief</span>
-                <span className="font-normal text-slate-500">· last {windowHours} hours</span>
-              </div>
-              <ExpandableText text={data.ai_summary} maxLength={260} customClass="text-sm leading-6 text-slate-700" />
-            </section>
-          ) : null}
-
-          <DashboardSummaryCard data={data} sourceCount={countSources} />
-
-          <div className="grid gap-5 xl:grid-cols-12">
-            <div className="space-y-5 xl:col-span-5">
-              <DriversCard drivers={data.what_driving} />
-            </div>
-            <div className="xl:col-span-7">
-              <Card className="h-[350px] gap-0 border-slate-200 py-0 shadow-sm sm:h-[390px]">
-                <CardHeader className="border-b border-slate-100 px-5 py-4 sm:px-6">
-                  <div className="flex items-center justify-between gap-3"><CardTitle className="text-lg text-slate-900">Sentiment over time</CardTitle><span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">{windowHours}H</span></div>
-                  <p className="text-sm text-slate-500">Coverage volume and sentiment across the selected period.</p>
-                </CardHeader>
-                <CardContent className="flex min-h-0 flex-1 items-stretch p-3 sm:p-5">
-                  <div className="h-full w-full min-h-0">
-                    <SentimentTimelineChart data={data.sentiment_scores_per_hour} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          <section>
-            <TopEntities
-              data={data.top_entities}
-              windowHours={windowHours}
-              variant="inline"
-              onSelect={(entity) => {
-                void onEntitySelect(entity.name);
-              }}
+      <main className="min-w-0 px-4 py-5 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-5 lg:hidden">
+            <SearchBar
+              value={promptInput}
+              onChange={onPromptInputChange}
+              onSearch={onSearch}
+              loading={isBusy}
+              error={displayError}
+              placeholder="Search topics, companies, or sources..."
+              size="md"
             />
-            <Card className="mt-5 gap-0 overflow-hidden border-slate-200 py-0 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
-                <div>
-                  <CardTitle className="text-base text-slate-900">Latest Headlines ({windowHours}h)</CardTitle>
-                  {/* <p className="mt-1 text-sm text-slate-500">Recent articles behind the signal.</p> */}
-                </div>
-                <span className="text-sm font-medium text-slate-500">{data.headlines.length} articles</span>
-              </CardHeader>
-              <CardContent className="p-0">
-                <HeadlinesTable items={data.headlines} />
-              </CardContent>
-            </Card>
-          </section>
-        </div>
-      ) : showEmptyState ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
-          No news found for the given query and time window. Please try expanding
-          the time window or using different keywords.
-        </div>
-      ) : showIdleState ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
-          Enter a topic to start analyzing live news sentiment.
-        </div>
-      ) : null}
           </div>
-        </main>
+
+          <div className="mb-5 flex flex-col justify-between gap-4 sm:mb-6 sm:flex-row sm:items-end">
+            <div className="min-w-0">
+              {hasResults && data ? (
+                <DashboardHeading
+                  query={activeQuery}
+                  windowHours={windowHours}
+                />
+              ) : (
+                <>
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                    Dashboard
+                  </h1>
+                  <p className="mt-1 text-sm text-slate-500 sm:text-base">
+                    Search a topic to understand the news behind the signal.
+                  </p>
+                </>
+              )}
+            </div>
+            <div className="w-full shrink-0 sm:w-52 lg:w-60">
+              <span className="mb-2 block text-[0.7rem] font-bold uppercase tracking-[0.12em] text-slate-500">
+                Time window
+              </span>
+              <WindowHoursSelector
+                value={windowHours}
+                onChange={onWindowTimeChange}
+              />
+            </div>
+          </div>
+
+          {isBusy ? (
+            <Loading text="Analyzing feeds, please wait..." />
+          ) : hasResults && data ? (
+            <div className="space-y-5 sm:space-y-6">
+              {data.ai_summary ? (
+                <section className="rounded-[1.25rem] border border-blue-100 bg-blue-50/70 p-4 sm:p-5">
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-900">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-blue-600 ring-1 ring-blue-100">
+                      <BotIcon className="h-4 w-4" />
+                    </span>
+                    <span>Live brief</span>
+                    <span className="font-normal text-slate-500">
+                      · last {windowHours} hours
+                    </span>
+                  </div>
+                  <ExpandableText
+                    text={data.ai_summary}
+                    maxLength={260}
+                    customClass="text-sm leading-6 text-slate-700"
+                  />
+                </section>
+              ) : null}
+
+              <DashboardSummaryCard data={data} sourceCount={countSources} />
+
+              <div className="grid min-w-0 gap-5 xl:grid-cols-12 xl:items-stretch">
+                <div className="order-2 min-w-0 xl:order-1 xl:col-span-4">
+                  <DriversCard drivers={data.what_driving} />
+                </div>
+
+                <div className="order-1 min-w-0 xl:order-2 xl:col-span-8">
+                  <Card className="flex h-[360px] gap-0 rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none sm:h-[420px] xl:h-full xl:min-h-[420px]">
+                    <CardHeader className="border-b border-slate-100 px-4 py-4 sm:px-6">
+                      <div className="flex items-center justify-between gap-3">
+                        <CardTitle className="text-lg text-slate-950 sm:text-xl">
+                          Sentiment over time
+                        </CardTitle>
+                        <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+                          {windowHours}H
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-500">
+                        Coverage volume and sentiment across the selected period.
+                      </p>
+                    </CardHeader>
+                    <CardContent className="flex min-h-0 flex-1 items-stretch p-2 sm:p-5">
+                      <div className="h-full min-h-0 w-full">
+                        <SentimentTimelineChart
+                          data={data.sentiment_scores_per_hour}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              <section className="min-w-0 space-y-5">
+                <TopEntities
+                  data={data.top_entities}
+                  windowHours={windowHours}
+                  variant="inline"
+                  onSelect={(entity) => {
+                    void onEntitySelect(entity.name);
+                  }}
+                />
+
+                <Card className="gap-0 overflow-hidden rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none">
+                  <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-slate-100 px-4 py-4 sm:px-6">
+                    <CardTitle className="text-base text-slate-950 sm:text-lg">
+                      Latest Headlines ({windowHours}h)
+                    </CardTitle>
+                    <span className="shrink-0 text-sm font-medium text-slate-500">
+                      {data.headlines.length} articles
+                    </span>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <HeadlinesTable items={data.headlines} />
+                  </CardContent>
+                </Card>
+              </section>
+            </div>
+          ) : showEmptyState ? (
+            <div className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white/60 p-8 text-center text-slate-500 sm:p-12">
+              No news found for the given query and time window. Please try
+              expanding the time window or using different keywords.
+            </div>
+          ) : showIdleState ? (
+            <div className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white/60 p-8 text-center text-slate-500 sm:p-12">
+              Enter a topic to start analyzing live news sentiment.
+            </div>
+          ) : null}
+          </div>
+      </main>
     </div>
   );
 }

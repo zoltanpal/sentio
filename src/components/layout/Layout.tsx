@@ -27,7 +27,7 @@ export default function Layout() {
     <div className="flex min-h-screen w-full flex-col bg-gray-50">
       <header className="fixed top-0 z-10 w-full"></header>
 
-      <main className="flex-1 pt-2 pb-10">
+      <main className="flex-1 pb-10">
         <Outlet context={{ pageTitle }} />
       </main>
 

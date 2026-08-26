@@ -1,4 +1,17 @@
-import { FileTextIcon, SearchCheckIcon, TrendingDownIcon, TrendingUpIcon } from "lucide-react";
+import {
+  FileTextIcon,
+  InfoIcon,
+  SearchCheckIcon,
+  TrendingDownIcon,
+  TrendingUpIcon,
+} from "lucide-react";
+import type { ReactNode } from "react";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/shared/ui/popover";
 import type { LiveQueryResponse } from "@/hooks/useDashboardData";
 
 type DashboardSummaryCardProps = {
@@ -8,111 +21,247 @@ type DashboardSummaryCardProps = {
 
 type SentimentDirection = "improving" | "worsening" | "stable";
 
-function DirectionSparkline({
-  direction,
+const trendStyles = {
+  improving: {
+    color: "#16a34a",
+    points:
+      "0,26 8,24 16,25 24,22 32,23 40,19 48,21 56,17 64,19 72,15 80,17 88,12 96,14 104,10 112,11 120,7 128,5",
+    endpoint: 5,
+  },
+  worsening: {
+    color: "#dc2626",
+    points:
+      "0,7 8,10 16,9 24,13 32,11 40,15 48,13 56,17 64,15 72,19 80,17 88,22 96,20 104,25 112,23 120,28 128,30",
+    endpoint: 30,
+  },
+  stable: {
+    color: "#d97706",
+    points:
+      "0,17 8,14 16,18 24,16 32,19 40,15 48,17 56,14 64,17 72,19 80,15 88,18 96,16 104,19 112,15 120,17 128,16",
+    endpoint: 16,
+  },
+} satisfies Record<
+  SentimentDirection,
+  { color: string; points: string; endpoint: number }
+>;
+
+function SummaryLabel({
+  children,
+  description,
 }: {
-  direction: SentimentDirection;
+  children: ReactNode;
+  description: string;
 }) {
-  const trend = {
-    improving: {
-      color: "#16a34a",
-      points: "0,32 6,28 13,30 20,26 27,29 35,24 43,26 51,20 59,23 67,18 75,20 83,15 91,17 100,12 109,14 118,9 128,11 138,7 149,9 160,4",
-      endpoint: "4",
-    },
-    worsening: {
-      color: "#dc2626",
-      points: "0,7 6,11 13,9 20,14 27,11 35,16 43,14 51,20 59,17 67,23 75,20 83,26 91,23 100,29 109,26 118,32 128,29 138,35 149,32 160,36",
-      endpoint: "36",
-    },
-    stable: {
-      color: "#d97706",
-      points: "0,20 6,17 13,21 20,19 27,23 35,18 43,21 51,17 59,20 67,22 75,18 83,21 91,19 100,23 109,18 118,20 128,17 138,21 149,19 160,20",
-      endpoint: "20",
-    },
-  }[direction];
-  const areaPoints = `${trend.points} 160,40 0,40`;
+  return (
+    <div className="flex items-center gap-1.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-slate-500">
+      <span>{children}</span>
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="-my-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            aria-label={`What does ${String(children)} mean?`}
+          >
+            <InfoIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          sideOffset={6}
+          className="w-72 rounded-xl border-slate-200 p-4 shadow-lg"
+        >
+          <p className="text-sm font-semibold normal-case tracking-normal text-slate-950">
+            {children}
+          </p>
+          <p className="mt-1.5 text-sm font-normal normal-case leading-6 tracking-normal text-slate-600">
+            {description}
+          </p>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+function DirectionSparkline({ direction }: { direction: SentimentDirection }) {
+  const trend = trendStyles[direction];
+  const areaPoints = `${trend.points} 128,32 0,32`;
 
   return (
-    <svg viewBox="0 0 160 40" className="mt-4 h-10 w-full" role="img" aria-label={`${direction} sentiment trend`}>
-      <polygon fill={trend.color} fillOpacity="0.12" points={areaPoints} />
-      <polyline fill="none" stroke={trend.color} strokeWidth="2.25" points={trend.points} strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="160" cy={trend.endpoint} r="3.25" fill={trend.color} />
+    <svg
+      viewBox="0 0 128 32"
+      className="h-8 w-full"
+      role="img"
+      aria-label={`${direction} direction indicator`}
+      preserveAspectRatio="none"
+    >
+      <polygon fill={trend.color} fillOpacity="0.08" points={areaPoints} />
+      <polyline
+        fill="none"
+        stroke={trend.color}
+        strokeWidth="2"
+        points={trend.points}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <circle cx="128" cy={trend.endpoint} r="2.75" fill={trend.color} />
     </svg>
   );
 }
 
-export default function DashboardSummaryCard({ data, sourceCount }: DashboardSummaryCardProps) {
+export default function DashboardSummaryCard({
+  data,
+  sourceCount,
+}: DashboardSummaryCardProps) {
   const { aggregated, change } = data;
   const isImproving = change?.direction === "improving";
   const isWorsening = change?.direction === "worsening";
-  const direction = isImproving ? "Improving" : isWorsening ? "Worsening" : "Stable";
+  const direction = isImproving
+    ? "Improving"
+    : isWorsening
+      ? "Worsening"
+      : "Stable";
   const trendDirection: SentimentDirection = isImproving
     ? "improving"
     : isWorsening
       ? "worsening"
       : "stable";
-  const directionClass = isImproving ? "text-emerald-600" : isWorsening ? "text-red-600" : "text-amber-600";
-  const changeColor =
-    change?.delta && change.delta > 0
-      ? "#16a34a"
-      : change?.delta && change.delta < 0
-        ? "#dc2626"
-        : "#64748b";
+  const directionClass = isImproving
+    ? "text-emerald-600"
+    : isWorsening
+      ? "text-red-600"
+      : "text-amber-600";
+  const changeClass =
+    change && change.delta > 0
+      ? "text-emerald-600"
+      : change && change.delta < 0
+        ? "text-red-600"
+        : "text-slate-600";
+  const currentClass =
+    aggregated.distribution.positive_pct >
+    aggregated.distribution.negative_pct
+      ? "text-emerald-600"
+      : aggregated.distribution.negative_pct >
+          aggregated.distribution.positive_pct
+        ? "text-red-600"
+        : "text-slate-900";
   const total = Math.max(aggregated.article_count, 1);
   const reason = data.what_driving?.[0]?.representative_title ?? null;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="grid divide-y divide-slate-100 md:grid-cols-2 md:divide-x md:divide-y-0 xl:grid-cols-5">
-        <div className="p-4 sm:p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Sentiment</p>
-          <div className={`mt-3 flex items-center gap-2 text-2xl font-bold ${directionClass}`}>
-            {direction}
-            {isImproving ? <TrendingUpIcon className="h-5 w-5" /> : isWorsening ? <TrendingDownIcon className="h-5 w-5" /> : null}
+    <section
+      className="overflow-hidden rounded-[1.25rem] border border-slate-200/90 bg-white shadow-sm shadow-slate-200/40"
+      aria-label="Sentiment summary"
+    >
+      <div className="grid grid-cols-2 md:grid-cols-6 xl:grid-cols-12">
+        <div className="order-1 col-span-1 border-b border-r border-slate-100 p-4 sm:p-5 md:col-span-2 xl:col-span-2 xl:border-b-0">
+          <SummaryLabel description="How the overall news tone is moving compared with the previous equivalent time window.">
+            Trend
+          </SummaryLabel>
+          <div
+            className={`mt-3 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl ${directionClass}`}
+          >
+            <span>{direction}</span>
+            {isImproving ? (
+              <TrendingUpIcon className="h-5 w-5 shrink-0" />
+            ) : isWorsening ? (
+              <TrendingDownIcon className="h-5 w-5 shrink-0" />
+            ) : null}
           </div>
-          <DirectionSparkline direction={trendDirection} />
+          <div className="mt-5 max-w-40">
+            <DirectionSparkline direction={trendDirection} />
+          </div>
         </div>
 
-        <div className="p-4 sm:p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Current</p>
-          <p className="mt-3 text-xl font-bold capitalize text-slate-900">{aggregated.summary.label.replace(/_/g, " ")}</p>
-          <div className="mt-5 flex h-2 overflow-hidden rounded-full bg-slate-100">
-            <span className="bg-emerald-400" style={{ width: `${(aggregated.distribution.positive_count / total) * 100}%` }} />
-            <span className="bg-amber-400" style={{ width: `${(aggregated.distribution.neutral_count / total) * 100}%` }} />
-            <span className="bg-red-400" style={{ width: `${(aggregated.distribution.negative_count / total) * 100}%` }} />
+        <div className="order-3 col-span-2 border-b border-slate-100 p-4 sm:p-5 md:order-2 md:col-span-2 md:border-r xl:col-span-3 xl:border-b-0">
+          <SummaryLabel description="The current balance of positive, neutral, and negative articles in the selected period.">
+            Current
+          </SummaryLabel>
+          <p
+            className={`mt-3 text-xl font-bold capitalize tracking-tight sm:text-2xl ${currentClass}`}
+          >
+            {aggregated.summary.label.replace(/_/g, " ")}
+          </p>
+          <div
+            className="mt-5 flex h-2.5 overflow-hidden rounded-full bg-slate-100"
+            aria-label={`${aggregated.distribution.positive_pct}% positive, ${aggregated.distribution.neutral_pct}% neutral, ${aggregated.distribution.negative_pct}% negative`}
+          >
+            <span
+              className="bg-emerald-500"
+              style={{
+                width: `${(aggregated.distribution.positive_count / total) * 100}%`,
+              }}
+            />
+            <span
+              className="bg-amber-400"
+              style={{
+                width: `${(aggregated.distribution.neutral_count / total) * 100}%`,
+              }}
+            />
+            <span
+              className="bg-red-500"
+              style={{
+                width: `${(aggregated.distribution.negative_count / total) * 100}%`,
+              }}
+            />
           </div>
-          <p className="mt-3 text-xs text-slate-500">
-            <span className="text-emerald-600">{aggregated.distribution.positive_pct}% positive</span>
-            <span className="mx-2">•</span>
-            <span>{aggregated.distribution.neutral_pct}% neutral</span>
-            <span className="mx-2">•</span>
-            <span className="text-red-500">{aggregated.distribution.negative_pct}% negative</span>
+          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] font-medium">
+            <span className="text-emerald-600">
+              {aggregated.distribution.positive_pct}% positive
+            </span>
+            <span className="text-slate-500">
+              {aggregated.distribution.neutral_pct}% neutral
+            </span>
+            <span className="text-red-600">
+              {aggregated.distribution.negative_pct}% negative
+            </span>
+          </div>
+        </div>
+
+        <div className="order-2 col-span-1 border-b border-slate-100 p-4 sm:p-5 md:order-3 md:col-span-2 xl:col-span-2 xl:border-b-0 xl:border-r">
+          <SummaryLabel description="The difference between the current average sentiment score and the previous equivalent period. Scores range from −1 to +1.">
+            Change
+          </SummaryLabel>
+          <p
+            className={`mt-5 text-3xl font-bold tracking-tight sm:text-4xl ${changeClass}`}
+          >
+            {change
+              ? `${change.delta > 0 ? "+" : ""}${change.delta.toFixed(2)}`
+              : "—"}
+          </p>
+          <p className="mt-2 text-xs text-slate-500">
+            vs previous {data.window_hours}h
           </p>
         </div>
 
-        <div className="p-4 sm:p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Change</p>
-          <p className="mt-5 text-3xl font-bold" style={{ color: changeColor }}>
-            {change ? `${change.delta > 0 ? "+" : ""}${change.delta.toFixed(2)}` : "—"}
-          </p>
-          <p className="mt-2 text-sm text-slate-500">vs previous {data.window_hours}h</p>
-        </div>
-
-        <div className="p-4 sm:p-5 xl:col-span-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Main reason</p>
+        <div className="order-4 col-span-2 border-b border-slate-100 p-4 sm:p-5 md:col-span-4 md:border-r xl:col-span-3 xl:border-b-0">
+          <SummaryLabel description="The most prominent story currently contributing to the sentiment movement.">
+            Main reason
+          </SummaryLabel>
           <div className="mt-4 flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500"><SearchCheckIcon className="h-5 w-5" /></span>
-            <p className="line-clamp-2 text-sm font-semibold leading-5 text-slate-800">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500 ring-1 ring-red-100">
+              <SearchCheckIcon className="h-5 w-5" />
+            </span>
+            <p className="line-clamp-4 text-sm font-semibold leading-6 text-slate-800 sm:text-base">
               {reason ?? "No dominant story identified yet"}
             </p>
           </div>
         </div>
 
-        <div className="p-4 sm:p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Coverage</p>
+        <div className="order-5 col-span-2 p-4 sm:p-5 md:col-span-2 xl:col-span-2">
+          <SummaryLabel description="The number of matching articles and distinct news sources found in the selected period.">
+            Coverage
+          </SummaryLabel>
           <div className="mt-4 flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600"><FileTextIcon className="h-5 w-5" /></span>
-            <p className="text-sm leading-5 text-slate-500"><span className="block text-2xl font-bold text-blue-600">{aggregated.article_count}</span>articles from {sourceCount} sources</p>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+              <FileTextIcon className="h-5 w-5" />
+            </span>
+            <p className="text-sm leading-5 text-slate-500">
+              <span className="block text-3xl font-bold tracking-tight text-blue-600">
+                {aggregated.article_count}
+              </span>
+              articles from {sourceCount} sources
+            </p>
           </div>
         </div>
       </div>

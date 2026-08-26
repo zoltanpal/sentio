@@ -1,5 +1,6 @@
+import { SearchIcon, TagsIcon } from "lucide-react";
+
 import { Button } from "@/components/shared/ui/button";
-import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -7,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
+import { cn } from "@/lib/utils";
 
 type Entity = {
   name?: string;
@@ -32,19 +34,19 @@ type Props = {
 
 const TYPE_COLORS: Record<string, string> = {
   PERSON:
-    "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-300",
+    "border-blue-200/80 bg-blue-50/80 text-blue-700 hover:bg-blue-100/80",
   COMPANY:
-    "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-900 dark:bg-purple-950/50 dark:text-purple-300",
+    "border-violet-200/80 bg-violet-50/70 text-violet-700 hover:bg-violet-100/70",
   MARKET_INDEX:
-    "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300",
+    "border-cyan-200/80 bg-cyan-50/70 text-cyan-700 hover:bg-cyan-100/70",
   EVENT:
-    "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300",
+    "border-amber-200/80 bg-amber-50/70 text-amber-700 hover:bg-amber-100/70",
   CRYPTO:
-    "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300",
+    "border-rose-200/80 bg-rose-50/70 text-rose-700 hover:bg-rose-100/70",
 };
 
 const DEFAULT_COLOR =
-  "border-border bg-muted/40 text-muted-foreground";
+  "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100";
 
 function colorForType(type?: string): string {
   return TYPE_COLORS[type?.toUpperCase() ?? ""] ?? DEFAULT_COLOR;
@@ -56,65 +58,77 @@ export default function TopEntities({
   windowHours,
   variant = "card",
 }: Props) {
-  const entities = (data ?? []).map((item): NormalizedEntity => ({
-    // Support both the current API shape and older cached responses.
-    name: item.name ?? item.entity_text ?? "Unnamed entity",
-    type: item.type ?? item.entity_type ?? "",
-    count: item.count ?? item.article_count ?? 0,
-  }));
+  const entities = (data ?? []).map(
+    (item): NormalizedEntity => ({
+      // Support both the current API shape and older cached responses.
+      name: item.name ?? item.entity_text ?? "Unnamed entity",
+      type: item.type ?? item.entity_type ?? "",
+      count: item.count ?? item.article_count ?? 0,
+    })
+  );
 
   if (!entities.length) {
     return null;
   }
 
-  const entityButtons = (
-    <div className="flex flex-wrap gap-2">
-      {entities.map((item) => (
-        <Button
-          key={`${item.type}-${item.name}`}
-          variant="outline"
-          size="sm"
-          onClick={() => onSelect?.(item)}
-          className={cn(
-            "h-auto rounded-lg px-3 py-1.5 shadow-none",
-            "transition-colors hover:brightness-95",
-            colorForType(item.type),
-          )}
-        >
-          <span className="font-medium">{item.name}</span>
-          <span className="ml-1 text-xs opacity-60">{item.count}</span>
-        </Button>
-      ))}
-    </div>
-  );
-
-  if (variant === "inline") {
-    return (
-      <Card className="mt-5 gap-3 border-slate-200 py-0 shadow-sm">
-        <CardHeader className="px-5 pt-4 sm:px-6">
-          <CardTitle className="text-base text-slate-900">Most mentioned</CardTitle>
-          <CardDescription>Entities mentioned in the last {windowHours ?? 24} hours</CardDescription>
-        </CardHeader>
-        <CardContent className="px-5 pb-5 sm:px-6">
-          {entityButtons}
-        </CardContent>
-      </Card>
-    );
-  }
+  const isInline = variant === "inline";
 
   return (
-    <Card className="flex flex-col gap-3 border-slate-200 py-0 shadow-sm">
-      <CardHeader className="px-5 pt-4 sm:px-6">
-        <CardTitle className="text-lg text-slate-900">Key entities</CardTitle>
-        <CardDescription>
-          Most mentioned in the selected period
-        </CardDescription>
+    <Card
+      className={cn(
+        "gap-0 overflow-hidden rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none",
+        !isInline && "flex flex-col"
+      )}
+    >
+      <CardHeader className="px-4 pb-3 pt-4 sm:px-6 sm:pb-4">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+            <TagsIcon className="h-[1.125rem] w-[1.125rem]" />
+          </span>
+          <div className="min-w-0">
+            <CardTitle
+              className={cn(
+                "font-bold text-slate-950",
+                isInline ? "text-base sm:text-lg" : "text-lg"
+              )}
+            >
+              {isInline ? "Most mentioned" : "Key entities"}
+            </CardTitle>
+            <CardDescription className="mt-0.5 text-xs sm:text-sm">
+              {isInline
+                ? `Entities mentioned in the last ${windowHours ?? 24} hours`
+                : "Most mentioned in the selected period"}
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="px-5 pb-5 sm:px-6">
-        {entityButtons}
+
+      <CardContent className="px-0 pb-4 sm:px-6 sm:pb-5">
+        <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {entities.map((item) => (
+            <Button
+              key={`${item.type}-${item.name}`}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onSelect?.(item)}
+              aria-label={`Search for ${item.name}, mentioned in ${item.count} articles`}
+              title={`Search for ${item.name}`}
+              className={cn(
+                "h-9 shrink-0 snap-start rounded-xl px-3 shadow-none",
+                "gap-1.5 transition-colors focus-visible:ring-blue-500",
+                colorForType(item.type)
+              )}
+            >
+              <span className="font-semibold">{item.name}</span>
+              <span className="text-xs tabular-nums opacity-65">
+                {item.count}
+              </span>
+              <SearchIcon className="ml-0.5 h-3.5 w-3.5 opacity-55" />
+            </Button>
+          ))}
+        </div>
       </CardContent>
-
-
     </Card>
   );
 }
