@@ -83,32 +83,26 @@ function getDirectionMeta(direction: ChangeDirection, delta: number) {
   }
 }
 
-function formatDelta(delta: number): string {
-  const sign = delta > 0 ? "+" : "";
-  return `${sign}${delta.toFixed(2)}`;
-}
-
 export default function SentimentChangeCard({
   data,
   drivers = null,
   windowHours,
-  title = "Tone Shift",
 }: Props) {
-  const { direction, delta, current } = data;
+  const { direction, delta } = data;
   const meta = getDirectionMeta(direction, delta);
 
   const showDrivers =
     Boolean(drivers?.is_meaningful) && (drivers?.headlines?.length ?? 0) > 0;
 
   return (
-    <Card className="rounded-xl gap-1 px-2 py-2 px-0 border bg-gradient-to-r from-yellow-30 to-yellow-50">
-      <CardHeader className="py-0 gap-2">
+    <Card className="gap-4 border-amber-100 bg-gradient-to-br from-amber-50 to-white py-0 shadow-sm">
+      <CardHeader className="px-5 pt-5 pb-0">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base">Recent Change</CardTitle>
         </div>
       </CardHeader>
 
-      <CardContent className="py-0 space-y-4">
+      <CardContent className="space-y-4 px-5 pb-5">
         <div className="flex items-start gap-3">
           <div
             className={`flex h-14 w-10 shrink-0 items-center justify-center rounded-2xl ${meta.iconWrapClass}`}

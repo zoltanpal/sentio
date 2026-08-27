@@ -2,17 +2,17 @@
 import { Separator } from "@/components/shared/ui/separator";
 import { MailIcon } from "lucide-react";
 import LinkedinIcon from "@/components/shared/ui/linkedin-icon";
+import { Link } from "react-router-dom";
 import Header from "@/components/layout/Header";
 
 export default function Contact() {
   return (
     <div className="mx-auto w-full">
-      <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
-
+      <section className="mx-auto max-w-7xl px-2 py-3">
         <Header />
 
-        <Separator className="my-5" />
-        <div className="mx-auto  text-justify">
+        <Separator className="my-2" />
+      <div className="mx-auto max-w-7xl px-4 py-4">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Contact Us
           </h2>
@@ -27,7 +27,7 @@ export default function Contact() {
             </a>
           </p>
         </div>
-        </section>
+      </section>
 
     </div>
   );

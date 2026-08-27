@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MainNavigationMenu } from "@/components/layout/MainNavigationMenu";
+import { MainNavigationMenu } from "@/components/layout/RightSimpleNav";
 import { getSearchSession } from "@/lib/searchSession";
 
 export default function Header() {

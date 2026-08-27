@@ -1,16 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
-import { BotIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  BotIcon,
+  FileTextIcon,
+  Grid2X2Icon,
+  CircleQuestionMarkIcon,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 import SearchBar from "@/components/search/SearchBar";
 import Loading from "@/components/analysis/LoadingState";
-import WindowHoursSelector from "@/components/search/WindowHoursSelector";
 import HeadlinesTable from "@/components/analysis/HeadlinesTable";
 
 import ExpandableText from "@/components/analysis/ExpandableText";
-import SentimentChangeCard from "@/components/analysis/SentimentChangeCard";
-import OverallTone from "@/components/analysis/OverallTone";
-// import TopEntities from "@/components/analysis/TopEntities";
-// import DashboardHeading from "@/components/analysis/DashboardHeading";
+import DashboardSummaryCard from "@/components/analysis/DashboardSummaryCard";
+import DriversCard from "@/components/analysis/DriversCard";
+import TopEntities from "@/components/analysis/TopEntities";
+import DashboardHeading from "@/components/analysis/DashboardHeading";
 
 import {
   Card,
@@ -18,6 +23,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/shared/ui/select";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { usePromptResolver } from "@/hooks/usePromptResolver";
 import {
@@ -34,13 +46,11 @@ import {
   sanitizeWindow,
   validateQuery,
 } from "@/lib/searchParams";
-
-
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
-import Header from "@/components/layout/Header";
 
 const USE_AI = false; // Set to true to enable AI-powered search resolution
 const USE_AI_PROMPT_RESOLVER = false; // Set to true to enable AI-powered prompt resolution
+const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
 
 type DashboardViewStateParams = {
   pageError: string;
@@ -77,6 +87,14 @@ function getDashboardViewState({
   };
 }
 
+function formatWindow(hours: number) {
+  if (hours >= 24 && hours % 24 === 0) {
+    return `${hours / 24}d`;
+  }
+
+  return `${hours}h`;
+}
+
 export default function Dashboard() {
   const [promptInput, setPromptInput] = useState("");
   const [activeQuery, setActiveQuery] = useState("");
@@ -85,6 +103,7 @@ export default function Dashboard() {
   const [hasAttemptedSearch, setHasAttemptedSearch] = useState(false);
   const [resolvedSession, setResolvedSession] =
     useState<SearchSession | null>(null);
+  const resultsTopRef = useRef<HTMLDivElement>(null);
 
   const { data, error, loading, run, clearResults } = useDashboardData();
   const {
@@ -132,27 +151,39 @@ export default function Dashboard() {
     [clearResults, run]
   );
 
-  // const onEntitySelect = useCallback(
-  //   async (entityText: string) => {
-  //     const query = sanitizeQuery(entityText);
-  //     const validationError = validateQuery(query);
+  const scrollToResults = useCallback(() => {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
 
-  //     if (validationError) {
-  //       setPageError(validationError);
-  //       return;
-  //     }
+    resultsTopRef.current?.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }, []);
 
-  //     const nextSession: SearchSession = {
-  //       source: "entity",
-  //       rawPrompt: query,
-  //       resolvedQuery: query,
-  //       resolvedWindowHours: windowHours,
-  //     };
+  const onEntitySelect = useCallback(
+    async (entityText: string) => {
+      const query = sanitizeQuery(entityText);
+      const validationError = validateQuery(query);
 
-  //     await executeResolvedSearch(nextSession);
-  //   },
-  //   [executeResolvedSearch, windowHours]
-  // );
+      if (validationError) {
+        setPageError(validationError);
+        return;
+      }
+
+      const nextSession: SearchSession = {
+        source: "keyword",
+        rawPrompt: query,
+        resolvedQuery: query,
+        resolvedWindowHours: windowHours,
+      };
+
+      scrollToResults();
+      await executeResolvedSearch(nextSession);
+    },
+    [executeResolvedSearch, scrollToResults, windowHours]
+  );
 
   useEffect(() => {
     const pendingPrompt = sanitizeQuery(getPendingPrompt());
@@ -192,8 +223,10 @@ export default function Dashboard() {
         const nextSession: SearchSession = {
           source: "prompt",
           rawPrompt: pendingPrompt,
-          resolvedQuery: resolved.query,
-          resolvedWindowHours: resolved.window_hours,
+          resolvedQuery: sanitizeQuery(resolved.query) || pendingPrompt,
+          // The resolver may return its own fallback window (currently 6h).
+          // A new dashboard search starts with the 24-hour default instead.
+          resolvedWindowHours: DEFAULT_WINDOW,
         };
 
         await executeResolvedSearch(nextSession);
@@ -243,8 +276,10 @@ export default function Dashboard() {
     const nextSession: SearchSession = {
       source: "prompt",
       rawPrompt: trimmedPrompt,
-      resolvedQuery: resolved.query,
-      resolvedWindowHours: resolved.window_hours,
+      resolvedQuery: sanitizeQuery(resolved.query) || trimmedPrompt,
+      // A new search should retain the user's selected window. On a fresh
+      // dashboard visit this is DEFAULT_WINDOW (24 hours).
+      resolvedWindowHours: windowHours,
     };
 
     await executeResolvedSearch(nextSession);
@@ -282,10 +317,6 @@ export default function Dashboard() {
   };
 
   const countSources = new Set(data?.headlines.map((h) => h.source_name)).size;
-  const lastUpdated = data?.headlines.reduce((latest, headline) => {
-    const publishedAt_str = new Date(headline.published_at).getTime();
-    return publishedAt_str > latest ? publishedAt_str : latest;
-  }, 0);
 
   const {
     displayError,
@@ -304,118 +335,250 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-3">
-      <Header />
-
-      {/* Search Bar and Time Window Selector */}
-      <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="grid items-end gap-4 md:grid-cols-[1fr_auto]">
-          <div className="w-full">
-            <SearchBar
-              value={promptInput}
-              onChange={onPromptInputChange}
-              onSearch={onSearch}
-              loading={isBusy}
-              error={displayError}
-              placeholder="e.g. Tesla, NVDA, oil prices"
-              size="md"
-            />
-          </div>
-
-          <div className="flex min-w-[220px] flex-col gap-1">
-            <span className="text-sm">Time window</span>
-            <WindowHoursSelector
-              value={windowHours}
-              onChange={onWindowTimeChange}
-            />
-          </div>
-        </div>
-      </div>
-
-      {isBusy ? (
-        <Loading text="Analyzing feeds, please wait..." />
-      ) : hasResults && data ? (
-        <div className="space-y-8">
-          {/* <DashboardHeading
-            query={activeQuery}
-            windowHours={windowHours}
-          /> */}
-
-          {/* AI Summary */}
-          {data.ai_summary ? (
-            <div className="rounded-xl border bg-gradient-to-r from-purple-100 to-teal-100 p-4">
-              <div className="mb-2 flex items-center gap-2 text-md font-semibold">
-                <BotIcon className="h-4 w-4" />
-                <span>Live Summary (last {windowHours} hours)</span>
-              </div>
-              <ExpandableText text={data.ai_summary} maxLength={200} />
+    <div className="min-h-screen bg-[#f4f7fb] text-slate-950">
+      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-10">
+          <div className="flex h-16 items-center gap-3 sm:gap-5">
+            <Link to="/" className="shrink-0" aria-label="Sentio home">
+              <img
+                src="/logo/sentio_logo.png"
+                alt="Sentio"
+                className="h-auto w-32 sm:w-42"
+              />
+            </Link>
+            <nav className="hidden items-center gap-1 lg:flex">
+              <span className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
+                <Grid2X2Icon className="h-4 w-4" />
+                Dashboard
+              </span>
+              <Link
+                to="/sources"
+                className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
+              >
+                <FileTextIcon className="h-4 w-4" />
+                Sources
+              </Link>
+              <Link
+                to="/help"
+                className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
+              >
+                <CircleQuestionMarkIcon className="h-4 w-4" />
+                How it works
+              </Link>
+            </nav>
+            <div className="ml-auto hidden w-full max-w-[30rem] lg:block">
+              <SearchBar
+                value={promptInput}
+                onChange={onPromptInputChange}
+                onSearch={onSearch}
+                loading={isBusy}
+                error={displayError}
+                placeholder="e.g. Tesla, NVDA, oil prices"
+                size="md"
+                inputClassName="py-1.5 text-sm sm:py-1.5"
+                buttonClassName="px-3 sm:px-3"
+              />
             </div>
-          ) : null}
 
-          {/* Top Entities */}
-          {/* <div>
-            <TopEntities 
-              data={data.top_entities} 
-              windowHours={data.window_hours} 
-              onSelect={(entity) => {
-                void onEntitySelect(entity.entity_text);
-              }}
-  />
-          </div> */}
-
-          {/* Latest Headlines and Overall Tone */}
-          <div className="flex flex-col gap-4 lg:flex-row">
-            <div className="w-full lg:w-1/4">
-              <OverallTone data={data} countSources={countSources} lastUpdated={lastUpdated} />
-            </div>
-            <div className="w-full lg:w-3/4">
-              <Card className="h-[300px] gap-0 bg-gradient-to-r from-pink-30 to-pink-50 py-2 sm:h-[320px]">
-                <CardHeader className="m-0 px-5 py-2">
-                  <CardTitle className="text-lg">Latest Headlines</CardTitle>
-                </CardHeader>
-                <CardContent className="m-0 h-[220px] p-0">
-                  <HeadlinesTable items={data.headlines} />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          
-          {/* Sentiment Trend and Change */}
-          <div className="flex flex-col-reverse gap-4 lg:flex-row">
-            <div className="w-full lg:w-3/4">
-              <Card className="flex h-[300px] flex-col gap-0 bg-gradient-to-r from-blue-30 to-blue-50 py-2 sm:h-[360px]">
-                <CardHeader className="m-0 px-5 py-0">
-                  <CardTitle className="text-lg">Sentiment Trend</CardTitle>
-                </CardHeader>
-
-                <CardContent className="flex min-h-0 flex-1 items-stretch p-2 sm:p-2">
-                  <div className="h-full w-full min-h-0">
-                    <SentimentTimelineChart data={data.sentiment_scores_per_hour} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="w-full lg:w-1/4">
-              <SentimentChangeCard
-                data={data.change}
-                drivers={data.drivers}
-                windowHours={data.window_hours}
+            <div className="ml-auto min-w-0 flex-1 lg:hidden">
+              <SearchBar
+                value={promptInput}
+                onChange={onPromptInputChange}
+                onSearch={onSearch}
+                loading={isBusy}
+                error={displayError}
+                placeholder="Search..."
+                size="md"
+                inputClassName="min-w-0 py-1.5 text-sm"
+                buttonClassName="px-3"
               />
             </div>
           </div>
+        </div>
+      </header>
 
-        </div>
-      ) : showEmptyState ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
-          No news found for the given query and time window. Please try expanding
-          the time window or using different keywords.
-        </div>
-      ) : showIdleState ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 p-10 text-center text-muted-foreground">
-          Enter a topic to start analyzing live news sentiment.
-        </div>
-      ) : null}
+      <main className="min-w-0 mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
+        <div className="mx-auto max-w-[1440px]">
+          <div
+            ref={resultsTopRef}
+            className="mb-5 flex scroll-mt-20 items-start justify-between gap-3 sm:mb-6 sm:items-end sm:gap-4"
+          >
+            <div className="min-w-0">
+              {hasResults && data ? (
+                <DashboardHeading
+                  query={activeQuery}
+                  windowHours={windowHours}
+                />
+              ) : (
+                <>
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                    Dashboard
+                  </h1>
+                  <p className="mt-1 text-sm text-slate-500 sm:text-base">
+                    Search a topic to understand the news behind the signal.
+                  </p>
+                </>
+              )}
+            </div>
+            <div className="shrink-0">
+              <div className="sm:hidden">
+                <Select
+                  value={String(windowHours)}
+                  onValueChange={(value) =>
+                    onWindowTimeChange(Number(value))
+                  }
+                  disabled={isBusy}
+                >
+                  <SelectTrigger
+                    className="h-10 w-[5.25rem] rounded-xl border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-none focus:ring-2 focus:ring-blue-100"
+                    aria-label="Time window"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    align="end"
+                    className="min-w-[7rem] rounded-xl border-slate-200 p-1"
+                  >
+                    {WINDOW_OPTIONS.map((hours) => (
+                      <SelectItem
+                        key={hours}
+                        value={String(hours)}
+                        className="h-10 rounded-lg text-sm font-medium"
+                      >
+                        {formatWindow(hours)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="hidden sm:block">
+                <span className="mb-2 block text-[0.7rem] font-bold uppercase tracking-[0.12em] text-slate-500">
+                  Time window
+                </span>
+                <div
+                  className="inline-flex rounded-xl border border-slate-200 bg-white p-1"
+                  role="group"
+                  aria-label="Time window"
+                >
+                  {WINDOW_OPTIONS.map((hours) => {
+                    const isSelected = hours === windowHours;
+
+                    return (
+                      <button
+                        key={hours}
+                        type="button"
+                        onClick={() => onWindowTimeChange(hours)}
+                        disabled={isBusy}
+                        aria-pressed={isSelected}
+                        className={`h-8 min-w-11 rounded-sm px-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                          isSelected
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                        }`}
+                      >
+                        {formatWindow(hours)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {isBusy ? (
+            <Loading text="Analyzing feeds, please wait..." />
+          ) : hasResults && data ? (
+            <div className="space-y-5 sm:space-y-6">
+              {data.ai_summary ? (
+                <section className="rounded-[1.25rem] border border-blue-100 bg-blue-50/70 p-4 sm:p-5">
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-900">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-blue-600 ring-1 ring-blue-100">
+                      <BotIcon className="h-4 w-4" />
+                    </span>
+                    <span>Live brief</span>
+                    <span className="font-normal text-slate-500">
+                      · last {formatWindow(windowHours)}
+                    </span>
+                  </div>
+                  <ExpandableText
+                    text={data.ai_summary}
+                    maxLength={260}
+                    customClass="text-sm leading-6 text-slate-700"
+                  />
+                </section>
+              ) : null}
+
+              <DashboardSummaryCard data={data} sourceCount={countSources} />
+
+              <div className="grid min-w-0 gap-5 xl:grid-cols-12 xl:items-stretch">
+                <div className="order-1 min-w-0 xl:order-1 xl:col-span-4">
+                  <DriversCard drivers={data.what_driving} />
+                </div>
+
+                <div className="order-2 min-w-0 xl:order-2 xl:col-span-8">
+                  <Card className="flex h-[360px] gap-0 rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none sm:h-[420px] xl:h-full xl:min-h-[420px]">
+                    <CardHeader className="border-b border-slate-100 px-4 py-4 sm:px-6">
+                      <div className="flex items-center justify-between gap-3">
+                        <CardTitle className="text-lg text-slate-950 sm:text-xl">
+                          Sentiment over time
+                        </CardTitle>
+                        <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+                          {formatWindow(windowHours)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-500">
+                        Coverage volume and sentiment across the selected period.
+                      </p>
+                    </CardHeader>
+                    <CardContent className="flex min-h-0 flex-1 items-stretch p-2 sm:p-5">
+                      <div className="h-full min-h-0 w-full">
+                        <SentimentTimelineChart
+                          data={data.sentiment_scores_per_hour}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              <section className="min-w-0 space-y-5">
+                <TopEntities
+                  data={data.top_entities}
+                  windowHours={windowHours}
+                  variant="inline"
+                  onSelect={(entity) => {
+                    void onEntitySelect(entity.name);
+                  }}
+                />
+
+                <Card className="gap-0 overflow-hidden rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none">
+                  <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-slate-100 px-4 py-4 sm:px-6">
+                    <CardTitle className="text-base text-slate-950 sm:text-lg">
+                      Latest Headlines ({formatWindow(windowHours)})
+                    </CardTitle>
+                    <span className="shrink-0 text-sm font-medium text-slate-500">
+                      {data.headlines.length} articles
+                    </span>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <HeadlinesTable items={data.headlines} />
+                  </CardContent>
+                </Card>
+              </section>
+            </div>
+          ) : showEmptyState ? (
+            <div className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white/60 p-8 text-center text-slate-500 sm:p-12">
+              No news found for the given query and time window. Please try
+              expanding the time window or using different keywords.
+            </div>
+          ) : showIdleState ? (
+            <div className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white/60 p-8 text-center text-slate-500 sm:p-12">
+              Enter a topic to start analyzing live news sentiment.
+            </div>
+          ) : null}
+          </div>
+      </main>
     </div>
   );
 }
