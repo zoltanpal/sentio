@@ -1,16 +1,15 @@
 import Header from "@/components/layout/Header";
-import { MainNavigationMenu } from "@/components/layout/MainNavigationMenu";
+import { MainNavigationMenu } from "@/components/layout/RightSimpleNav";
 import { Separator } from "@/components/shared/ui/separator";
 
 export default function About() {
   return (
     <div className="mx-auto w-full">
-      <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+      <section className="mx-auto max-w-7xl px-2 py-3">
         <Header />
 
-        <Separator className="my-5" />
-
-        <div className="mb-10 sm:mb-12">
+        <Separator className="my-2" />
+      <div className="mx-auto max-w-7xl px-4 py-4">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
             Turn news into signal, not noise.
           </h1>

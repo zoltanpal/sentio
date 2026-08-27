@@ -1,4 +1,4 @@
-import { LightbulbIcon } from "lucide-react";
+import { InfoIcon, LightbulbIcon, MoreHorizontalIcon } from "lucide-react";
 
 import type { CoverageDriver } from "@/hooks/useDashboardData";
 import {
@@ -7,6 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/shared/ui/popover";
 
 type DriversCardProps = {
   drivers?: CoverageDriver[];
@@ -25,9 +30,37 @@ export default function DriversCard({ drivers }: DriversCardProps) {
             <LightbulbIcon className="h-[1.125rem] w-[1.125rem]" />
           </span>
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-slate-950">
-              What&apos;s driving this?
-            </h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-lg font-bold text-slate-950">
+                What&apos;s driving this?
+              </h2>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                    aria-label="About the drivers card"
+                  >
+                    <InfoIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  sideOffset={6}
+                  className="w-[calc(100vw-2rem)] max-w-xs rounded-xl border-slate-200 p-4 shadow-lg"
+                >
+                  <p className="text-sm font-semibold text-slate-950">
+                    What are drivers?
+                  </p>
+                  <p className="mt-1.5 text-sm font-normal leading-6 text-slate-600">
+                    These are the most prominent groups of related stories in
+                    the selected time window. They help explain which news
+                    topics are contributing to the current sentiment. The
+                    article count shows how much coverage each story received.
+                  </p>
+                </PopoverContent>
+              </Popover>
+            </div>
             <p className="mt-0.5 text-xs font-normal text-slate-500">
               Stories shaping the current movement
             </p>
@@ -48,16 +81,40 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                 </span>
 
                 <div className="min-w-0 flex-1">
-                  <p
-                    className="line-clamp-2 text-sm font-semibold leading-5 text-slate-800"
-                    title={item.representative_title}
-                  >
+                  <p className="line-clamp-2 text-sm font-semibold leading-5 text-slate-800">
                     {item.representative_title}
                   </p>
                   <span className="mt-1.5 inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-500">
                     {formatArticleCount(item.article_count)}
                   </span>
                 </div>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="-mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      aria-label={`Read the full driver title: ${item.representative_title}`}
+                    >
+                      <MoreHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="end"
+                    sideOffset={6}
+                    className="w-[calc(100vw-2rem)] max-w-sm rounded-xl border-slate-200 p-4 shadow-lg"
+                  >
+                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-blue-600">
+                      Driver {index + 1}
+                    </p>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-slate-900">
+                      {item.representative_title}
+                    </p>
+                    <p className="mt-3 text-xs font-medium text-slate-500">
+                      {formatArticleCount(item.article_count)} in this period
+                    </p>
+                  </PopoverContent>
+                </Popover>
               </article>
             ))}
           </div>

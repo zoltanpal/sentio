@@ -57,18 +57,14 @@ const resultItems = [
 
 export default function Help() {
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-slate-950">
-      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 xl:px-10">
+    <div className="mx-auto w-full">
+      <section className="mx-auto max-w-7xl px-2 py-3">
         <Header />
-        <Separator className="bg-slate-200/80" />
 
-        <main className="mx-auto max-w-5xl pb-16 pt-10 sm:pb-20 sm:pt-14 lg:pt-16">
+        <Separator className="my-2" />
+        <div className="mx-auto max-w-7xl px-4 py-4">
           <section className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
-              <CircleQuestionMarkIcon className="h-3.5 w-3.5" />
-              Help and methodology
-            </div>
-            <h1 className="mt-5 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
               How Sentio works
             </h1>
             <p className="mt-6 text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
@@ -236,14 +232,15 @@ export default function Help() {
             <div className="flex items-start gap-3">
               <TagsIcon className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
               <p className="text-sm leading-7 text-slate-700 sm:text-base">
-                Tip: selecting an item under <strong>Most mentioned</strong>
-                starts a new search for that entity. Sentio keeps the selected
+                Tip: selecting an item under <strong>Most mentioned</strong> starts a 
+                new search for that entity. Sentio keeps the selected
                 time window so you can compare related topics consistently.
               </p>
             </div>
           </section>
-        </main>
-      </div>
-    </div>
+        </div>
+      
+    </section>
+          </div>
   );
 }

@@ -1,5 +1,4 @@
 import { Link, useLocation } from "react-router-dom";
-import { InfoIcon } from "lucide-react";
 
 import {
   NavigationMenu,
@@ -11,8 +10,17 @@ import {
 const components: {
   title: string;
   href: string;
-  icon: React.ElementType;
-}[] = [{ title: "How it works", href: "/help", icon: InfoIcon }];
+  // icon: React.ElementType;
+}[] = [{ 
+  title: "How it works", href: "/help"
+}, {
+  title: "About", href: "/about"
+},{
+  title: "Sources", href: "/sources"
+}, {
+  title: "Contact", href: "/contact"
+}
+];
 
 export function MainNavigationMenu() {
   const location = useLocation();
@@ -39,7 +47,6 @@ export function MainNavigationMenu() {
                       : "hover:text-gray-900"
                   }`}
                 >
-                  {/* <Icon className="h-4 w-4 shrink-0" /> */}
                   <span className="whitespace-nowrap">{item.title}</span>
                 </Link>
               </NavigationMenuLink>

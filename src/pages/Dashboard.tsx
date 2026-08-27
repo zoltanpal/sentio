@@ -343,7 +343,7 @@ export default function Dashboard() {
               <img
                 src="/logo/sentio_logo.png"
                 alt="Sentio"
-                className="h-auto w-28 sm:w-32"
+                className="h-auto w-32 sm:w-42"
               />
             </Link>
             <nav className="hidden items-center gap-1 lg:flex">
