@@ -512,11 +512,11 @@ export default function Dashboard() {
               <DashboardSummaryCard data={data} sourceCount={countSources} />
 
               <div className="grid min-w-0 gap-5 xl:grid-cols-12 xl:items-stretch">
-                <div className="order-2 min-w-0 xl:order-1 xl:col-span-4">
+                <div className="order-1 min-w-0 xl:order-1 xl:col-span-4">
                   <DriversCard drivers={data.what_driving} />
                 </div>
 
-                <div className="order-1 min-w-0 xl:order-2 xl:col-span-8">
+                <div className="order-2 min-w-0 xl:order-2 xl:col-span-8">
                   <Card className="flex h-[360px] gap-0 rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none sm:h-[420px] xl:h-full xl:min-h-[420px]">
                     <CardHeader className="border-b border-slate-100 px-4 py-4 sm:px-6">
                       <div className="flex items-center justify-between gap-3">
