@@ -12,7 +12,7 @@ export function sanitizeQuery(value: string | null): string {
 
 export function validateQuery(query: string): string {
   const trimmed = query.trim();
-
+  
   if (!trimmed) {
     return "Please enter at least one keyword.";
   }

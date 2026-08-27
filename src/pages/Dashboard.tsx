@@ -223,7 +223,7 @@ export default function Dashboard() {
         const nextSession: SearchSession = {
           source: "prompt",
           rawPrompt: pendingPrompt,
-          resolvedQuery: resolved.query,
+          resolvedQuery: sanitizeQuery(resolved.query) || pendingPrompt,
           // The resolver may return its own fallback window (currently 6h).
           // A new dashboard search starts with the 24-hour default instead.
           resolvedWindowHours: DEFAULT_WINDOW,
@@ -276,7 +276,7 @@ export default function Dashboard() {
     const nextSession: SearchSession = {
       source: "prompt",
       rawPrompt: trimmedPrompt,
-      resolvedQuery: resolved.query,
+      resolvedQuery: sanitizeQuery(resolved.query) || trimmedPrompt,
       // A new search should retain the user's selected window. On a fresh
       // dashboard visit this is DEFAULT_WINDOW (24 hours).
       resolvedWindowHours: windowHours,
