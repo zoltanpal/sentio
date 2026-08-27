@@ -433,7 +433,7 @@ export default function Dashboard() {
                     className="h-10 w-[5.25rem] rounded-xl border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-none focus:ring-2 focus:ring-blue-100"
                     aria-label="Time window"
                   >
-                    <SelectValue />
+                  <SelectValue />
                   </SelectTrigger>
                   <SelectContent
                     align="end"

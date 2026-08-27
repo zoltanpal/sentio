@@ -18,7 +18,7 @@ export default function DashboardHeading({
   return (
     <div>
       <div className="flex flex-wrap items-baseline gap-2">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
           {query}
         </h1>
 
