@@ -1,6 +1,6 @@
 import { InfoIcon, LightbulbIcon, MoreHorizontalIcon } from "lucide-react";
 
-import type { CoverageDriver } from "@/hooks/useDashboardData";
+import type { Drivers } from "@/hooks/useDashboardData";
 import {
   Card,
   CardContent,
@@ -14,7 +14,7 @@ import {
 } from "@/components/shared/ui/popover";
 
 type DriversCardProps = {
-  drivers?: CoverageDriver[];
+  drivers?: Drivers[];
 };
 
 function formatArticleCount(count: number) {

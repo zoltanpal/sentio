@@ -25,9 +25,14 @@ export type Intent =
 
 export type ChangeDirection = "improving" | "worsening" | "stable";
 
-export type CoverageDriver = {
+export type Drivers = {
   representative_title: string;
   article_count: number;
+}
+
+export type CoverageDriver = {
+  main_reason: string;
+  drivers: Drivers[];
 };
 
 export type LiveHeadline = {
@@ -81,12 +86,6 @@ export type LiveQueryResponse = {
     direction: ChangeDirection;
   } | null;
   ai_summary?: string | null;
-  drivers?: {
-    is_meaningful: boolean;
-    headlines: {
-      title: string;
-    }[];
-  } | null;
   sentiment_scores_per_hour: {
     bucket_start: string;
     article_count: number;
@@ -97,7 +96,7 @@ export type LiveQueryResponse = {
     type: string;
     count: number;
   }[];
-  what_driving?: CoverageDriver[];
+  what_driving?: CoverageDriver;
 };
 
 type RunParams = {

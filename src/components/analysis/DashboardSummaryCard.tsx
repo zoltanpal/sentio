@@ -146,7 +146,9 @@ export default function DashboardSummaryCard({
         ? "text-red-600"
         : "text-slate-900";
   const total = Math.max(aggregated.article_count, 1);
-  const reason = data.what_driving?.[0]?.representative_title ?? null;
+  const reason = data.what_driving.main_reason ?? null;
+
+  console.log(data.what_driving)
 
   return (
     <section
