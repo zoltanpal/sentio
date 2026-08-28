@@ -148,7 +148,7 @@ export default function DashboardSummaryCard({
   const total = Math.max(aggregated.article_count, 1);
   const reason = data.what_driving.main_reason ?? null;
 
-  console.log(data.what_driving)
+  // console.log(data.what_driving)
 
   return (
     <section
@@ -179,11 +179,11 @@ export default function DashboardSummaryCard({
           <SummaryLabel description="The current balance of positive, neutral, and negative articles in the selected period.">
             Current
           </SummaryLabel>
-          <p
+          <div
             className={`mt-3 text-xl font-bold capitalize tracking-tight sm:text-2xl ${currentClass}`}
           >
             {aggregated.summary.label.replace(/_/g, " ")}
-          </p>
+          </div>
           <div
             className="mt-5 flex h-2.5 overflow-hidden rounded-full bg-slate-100"
             aria-label={`${aggregated.distribution.positive_pct}% positive, ${aggregated.distribution.neutral_pct}% neutral, ${aggregated.distribution.negative_pct}% negative`}
@@ -224,13 +224,13 @@ export default function DashboardSummaryCard({
           <SummaryLabel description="The difference between the current average sentiment score and the previous equivalent period. Scores range from −1 to +1.">
             Change
           </SummaryLabel>
-          <p
+          <div
             className={`mt-5 text-3xl font-bold tracking-tight sm:text-4xl ${changeClass}`}
           >
             {change
               ? `${change.delta > 0 ? "+" : ""}${change.delta.toFixed(2)}`
               : "—"}
-          </p>
+          </div>
           <p className="mt-2 text-xs text-slate-500">
             vs previous {data.window_hours}h
           </p>
@@ -245,7 +245,12 @@ export default function DashboardSummaryCard({
               <SearchCheckIcon className="h-5 w-5" />
             </span>
             <p className="line-clamp-4 text-sm font-semibold leading-6 text-slate-800 sm:text-base">
-              {reason ?? "No dominant story identified yet"}
+              {reason && reason.length > 0 ? (
+                reason
+              ) : (
+                "No dominant story identified yet"
+              )}
+              
             </p>
           </div>
         </div>
