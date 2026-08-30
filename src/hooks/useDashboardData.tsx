@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { buildSentioApiUrl, getSentioApiHeaders } from "@/config/api";
 import { DEFAULT_WINDOW } from "@/lib/searchParams";
 
-const API_HOST = buildSentioApiUrl("/live/query");
+const API_HOST = buildSentioApiUrl("/query");
 const CACHE_PREFIX = "sentio_live_analysis";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 

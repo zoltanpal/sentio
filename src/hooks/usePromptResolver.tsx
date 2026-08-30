@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buildSentioApiUrl, getSentioApiHeaders } from "@/config/api";
 
-const API_HOST = buildSentioApiUrl("/live/parse_prompt");
+const API_HOST = buildSentioApiUrl("/parse_prompt");
 
 export type Intent =
   | "summary"
