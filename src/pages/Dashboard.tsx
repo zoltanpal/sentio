@@ -4,6 +4,7 @@ import {
   FileTextIcon,
   Grid2X2Icon,
   CircleQuestionMarkIcon,
+  SparkleIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -48,7 +49,7 @@ import {
 } from "@/lib/searchParams";
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 
-const USE_AI = false; // Set to true to enable AI-powered search resolution
+const USE_AI = true; // Set to true to enable AI-powered search resolution
 const USE_AI_PROMPT_RESOLVER = true; // Set to true to enable AI-powered prompt resolution
 const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
 
@@ -490,26 +491,37 @@ export default function Dashboard() {
             <Loading text="Analyzing feeds, please wait..." />
           ) : hasResults && data ? (
             <div className="space-y-5 sm:space-y-6">
-              {data.ai_summary ? (
-                <section className="rounded-[1.25rem] border border-blue-100 bg-blue-50/70 p-4 sm:p-5">
-                  <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-900">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-blue-600 ring-1 ring-blue-100">
-                      <BotIcon className="h-4 w-4" />
-                    </span>
-                    <span>Live brief</span>
-                    <span className="font-normal text-slate-500">
-                      · last {formatWindow(windowHours)}
-                    </span>
-                  </div>
-                  <ExpandableText
-                    text={data.ai_summary}
-                    maxLength={260}
-                    customClass="text-sm leading-6 text-slate-700"
-                  />
-                </section>
-              ) : null}
+
 
               <DashboardSummaryCard data={data} sourceCount={countSources} />
+
+              {data.ai_summary ? (
+                <Card className="gap-0 overflow-hidden rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none">
+                  <CardHeader className="px-4 pt-4 sm:px-6">
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                        <BotIcon className="h-[1.125rem] w-[1.125rem]" />
+                      </span>
+                      <div className="min-w-0">
+                        <CardTitle className="font-bold items-center text-slate-950 text-base sm:text-lg">
+                          AI briefing 
+                          <span className="font-normal text-slate-800">
+                            &nbsp;&bull;&nbsp;last {formatWindow(windowHours)}
+                          </span>
+                        </CardTitle>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-3 pt-2 sm:px-6 sm:pb-4">
+                  <ExpandableText
+                      text={data.ai_summary}
+                      maxLength={260}
+                      customClass="text-m leading-6 text-slate-700"
+                    />
+                  </CardContent>
+
+                </Card>
+              ) : null}
 
               <div className="grid min-w-0 gap-5 xl:grid-cols-12 xl:items-stretch">
                 <div className="order-1 min-w-0 xl:order-1 xl:col-span-4">
