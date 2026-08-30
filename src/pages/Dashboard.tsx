@@ -49,7 +49,7 @@ import {
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 
 const USE_AI = false; // Set to true to enable AI-powered search resolution
-const USE_AI_PROMPT_RESOLVER = false; // Set to true to enable AI-powered prompt resolution
+const USE_AI_PROMPT_RESOLVER = true; // Set to true to enable AI-powered prompt resolution
 const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
 
 type DashboardViewStateParams = {
