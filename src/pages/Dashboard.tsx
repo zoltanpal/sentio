@@ -4,7 +4,9 @@ import {
   FileTextIcon,
   Grid2X2Icon,
   CircleQuestionMarkIcon,
-  SparkleIcon,
+  ChartNoAxesCombinedIcon,
+  // SparkleIcon,
+  NewspaperIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -23,6 +25,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/shared/ui/card";
 import {
   Select,
@@ -88,13 +91,13 @@ function getDashboardViewState({
   };
 }
 
-function formatWindow(hours: number) {
-  if (hours >= 24 && hours % 24 === 0) {
-    return `${hours / 24}d`;
+function formatWindow(windowHours: number): string {
+  if (windowHours > 24 && windowHours % 24 === 0) {
+    return `${windowHours / 24}d`;
   }
-
-  return `${hours}h`;
+  return `${windowHours}h`;
 }
+
 
 export default function Dashboard() {
   const [promptInput, setPromptInput] = useState("");
@@ -491,8 +494,6 @@ export default function Dashboard() {
             <Loading text="Analyzing feeds, please wait..." />
           ) : hasResults && data ? (
             <div className="space-y-5 sm:space-y-6">
-
-
               <DashboardSummaryCard data={data} sourceCount={countSources} />
 
               {data.ai_summary ? (
@@ -519,7 +520,6 @@ export default function Dashboard() {
                       customClass="text-m leading-6 text-slate-700"
                     />
                   </CardContent>
-
                 </Card>
               ) : null}
 
@@ -531,17 +531,23 @@ export default function Dashboard() {
                 <div className="order-2 min-w-0 xl:order-2 xl:col-span-8">
                   <Card className="flex h-[360px] gap-0 rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none sm:h-[420px] xl:h-full xl:min-h-[420px]">
                     <CardHeader className="border-b border-slate-100 px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between gap-3">
-                        <CardTitle className="text-lg text-slate-950 sm:text-xl">
-                          Sentiment over time
-                        </CardTitle>
-                        <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
-                          {formatWindow(windowHours)}
+                      <div className="flex items-start gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                          <ChartNoAxesCombinedIcon className="h-[1.125rem] w-[1.125rem]" />
                         </span>
+                        <div className="min-w-0">
+                          <CardTitle className="font-bold items-center text-slate-950 text-base sm:text-lg">
+                            Sentiment over time
+                            <span className="font-normal text-slate-800">
+                              &nbsp;&bull;&nbsp;last {formatWindow(windowHours)}
+                            </span>
+                          </CardTitle>
+                          <CardDescription className="mt-0.5 text-xs sm:text-sm">
+                            Coverage volume and sentiment across the selected period.
+                          </CardDescription>
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-500">
-                        Coverage volume and sentiment across the selected period.
-                      </p>
+                      
                     </CardHeader>
                     <CardContent className="flex min-h-0 flex-1 items-stretch p-2 sm:p-5">
                       <div className="h-full min-h-0 w-full">
@@ -566,12 +572,19 @@ export default function Dashboard() {
 
                 <Card className="gap-0 overflow-hidden rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none">
                   <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-slate-100 px-4 py-4 sm:px-6">
-                    <CardTitle className="text-base text-slate-950 sm:text-lg">
-                      Latest Headlines ({formatWindow(windowHours)})
-                    </CardTitle>
-                    <span className="shrink-0 text-sm font-medium text-slate-500">
-                      {data.headlines.length} articles
-                    </span>
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                        <NewspaperIcon className="h-[1.125rem] w-[1.125rem]" />
+                      </span>
+                      <div className="min-w-0">
+                        <CardTitle className="font-bold items-center text-slate-950 text-base sm:text-lg">
+                          Latest Headlines
+                          <span className="font-normal text-slate-800">
+                            &nbsp;&bull;&nbsp;last {formatWindow(windowHours)}
+                          </span>
+                        </CardTitle>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent className="p-0">
                     <HeadlinesTable items={data.headlines} />

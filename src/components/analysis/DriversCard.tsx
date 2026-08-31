@@ -61,11 +61,14 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                 </PopoverContent>
               </Popover>
             </div>
-            <p className="mt-0.5 text-xs font-normal text-slate-500">
+            <p className="mt-0.5 text-xs font-normal text-muted-foreground text-slate-500">
               Stories shaping the current movement
             </p>
           </div>
         </CardTitle>
+        {/* <CardDescription className="mt-0.5 text-xs sm:text-sm">
+            Stories shaping the current movement
+        </CardDescription> */}
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col p-0">
