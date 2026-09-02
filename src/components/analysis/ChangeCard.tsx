@@ -6,10 +6,6 @@ type ChangeCardProps = {
   direction: "improving" | "worsening" | "stable";
   windowHours: number;
   articleCount: number;
-  drivers?: {
-    is_meaningful: boolean;
-    headlines: { title: string }[];
-  } | null;
 };
 
 export function ChangeCard({
@@ -18,9 +14,7 @@ export function ChangeCard({
   direction,
   windowHours,
   articleCount,
-  drivers,
 }: ChangeCardProps) {
-  if (!drivers?.is_meaningful) return null;
 
   const isUp = direction === "improving";
   const isDown = direction === "worsening";
@@ -51,20 +45,6 @@ export function ChangeCard({
           {articleCount} articles
         </div>
 
-        {/* Drivers */}
-        {drivers.headlines.length > 0 && (
-          <div className="pt-2">
-            <p className="text-sm font-medium mb-1">Driven by:</p>
-            <ul className="text-sm text-gray-700 space-y-1">
-              {drivers.headlines.slice(0, 3).map((h, i) => (
-                <li key={i} className="flex gap-2">
-                  <span>•</span>
-                  <span className="line-clamp-2">{h.title}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

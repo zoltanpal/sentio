@@ -525,7 +525,7 @@ export default function Dashboard() {
 
               <div className="grid min-w-0 gap-5 xl:grid-cols-12 xl:items-stretch">
                 <div className="order-1 min-w-0 xl:order-1 xl:col-span-4">
-                  <DriversCard drivers={data.what_driving.drivers} />
+                  <DriversCard drivers={data.what_driving?.drivers} />
                 </div>
 
                 <div className="order-2 min-w-0 xl:order-2 xl:col-span-8">
