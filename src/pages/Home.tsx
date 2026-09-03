@@ -32,7 +32,7 @@ export default function Home() {
 
     setError("");
     setPendingPrompt(trimmedPrompt);
-    navigate("/results");
+    navigate("/dashboard");
   };
 
   return (

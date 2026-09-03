@@ -148,7 +148,7 @@ export default function DashboardSummaryCard({
   const total = Math.max(aggregated.article_count, 1);
   const reason = data.what_driving?.main_reason ?? null;
 
-  // console.log(data.what_driving)
+  console.log(data.what_driving)
 
   return (
     <section

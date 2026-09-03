@@ -11,7 +11,9 @@ const components: {
   title: string;
   href: string;
   // icon: React.ElementType;
-}[] = [{ 
+}[] = [{
+  title: "Dashboard", href: "/dashboard"
+}, { 
   title: "How it works", href: "/help"
 }, {
   title: "About", href: "/about"

@@ -7,7 +7,7 @@ export default function Header() {
 
   let homeUrl = "/";
   if (session) {
-    homeUrl = "/results";
+    homeUrl = "/dashboard";
   }
 
   return (
