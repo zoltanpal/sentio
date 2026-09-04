@@ -4,6 +4,18 @@ Sentio is a React frontend for live news sentiment analysis.
 
 The user enters a free-form prompt such as `Tesla`, `NVDA`, or `oil prices`. The app navigates to the dashboard immediately, resolves that prompt into a parsed search query through an API call, and then fetches live news sentiment results for the parsed query.
 
+## Authentication
+
+The app has a lightweight client-side login gate. Copy `.env.example` to `.env` and set the credentials:
+
+```env
+VITE_AUTH_USERNAME=your-username
+VITE_AUTH_PASSWORD=your-password
+```
+
+Until a `.env` file is configured, the temporary credentials are `admin` / `sentio`.
+This is only a UI-level guard: values prefixed with `VITE_` are bundled into the browser. Use server-side authentication before relying on it to protect sensitive data.
+
 ## What The App Does
 
 - Accepts a natural-language prompt on the home page

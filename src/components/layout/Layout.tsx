@@ -5,6 +5,7 @@ import Footer from "./Footer";
 const routeTitleMap: Record<string, string> = {
   "/": "Home",
   "/dashboard": "Dashboard",
+  "/statistics": "Statistics",
   "/about": "About",
   "/help": "Help",
   "/contact": "Contact",
