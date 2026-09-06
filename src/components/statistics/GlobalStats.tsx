@@ -345,12 +345,6 @@ export default function GlobalStatsComponent({
           description="Sources without recently recorded success metadata."
         />
 
-        <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          This is informational data, not a confirmed list of
-          unhealthy sources. The ingestion job currently does not
-          update the success-related columns used by this query.
-        </div>
-
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -366,10 +360,6 @@ export default function GlobalStatsComponent({
 
                   <th className="whitespace-nowrap px-4 py-3 text-right font-medium text-slate-600">
                     Poll interval
-                  </th>
-
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-slate-600">
-                    Last fetched
                   </th>
 
                   <th className="whitespace-nowrap px-4 py-3 font-medium text-slate-600">
@@ -402,10 +392,6 @@ export default function GlobalStatsComponent({
 
                     <td className="whitespace-nowrap px-4 py-3 text-right text-slate-700">
                       {source.poll_interval_minutes} min
-                    </td>
-
-                    <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                      {formatDate(source.last_fetched_at)}
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-3 text-slate-700">
