@@ -15,7 +15,11 @@ const components: {
   title: "Dashboard", href: "/dashboard"
 }, { 
   title: "How it works", href: "/help"
-}, {
+ }, 
+//{
+//   title: "Statistics", href: "/statistics"
+// }, 
+{
   title: "About", href: "/about"
 },{
   title: "Sources", href: "/sources"
