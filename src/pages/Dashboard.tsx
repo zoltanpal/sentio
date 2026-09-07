@@ -8,7 +8,7 @@ import {
   // SparkleIcon,
   NewspaperIcon,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import SearchBar from "@/components/search/SearchBar";
 import Loading from "@/components/analysis/LoadingState";
@@ -45,6 +45,7 @@ import {
   type SearchSession,
 } from "@/lib/searchSession";
 import {
+  ALLOWED_WINDOWS,
   DEFAULT_WINDOW,
   sanitizeQuery,
   sanitizeWindow,
@@ -55,6 +56,7 @@ import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart
 const USE_AI = true; // Set to true to enable AI-powered search resolution
 const USE_AI_PROMPT_RESOLVER = true; // Set to true to enable AI-powered prompt resolution
 const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
+
 
 type DashboardViewStateParams = {
   pageError: string;
@@ -98,6 +100,41 @@ function formatWindow(windowHours: number): string {
   return `${windowHours}h`;
 }
 
+function getPreferredWindow(
+  urlValue: string | null,
+  sessionValue: number | null | undefined
+): number {
+  const urlWindow = Number(urlValue);
+
+  if (urlValue !== null && ALLOWED_WINDOWS.includes(urlWindow)) {
+    return urlWindow;
+  }
+
+  if (
+    typeof sessionValue === "number" &&
+    ALLOWED_WINDOWS.includes(sessionValue)
+  ) {
+    return sessionValue;
+  }
+
+  return DEFAULT_WINDOW;
+}
+
+function buildDashboardSearch(
+  currentSearch: string,
+  session: SearchSession
+): string {
+  const params = new URLSearchParams(currentSearch);
+
+  params.set("q", session.resolvedQuery);
+  params.set(
+    "timewindow",
+    String(session.resolvedWindowHours ?? DEFAULT_WINDOW)
+  );
+
+  return `?${params.toString()}`;
+}
+
 
 export default function Dashboard() {
   const [promptInput, setPromptInput] = useState("");
@@ -105,9 +142,11 @@ export default function Dashboard() {
   const [windowHours, setWindowHours] = useState(DEFAULT_WINDOW);
   const [pageError, setPageError] = useState("");
   const [hasAttemptedSearch, setHasAttemptedSearch] = useState(false);
-  const [resolvedSession, setResolvedSession] =
-    useState<SearchSession | null>(null);
+  const [resolvedSession, setResolvedSession] = useState<SearchSession | null>(null);
   const resultsTopRef = useRef<HTMLDivElement>(null);
+
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const { data, error, loading, run, clearResults } = useDashboardData();
   const {
@@ -116,7 +155,26 @@ export default function Dashboard() {
     error: resolveError,
   } = usePromptResolver();
 
-  const executeResolvedSearch = useCallback(
+  const onLogoClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Preserve opening the link in a new tab.
+    if (
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const session = getSearchSession();
+    navigate(session?.resolvedQuery.trim() ? "/dashboard" : "/");
+  };
+
+
+  const loadResolvedSearch = useCallback(
     async (session: SearchSession) => {
       const resolvedQuery = sanitizeQuery(session.resolvedQuery);
       const resolvedWindow = sanitizeWindow(String(session.resolvedWindowHours));
@@ -155,6 +213,55 @@ export default function Dashboard() {
     [clearResults, run]
   );
 
+  const executeResolvedSearch = useCallback(
+    async (session: SearchSession, replace = false) => {
+      const normalizedSession: SearchSession = {
+        ...session,
+        resolvedQuery: sanitizeQuery(session.resolvedQuery),
+        resolvedWindowHours: sanitizeWindow(
+          String(session.resolvedWindowHours)
+        ),
+        rawPrompt: sanitizeQuery(session.rawPrompt) || null,
+      };
+
+      if (validateQuery(normalizedSession.resolvedQuery)) {
+        await loadResolvedSearch(normalizedSession);
+        return;
+      }
+
+      const nextSearch = buildDashboardSearch(
+        location.search,
+        normalizedSession
+      );
+
+      // Store prompt metadata before navigation. The URL contains only the
+      // resolved query and time window.
+      setSearchSession(normalizedSession);
+
+      if (nextSearch !== location.search) {
+        navigate(
+          {
+            pathname: location.pathname,
+            search: nextSearch,
+            hash: location.hash,
+          },
+          { replace }
+        );
+        return;
+      }
+
+      // Allow submitting the same search again without URL navigation.
+      await loadResolvedSearch(normalizedSession);
+    },
+    [
+      location.pathname,
+      location.search,
+      location.hash,
+      navigate,
+      loadResolvedSearch,
+    ]
+  );  
+
   const scrollToResults = useCallback(() => {
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -190,17 +297,41 @@ export default function Dashboard() {
   );
 
   useEffect(() => {
-    const pendingPrompt = sanitizeQuery(getPendingPrompt());
-    const session = getSearchSession();
     let cancelled = false;
 
-    if (pendingPrompt) {
-      void (async () => {
-        const validationError = validateQuery(pendingPrompt);
+    const params = new URLSearchParams(location.search);
+    const session = getSearchSession();
+    const pendingPrompt = sanitizeQuery(getPendingPrompt());
 
-        if (cancelled) {
-          return;
-        }
+    const preferredWindow = getPreferredWindow(
+      params.get("timewindow"),
+      session?.resolvedWindowHours
+    );
+
+    const restoreSearch = async () => {
+      // An explicit URL query always takes priority.
+      if (params.has("q")) {
+        clearPendingPrompt();
+
+        const query = sanitizeQuery(params.get("q"));
+        const matchesSession = query === session?.resolvedQuery;
+
+        await executeResolvedSearch(
+          {
+            source: matchesSession ? session.source : "keyword",
+            rawPrompt: matchesSession ? session.rawPrompt : null,
+            resolvedQuery: query,
+            resolvedWindowHours: preferredWindow,
+          },
+          true
+        );
+        return;
+      }
+
+      // A pending Home submission is a new user action, so it replaces
+      // the previously saved search when no URL query is present.
+      if (pendingPrompt) {
+        const validationError = validateQuery(pendingPrompt);
 
         if (validationError) {
           setPageError(validationError);
@@ -210,6 +341,7 @@ export default function Dashboard() {
         }
 
         setPromptInput(pendingPrompt);
+        setWindowHours(preferredWindow);
         setHasAttemptedSearch(true);
         setPageError("");
 
@@ -218,43 +350,59 @@ export default function Dashboard() {
           useAi: USE_AI_PROMPT_RESOLVER,
         });
 
-        if (!resolved || cancelled) {
+        if (cancelled || !resolved) {
           return;
         }
 
         clearPendingPrompt();
 
-        const nextSession: SearchSession = {
-          source: "prompt",
-          rawPrompt: pendingPrompt,
-          resolvedQuery: sanitizeQuery(resolved.query) || pendingPrompt,
-          // The resolver may return its own fallback window (currently 6h).
-          // A new dashboard search starts with the 24-hour default instead.
-          resolvedWindowHours: DEFAULT_WINDOW,
-        };
+        await executeResolvedSearch(
+          {
+            source: "prompt",
+            rawPrompt: pendingPrompt,
+            resolvedQuery:
+              sanitizeQuery(resolved.query) || pendingPrompt,
+            resolvedWindowHours: preferredWindow,
+          },
+          true
+        );
+        return;
+      }
 
-        await executeResolvedSearch(nextSession);
-      })();
+      if (session) {
+        await executeResolvedSearch(
+          {
+            ...session,
+            resolvedWindowHours: preferredWindow,
+          },
+          true
+        );
+        return;
+      }
 
-      return () => {
-        cancelled = true;
-      };
-    }
+      // No URL query or saved search: keep the dashboard idle.
+      setPromptInput("");
+      setActiveQuery("");
+      setWindowHours(preferredWindow);
+      setResolvedSession(null);
+      setHasAttemptedSearch(false);
+      setPageError("");
+      clearResults();
+    };
 
-    if (!session) {
-      return;
-    }
-
-    void executeResolvedSearch(session);
+    void restoreSearch();
 
     return () => {
       cancelled = true;
     };
   }, [
-    clearResults,
+    location.search,
     executeResolvedSearch,
     resolvePrompt,
+    clearResults,
   ]);
+
+
 
   const onSearch = async () => {
     const trimmedPrompt = promptInput.trim();
@@ -343,7 +491,7 @@ export default function Dashboard() {
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex h-16 items-center gap-3 sm:gap-5">
-            <Link to="/" className="shrink-0" aria-label="Sentio home">
+            <Link to="/" onClick={onLogoClick} className="shrink-0" aria-label="Sentio home">
               <img
                 src="/logo/sentio_logo.png"
                 alt="Sentio"
