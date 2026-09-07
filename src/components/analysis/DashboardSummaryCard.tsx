@@ -148,8 +148,6 @@ export default function DashboardSummaryCard({
   const total = Math.max(aggregated.article_count, 1);
   const reason = data.what_driving?.main_reason ?? null;
 
-  console.log(data.what_driving)
-
   return (
     <section
       className="overflow-hidden rounded-[1.25rem] border border-slate-200/90 bg-white shadow-sm shadow-slate-200/40"
