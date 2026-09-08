@@ -182,7 +182,7 @@ function removeCachedDashboardData(key: string) {
   }
 }
 
-async function fetchLiveAnalysis(
+async function fetchDashboardData(
   params: RunParams,
   signal?: AbortSignal
 ): Promise<LiveQueryResponse> {
@@ -298,7 +298,7 @@ export function useDashboardData() {
       }));
 
       try {
-        const data = await fetchLiveAnalysis(
+        const data = await fetchDashboardData(
           {
             query: cleanedQuery,
             windowHours,

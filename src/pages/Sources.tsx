@@ -5,15 +5,15 @@ import { Separator } from "@/components/shared/ui/separator";
 // import { dummySources } from "@/constants/constants";
 
 
-const API_TOKEN = "";
+const API_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN;
 
 export default function Sources() {
     const [query, setQuery] = useState("");
     const [loading, setLoading] = useState(false);
     const [sources, setSources] = useState<any[]>([]);
 
-    const url = 'https://devapi.palzoltan.net/sentio/detailed_sources';
-    
+    const url = import.meta.env.VITE_API_BASE_URL + '/detailed_sources';
+
     useEffect(() => {
       fetchSources();
     }, []);
