@@ -1,9 +1,10 @@
 
 const SENTIO_API_BASE_URL =
-  import.meta.env.VITE_SENTIO_API_BASE_URL?.trim() ||
+  import.meta.env.VITE_API_BASE_URL?.trim() ||
   "https://devapi.palzoltan.net/sentio";
 
-const SENTIO_API_TOKEN = import.meta.env.VITE_SENTIO_API_TOKEN?.trim() || "";
+const VITE_API_AUTH_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN?.trim() || "";
+
 
 export function buildSentioApiUrl(path: string): string {
   const normalizedBase = SENTIO_API_BASE_URL.replace(/\/+$/, "");
@@ -15,12 +16,12 @@ export function buildSentioApiUrl(path: string): string {
 export function getSentioApiHeaders(
   baseHeaders: HeadersInit = {}
 ): HeadersInit {
-  if (!SENTIO_API_TOKEN) {
+  if (!VITE_API_AUTH_TOKEN) {
     return baseHeaders;
   }
 
   return {
     ...baseHeaders,
-    Authorization: `Bearer ${SENTIO_API_TOKEN}`,
+    Authorization: `Bearer ${VITE_API_AUTH_TOKEN}`,
   };
 }
