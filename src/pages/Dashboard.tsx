@@ -360,9 +360,8 @@ export default function Dashboard() {
           {
             source: "prompt",
             rawPrompt: pendingPrompt,
-            resolvedQuery:
-              sanitizeQuery(resolved.query) || pendingPrompt,
-            resolvedWindowHours: preferredWindow,
+            resolvedQuery: resolved.query,
+            resolvedWindowHours: resolved.window_hours,
           },
           true
         );
@@ -428,10 +427,8 @@ export default function Dashboard() {
     const nextSession: SearchSession = {
       source: "prompt",
       rawPrompt: trimmedPrompt,
-      resolvedQuery: sanitizeQuery(resolved.query) || trimmedPrompt,
-      // A new search should retain the user's selected window. On a fresh
-      // dashboard visit this is DEFAULT_WINDOW (24 hours).
-      resolvedWindowHours: windowHours,
+      resolvedQuery: resolved.query,
+      resolvedWindowHours: resolved.window_hours,
     };
 
     await executeResolvedSearch(nextSession);
