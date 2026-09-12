@@ -1,5 +1,6 @@
 import { InfoIcon, LightbulbIcon, MoreHorizontalIcon } from "lucide-react";
 
+
 import type { Drivers } from "@/hooks/useDashboardData";
 import {
   Card,
@@ -12,6 +13,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/shared/ui/popover";
+import { Close as PopoverClose } from "@radix-ui/react-popover";
+import { XIcon } from "lucide-react";
+
 
 type DriversCardProps = {
   drivers?: Drivers[];
@@ -107,8 +111,19 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                   align="end"
                   sideOffset={8}
                   collisionPadding={12}
-className="flex max-h-[min(30rem,var(--radix-popover-content-available-height))] w-[calc(100vw-1.5rem)] max-w-md flex-col overflow-hidden rounded-xl border border-blue-200 p-0 shadow-[0_18px_45px_-12px_rgba(15,23,42,0.4)] ring-1 ring-blue-100"
->
+                  className="flex max-h-[min(30rem,var(--radix-popover-content-available-height))] 
+                    w-[calc(100vw-1.5rem)] max-w-md flex-col overflow-hidden rounded-xl 
+                    border border-blue-200 p-0 shadow-[0_18px_45px_-12px_rgba(15,23,42,0.4)] 
+                    ring-1 ring-blue-100">
+                  <PopoverClose asChild>
+                    <button
+                      type="button"
+                      aria-label="Close"
+                      className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-blue-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:hidden"
+                    >
+                      <XIcon className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </PopoverClose>
                   <div className="shrink-0 border-b border-slate-200 px-4 py-3">
                     <p className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-blue-600">
                       Driver {index + 1}
