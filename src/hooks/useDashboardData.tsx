@@ -25,9 +25,15 @@ export type Intent =
 
 export type ChangeDirection = "improving" | "worsening" | "stable";
 
+export type DriverHeadline = {
+  title: string;
+  source: string;
+}
+
 export type Drivers = {
   representative_title: string;
   article_count: number;
+  headlines: DriverHeadline[]
 }
 
 export type CoverageDriver = {
