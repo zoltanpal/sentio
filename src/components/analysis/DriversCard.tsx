@@ -106,52 +106,55 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                 <PopoverContent
                   align="end"
                   sideOffset={8}
-                  collisionPadding={16}
-                  className="flex max-h-[min(32rem,var(--radix-popover-content-available-height))] w-[calc(100vw-2rem)] max-w-md flex-col overflow-hidden rounded-2xl border-slate-200 bg-white p-0 shadow-xl shadow-slate-900/10"
-                >
-                  <div className="shrink-0 border-b border-slate-100 px-5 py-4">
+                  collisionPadding={12}
+className="flex max-h-[min(30rem,var(--radix-popover-content-available-height))] w-[calc(100vw-1.5rem)] max-w-md flex-col overflow-hidden rounded-xl border border-blue-200 p-0 shadow-[0_18px_45px_-12px_rgba(15,23,42,0.4)] ring-1 ring-blue-100"
+>
+                  <div className="shrink-0 border-b border-slate-200 px-4 py-3">
                     <p className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-blue-600">
                       Driver {index + 1}
                     </p>
 
-                    <p className="mt-2 text-sm font-semibold leading-6 text-slate-900">
+                    <p className="mt-1.5 text-sm font-semibold leading-5 text-slate-900">
                       {item.representative_title}
                     </p>
 
-                    <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="mt-2 flex items-center justify-between gap-3">
                       <span className="text-xs font-medium text-slate-500">
                         Related headlines
                       </span>
-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[0.7rem] font-medium text-blue-700">
-                        {formatArticleCount(item.article_count)} in this period
+
+                      <span className="shrink-0 text-xs font-medium text-slate-500">
+                        {formatArticleCount(item.article_count)}
                       </span>
                     </div>
                   </div>
+
                   <div
                     role="region"
                     aria-label={`Headlines for driver ${index + 1}`}
                     tabIndex={0}
-                    className="min-h-0 overflow-y-auto overscroll-contain px-3 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+                    className="min-h-0 overflow-y-auto overscroll-contain px-4 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
                   >
                     {item.headlines?.length ? (
                       <ul className="divide-y divide-slate-100">
                         {item.headlines.map((headline, headlineIndex) => (
                           <li
                             key={`${headline.source}-${headline.title}-${headlineIndex}`}
-                            className="flex items-start gap-1 py-2.5"
+                            className="flex items-start gap-2.5 py-2.5"
                           >
                             <span
                               aria-hidden="true"
-                              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-50 text-[0.65rem] font-semibold tabular-nums text-slate-400"
+                              className="mt-0lk w-4 shrink-0 text-right text-[0.7rem] font-semibold tabular-nums text-slate-400"
                             >
-                              {headlineIndex + 1}
+                              {headlineIndex + 1}.
                             </span>
 
                             <div className="min-w-0">
-                              <p className="break-words text-sm font-medium leading-[1.6] text-slate-800">
+                              <p className="break-words text-sm font-medium leading-5 text-slate-800">
                                 {headline.title}
                               </p>
-                              <p className="mt-1 text-xs text-slate-500">
+
+                              <p className="mt-0.5 text-xs text-slate-500">
                                 {headline.source}
                               </p>
                             </div>
@@ -159,7 +162,7 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                         ))}
                       </ul>
                     ) : (
-                      <p className="py-5 text-sm text-slate-500">
+                      <p className="py-4 text-sm text-slate-500">
                         No headlines available for this driver.
                       </p>
                     )}
