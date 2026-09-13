@@ -428,7 +428,9 @@ export default function Dashboard() {
       source: "prompt",
       rawPrompt: trimmedPrompt,
       resolvedQuery: resolved.query,
-      resolvedWindowHours: resolved.window_hours,
+      resolvedWindowHours: resolved.window_parsed
+        ? resolved.window_hours
+        : windowHours,
     };
 
     await executeResolvedSearch(nextSession);

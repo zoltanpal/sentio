@@ -14,6 +14,7 @@ export type PromptResolveResponse = {
   prompt: string;
   query: string;
   window_hours: number;
+  window_parsed: boolean;
   intent?: Intent;
 };
 
