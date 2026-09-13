@@ -12,7 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/shared/ui/popover";
-import type { LiveQueryResponse } from "@/hooks/useDashboardData";
+import type { LiveQueryResponse } from "@/features/dashboard/types";
 
 type DashboardSummaryCardProps = {
   data: LiveQueryResponse;

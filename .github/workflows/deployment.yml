@@ -21,14 +21,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # - name: Debug config presence
-      #   run: |
-      #     [ -n "$FROM_VARS" ] && echo "vars has value" || echo "vars empty"
-      #     [ -n "$FROM_SECRETS" ] && echo "secrets has value" || echo "secrets empty"
-      #   env:
-      #     FROM_VARS: ${{ vars.VITE_API_HOST }}
-      #     FROM_SECRETS: ${{ secrets.VITE_API_TOKEN }}
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:

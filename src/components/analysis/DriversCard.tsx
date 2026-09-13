@@ -1,7 +1,7 @@
 import { InfoIcon, LightbulbIcon, MoreHorizontalIcon } from "lucide-react";
 
 
-import type { Drivers } from "@/hooks/useDashboardData";
+import type { Drivers } from "@/features/dashboard/types";
 import {
   Card,
   CardContent,

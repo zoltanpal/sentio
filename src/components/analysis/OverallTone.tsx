@@ -2,7 +2,7 @@ import { GlobeIcon, NewspaperIcon, ClockIcon } from "lucide-react";
 import { Badge } from "@/components/shared/ui/badge";
 import SentimentDoughnut from "@/components/analysis/SentimentDoughnut";
 import { formatTimeAgo } from "@/lib/utils";
-import type { LiveQueryResponse } from "@/hooks/useDashboardData";
+import type { LiveQueryResponse } from "@/features/dashboard/types";
 import {
   Card,
   CardContent,

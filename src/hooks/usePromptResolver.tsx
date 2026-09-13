@@ -1,14 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buildSentioApiUrl, getSentioApiHeaders } from "@/config/api";
+import type { Intent } from "@/features/dashboard/types";
 
 const API_HOST = buildSentioApiUrl("/parse_prompt");
-
-export type Intent =
-  | "summary"
-  | "reason"
-  | "trend"
-  | "comparison"
-  | "unknown";
 
 export type PromptResolveResponse = {
   prompt: string;
