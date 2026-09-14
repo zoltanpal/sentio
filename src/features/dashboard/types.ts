@@ -22,9 +22,20 @@ export type DriverHeadline = {
   source: string;
 };
 
+export type DriverComparisonStatus =
+  | "new"
+  | "gaining";
+
+export type DriverComparison = {
+  status: DriverComparisonStatus | null;
+  previous_article_count: number;
+  previous_source_count: number;
+};
+
 export type Drivers = {
   representative_title: string;
   article_count: number;
+  comparison?: DriverComparison;
   headlines: DriverHeadline[];
 };
 

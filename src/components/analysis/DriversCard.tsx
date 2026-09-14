@@ -25,7 +25,19 @@ function formatArticleCount(count: number) {
   return `${count} ${count === 1 ? "article" : "articles"}`;
 }
 
+function formatComparisonStatus(status?: "new" | "gaining" | null) {
+  switch (status) {
+    case "new":
+      return "New";
+    case "gaining":
+      return "More coverage";
+    default:
+      return null;
+  }
+}
+
 export default function DriversCard({ drivers }: DriversCardProps) {
+  console.log(drivers)
   return (
     <Card className="flex h-full flex-col gap-0 overflow-hidden rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none">
       <CardHeader className="border-b border-slate-100 px-4 py-4 sm:px-6">
@@ -94,9 +106,18 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                       <span className="line-clamp-2 text-sm font-semibold leading-5 text-slate-800">
                         {item.representative_title}
                       </span>
-                      <span className="mt-1.5 inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-500">
-                        {formatArticleCount(item.article_count)}
+                      <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <span className="inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-500">
+                          {formatArticleCount(item.article_count)}
+                        </span>
+
+                        {formatComparisonStatus(item.comparison?.status) && (
+                          <span className="inline-flex rounded-md bg-blue-50 px-2 py-0.5 text-[0.7rem] font-semibold text-blue-700 ring-1 ring-inset ring-blue-100">
+                            {formatComparisonStatus(item.comparison?.status)}
+                          </span>
+                        )}
                       </span>
+
                     </span>
 
                     <span
