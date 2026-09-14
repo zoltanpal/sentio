@@ -69,7 +69,7 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                   </p>
                   <p className="mt-1.5 text-sm font-normal leading-6 text-slate-600">
                   Groups of related stories shaping the current sentiment. 
-                  The article count shows their coverage.
+                  The article count shows their coverage.<br />
                   <b>New</b> wasn’t present in the previous period. <b>More coverage</b> received more attention than before.  
                   </p>
                 </PopoverContent>
