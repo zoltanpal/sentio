@@ -68,10 +68,9 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                     What are drivers?
                   </p>
                   <p className="mt-1.5 text-sm font-normal leading-6 text-slate-600">
-                    These are the most prominent groups of related stories in
-                    the selected time window. They help explain which news
-                    topics are contributing to the current sentiment. The
-                    article count shows how much coverage each story received.
+                  Groups of related stories shaping the current sentiment. 
+                  The article count shows their coverage.
+                  <b>New</b> wasn’t present in the previous period. <b>More coverage</b> received more attention than before.  
                   </p>
                 </PopoverContent>
               </Popover>
