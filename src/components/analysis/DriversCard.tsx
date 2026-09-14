@@ -37,7 +37,6 @@ function formatComparisonStatus(status?: "new" | "gaining" | null) {
 }
 
 export default function DriversCard({ drivers }: DriversCardProps) {
-  console.log(drivers)
   return (
     <Card className="flex h-full flex-col gap-0 overflow-hidden rounded-[1.25rem] border-slate-200/90 bg-white py-0 shadow-none">
       <CardHeader className="border-b border-slate-100 px-4 py-4 sm:px-6">
@@ -180,7 +179,7 @@ export default function DriversCard({ drivers }: DriversCardProps) {
                           >
                             <span
                               aria-hidden="true"
-                              className="mt-0lk w-4 shrink-0 text-right text-[0.7rem] font-semibold tabular-nums text-slate-400"
+                              className="mt-0 w-4 shrink-0 text-right text-[0.7rem] font-semibold tabular-nums text-slate-400"
                             >
                               {headlineIndex + 1}.
                             </span>
