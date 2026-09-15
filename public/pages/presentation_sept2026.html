@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sentio | Understand the news</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0e1a;
+    --surface:   #111827;
+    --card:      #1a2235;
+    --border:    #1e2d45;
+    --pink:      #f472b6;
+    --pink-dim:  #9d174d;
+    --blue:      #38bdf8;
+    --blue-dim:  #0c4a6e;
+    --green:     #34d399;
+    --amber:     #fbbf24;
+    --red:       #f87171;
+    --lavender:  #a78bfa;
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --accent:    #f472b6;
+    --font:      'Segoe UI', system-ui, sans-serif;
+  }
+
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); color: var(--text); }
+
+  /* ── Slide Container ──────────────────────────────────────── */
+  #deck { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 60px 80px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .6s ease, transform .6s ease;
+    transform: translateY(24px);
+  }
+  .slide.active {
+    opacity: 1; pointer-events: all; transform: translateY(0);
+  }
+  .slide.exit {
+    opacity: 0; transform: translateY(-24px);
+  }
+
+  /* ── Nav ──────────────────────────────────────────────────── */
+  #nav {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 16px; align-items: center; z-index: 100;
+  }
+  .nav-btn {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 28px; border-radius: 999px;
+    cursor: pointer; font-size: 14px; font-weight: 600; letter-spacing: .03em;
+    transition: background .2s, border-color .2s;
+  }
+  .nav-btn:hover { background: var(--border); border-color: var(--pink); }
+  #slide-counter { color: var(--muted); font-size: 13px; min-width: 60px; text-align: center; }
+
+  #dots {
+    position: fixed; top: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 100;
+  }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border); cursor: pointer;
+    transition: background .3s, transform .3s;
+  }
+  .dot.active { background: var(--pink); transform: scale(1.4); }
+
+  /* ── Typography helpers ───────────────────────────────────── */
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--pink); margin-bottom: 16px;
+  }
+  .h1 { font-size: clamp(32px, 5vw, 60px); font-weight: 800; line-height: 1.1; }
+  .h2 { font-size: clamp(22px, 3.5vw, 40px); font-weight: 700; line-height: 1.2; }
+  .h3 { font-size: clamp(16px, 2vw, 22px); font-weight: 600; }
+  .body { font-size: clamp(13px, 1.4vw, 17px); line-height: 1.75; color: #94a3b8; max-width: 680px; }
+  .accent { color: var(--pink); }
+  .blue { color: var(--blue); }
+  .green { color: var(--green); }
+  .amber { color: var(--amber); }
+
+  .tag {
+    display: inline-block; padding: 3px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .tag-neg { background: rgba(248,113,113,.15); color: var(--red); border: 1px solid rgba(248,113,113,.3); }
+  .tag-pos { background: rgba(52,211,153,.15); color: var(--green); border: 1px solid rgba(52,211,153,.3); }
+  .tag-neu { background: rgba(251,191,36,.15); color: var(--amber); border: 1px solid rgba(251,191,36,.3); }
+
+  /* ── Card ─────────────────────────────────────────────────── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 32px;
+  }
+  .card-sm { padding: 18px 22px; border-radius: 12px; }
+
+  /* ── Grid helpers ─────────────────────────────────────────── */
+  .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; }
+  .cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+  ════════════════════════════════════════════════════════════ */
+  #s1 { gap: 0; }
+  #s1 .bg-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image: linear-gradient(rgba(244,114,182,.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(244,114,182,.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  #s1 .content { position: relative; z-index: 1; text-align: center; max-width: 820px; }
+  #s1 .badge {
+    display: inline-flex; gap: 8px; align-items: center;
+    background: rgba(244,114,182,.1); border: 1px solid rgba(244,114,182,.3);
+    padding: 6px 18px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--pink);
+    margin-bottom: 28px;
+  }
+  #s1 .live-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--pink);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.7); } }
+
+  #s1 .subtitle { color: #94a3b8; font-size: clamp(14px, 1.8vw, 20px); margin-top: 20px; font-style: italic; }
+
+  /* Animated ticker */
+  #ticker-wrap {
+    position: absolute; bottom: 80px; left: 0; right: 0; overflow: hidden;
+    height: 36px; z-index: 1;
+    mask-image: linear-gradient(90deg, transparent, black 80px, black calc(100% - 80px), transparent);
+  }
+  #ticker {
+    display: flex; gap: 48px; white-space: nowrap;
+    animation: ticker-scroll 22s linear infinite;
+    width: max-content;
+  }
+  @keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .ticker-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 2 — THE PROBLEM
+  ════════════════════════════════════════════════════════════ */
+  #s2 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; width: 100%; max-width: 1100px; }
+  #s2 .left { }
+  #s2 .stack-articles { display: flex; flex-direction: column; gap: 10px; }
+  .article-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--muted);
+    animation: article-in .5s ease both;
+  }
+  @keyframes article-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+  .article-card .src { font-weight: 600; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .article-card .headline { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .clock-overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(to bottom, transparent 40%, var(--surface) 100%);
+    border-radius: 10px;
+  }
+  .articles-stack-wrap { position: relative; }
+
+  /* SVG clock */
+  #clock-svg .hand { transform-origin: 50% 50%; }
+  #hour-hand   { animation: hour-spin   43200s linear infinite; }
+  #minute-hand { animation: minute-spin  3600s linear infinite; }
+  #second-hand { animation: second-spin    60s linear infinite; }
+  @keyframes hour-spin   { from { transform: rotate(0deg);   } to { transform: rotate(360deg);   } }
+  @keyframes minute-spin { from { transform: rotate(0deg);   } to { transform: rotate(360deg);   } }
+  @keyframes second-spin { from { transform: rotate(0deg);   } to { transform: rotate(360deg);   } }
+
+  #s2 .problem-text { max-width: 420px; }
+  #s2 .big-q { font-size: clamp(28px, 4vw, 46px); font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 3 — THE SOLUTION
+  ════════════════════════════════════════════════════════════ */
+  #s3 .center-content { text-align: center; max-width: 760px; }
+  #s3 .timer-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3);
+    color: var(--green); padding: 8px 20px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; margin-top: 28px;
+  }
+
+  /* Animated pipeline */
+  #pipeline {
+    display: flex; align-items: center; gap: 0; margin-top: 40px; width: 100%; max-width: 720px;
+  }
+  .pipe-step {
+    flex: 1; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .pipe-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; border: 1px solid var(--border);
+    background: var(--card);
+  }
+  .pipe-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+  .pipe-arrow { flex: 0 0 40px; display: flex; align-items: center; justify-content: center; }
+  .pipe-arrow svg { width: 32px; }
+  .flow-dot {
+    cx: 0; cy: 0; fill: var(--pink);
+    animation: flow-anim 2.4s ease-in-out infinite;
+  }
+  @keyframes flow-anim {
+    0%   { opacity: 0; transform: translateX(-8px); }
+    30%  { opacity: 1; }
+    70%  { opacity: 1; }
+    100% { opacity: 0; transform: translateX(8px); }
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 4 — HOW IT WORKS
+  ════════════════════════════════════════════════════════════ */
+  #s4 .arch-wrap { width: 100%; max-width: 1000px; }
+  #s4 .arch-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    align-items: stretch;
+  }
+  .arch-col {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 0 8px;
+  }
+  .arch-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; width: 100%; text-align: center;
+  }
+  .arch-box .icon { font-size: 24px; margin-bottom: 8px; }
+  .arch-box .label { font-size: 12px; font-weight: 700; color: var(--text); }
+  .arch-box .sub { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .arch-arrow-col {
+    display: flex; align-items: center; justify-content: center; padding-top: 24px;
+  }
+  .arch-arrow-col svg { width: 36px; }
+
+  /* Animated data particles */
+  .particle { animation: particle-flow 2s linear infinite; }
+  .particle:nth-child(2) { animation-delay: .66s; }
+  .particle:nth-child(3) { animation-delay: 1.33s; }
+  @keyframes particle-flow {
+    0%   { opacity: 0; offset-distance: 0%; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { opacity: 0; offset-distance: 100%; }
+  }
+
+  #s4 .sources { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .src-chip {
+    background: rgba(56,189,248,.08); border: 1px solid rgba(56,189,248,.2);
+    color: var(--blue); padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 700;
+    letter-spacing: .06em;
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 5 — WHAT THE USER SEES
+  ════════════════════════════════════════════════════════════ */
+  #s5 .ui-mockup {
+    width: 100%; max-width: 900px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,.5);
+  }
+  #s5 .mock-bar {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 14px 24px; display: flex; align-items: center; gap: 14px;
+  }
+  #s5 .mock-search {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 999px; padding: 8px 18px; font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #s5 .mock-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  #s5 .sentiment-big {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 20px;
+  }
+  #s5 .sent-label-big { font-size: 26px; font-weight: 800; }
+  #s5 .sent-dir { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  #s5 .trust-line {
+    grid-column: 1 / -1; font-size: 12px; color: var(--muted);
+    padding: 10px 0; border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Mini chart */
+  #s5 .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  #s5 .chart-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 12px; }
+
+  /* Headlines list */
+  #s5 .headlines { display: flex; flex-direction: column; gap: 8px; }
+  .hl-row {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    padding: 10px 14px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .hl-left { flex: 1; }
+  .hl-src { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .hl-text { font-size: 12px; color: var(--text); margin-top: 2px; line-height: 1.4; }
+  .hl-age { font-size: 10px; color: var(--muted); }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 6 — WHO IT'S FOR
+  ════════════════════════════════════════════════════════════ */
+  #s6 .personas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%; max-width: 960px; }
+  .persona-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 32px 28px; display: flex; flex-direction: column; gap: 14px;
+    transition: border-color .3s, transform .3s;
+  }
+  .persona-card:hover { border-color: var(--pink); transform: translateY(-4px); }
+  .persona-icon { font-size: 38px; }
+  .persona-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; }
+  .persona-title { font-size: 20px; font-weight: 700; }
+  .persona-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+  .persona-primary .persona-label { color: var(--pink); }
+  .persona-secondary .persona-label { color: var(--blue); }
+  .persona-future .persona-label { color: var(--lavender); }
+  .persona-future { border-style: dashed; opacity: .75; }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 7 — WHY IT'S DIFFERENT
+  ════════════════════════════════════════════════════════════ */
+  #s7 .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; max-width: 1000px; align-items: start; }
+  .diff-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+  }
+  .diff-card .diff-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; color: var(--muted); margin-bottom: 12px; }
+  .diff-card .diff-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+  .diff-card .diff-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+  .vs-pill {
+    background: rgba(244,114,182,.12); border: 1px solid rgba(244,114,182,.3);
+    color: var(--pink); padding: 6px 18px; border-radius: 999px; font-size: 12px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .12em; align-self: center; text-align: center;
+    white-space: nowrap;
+  }
+
+  .diff-highlights { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .diff-hl {
+    display: flex; align-items: center; gap: 12px; font-size: 13px;
+    padding: 10px 14px; background: rgba(244,114,182,.06); border: 1px solid rgba(244,114,182,.15);
+    border-radius: 8px;
+  }
+  .diff-hl .icon { font-size: 16px; }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 8 — CURRENT CAPABILITIES
+  ════════════════════════════════════════════════════════════ */
+  #s8 .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 900px; }
+  .scope-item {
+    background: var(--card); border: 1px solid rgba(52,211,153,.25); border-radius: 14px;
+    padding: 22px 24px; display: flex; gap: 16px; align-items: flex-start;
+  }
+  .scope-check {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
+    background: rgba(52,211,153,.15); border: 1px solid rgba(52,211,153,.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scope-item .scope-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .scope-item .scope-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  #s8 .no-badge {
+    margin-top: 28px;
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2);
+    color: var(--red); padding: 8px 20px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 9 — NOT BUILDING YET
+  ════════════════════════════════════════════════════════════ */
+  #s9 .not-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; max-width: 900px; }
+  .not-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px; display: flex; flex-direction: column; gap: 10px; opacity: .7;
+  }
+  .not-item .not-icon { font-size: 28px; }
+  .not-item .not-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .not-item .not-body { font-size: 12px; color: var(--muted); line-height: 1.55; }
+  .not-item .not-label {
+    display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700;
+    background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.25); color: var(--amber);
+    text-transform: uppercase; letter-spacing: .08em; align-self: flex-start;
+  }
+
+  #s9 .tagline {
+    margin-top: 28px; font-size: 15px; color: var(--muted); font-style: italic; text-align: center;
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 10 — SUCCESS QUESTION
+  ════════════════════════════════════════════════════════════ */
+  #s10 { }
+  #s10 .center-content { text-align: center; max-width: 720px; display: flex; flex-direction: column; align-items: center; }
+  #s10 .trader-row { display: flex; gap: 14px; margin: 28px 0; }
+  .trader-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--card); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+    transition: border-color .3s, transform .3s;
+  }
+  .trader-avatar.lit { border-color: var(--green); transform: scale(1.15); }
+
+  #s10 .question-box {
+    background: var(--card); border: 1px solid rgba(244,114,182,.3);
+    border-radius: 18px; padding: 28px 36px; margin: 20px 0;
+    font-size: clamp(16px, 2.2vw, 24px); font-weight: 700; line-height: 1.4;
+    font-style: italic;
+  }
+
+  #s10 .outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; margin-top: 20px; }
+  .outcome {
+    padding: 16px 20px; border-radius: 12px; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .outcome-yes { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3); color: var(--green); }
+  .outcome-no  { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2); color: var(--red); }
+
+  #s10 .product-goal-note { margin-top: 24px; font-size: 13px; color: var(--muted); font-style: italic; }
+
+  /* ════════════════════════════════════════════════════════════
+     SLIDE 11 — CLOSING
+  ════════════════════════════════════════════════════════════ */
+  #s11 { text-align: center; }
+  #s11 .bg-grid { position: absolute; inset: 0; z-index: 0;
+    background-image: radial-gradient(rgba(244,114,182,.12) 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+  #s11 .glow {
+    position: absolute; width: 600px; height: 300px; border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(244,114,182,.18), transparent 70%);
+    top: 30%; left: 50%; transform: translate(-50%, -50%);
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+  @keyframes glow-pulse { 0%,100% { opacity: .6; transform: translate(-50%,-50%) scale(1); } 50% { opacity: 1; transform: translate(-50%,-50%) scale(1.08); } }
+  #s11 .content { position: relative; z-index: 1; max-width: 760px; }
+  #s11 .tag-row { display: flex; gap: 12px; justify-content: center; margin-top: 28px; }
+  .closing-tag {
+    padding: 8px 22px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+  .ct-pink { background: rgba(244,114,182,.15); border: 1px solid rgba(244,114,182,.35); color: var(--pink); }
+  .ct-blue { background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.3); color: var(--blue); }
+  .ct-green { background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.3); color: var(--green); }
+
+  /* ── Keyboard hint ────────────────────────────────────────── */
+  #kb-hint {
+    position: fixed; top: 28px; right: 32px; z-index: 100;
+    font-size: 11px; color: var(--muted);
+  }
+
+:root{--muted:#94a3b8}
+.section-title{text-align:center;max-width:1050px;margin-bottom:30px}
+.update-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;width:100%;max-width:1050px}
+.update-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:25px 28px}
+.update-card .eyebrow{margin-bottom:10px;color:var(--blue);font-size:10px}
+.update-card h3{font-size:22px;line-height:1.25;margin-bottom:12px}
+.update-card p{font-size:16px;color:var(--muted);line-height:1.6}
+.update-note{font-size:13px;color:var(--muted);line-height:1.6;text-align:center;max-width:950px;margin-top:22px}
+.demo-copy{font-size:13px;line-height:1.7;color:var(--muted);margin-top:7px}
+.driver-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;margin-top:10px}
+.entity-chips{display:flex;flex-wrap:wrap;gap:7px}.entity-chips span{border:1px solid var(--blue-dim);border-radius:20px;padding:5px 10px;font-size:12px;color:var(--blue)}
+.dot{border:0;padding:0}.nav-btn:disabled{opacity:.3;cursor:default}
+.slide{padding:65px 70px 105px;overflow-y:auto}.slide>*{flex-shrink:0}
+@media(max-width:760px){.slide{padding:70px 22px 100px;justify-content:flex-start}.update-grid,#s6 .personas{grid-template-columns:1fr;gap:12px}.update-card{padding:20px}.update-card h3{font-size:20px}.update-card p{font-size:15px}.section-title{font-size:30px;margin-bottom:22px}#kb-hint{display:none}#nav{bottom:18px;gap:8px;white-space:nowrap;background:var(--bg);border-radius:30px;padding:5px}.nav-btn{padding:10px 18px}#s2 .split{grid-template-columns:1fr;gap:24px}#s5 .mock-body{grid-template-columns:1fr;padding:16px;gap:12px}#s5 .mock-bar{padding:12px;font-size:12px}#s5 .mock-search{min-width:0}#s1,#s11{justify-content:center}#pipeline{flex-wrap:wrap;justify-content:center}#s10 .outcomes{grid-template-columns:1fr}.trader-avatar{width:42px;height:42px}.h1{font-size:40px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media print{@page{size:landscape;margin:0}html,body,#deck{height:auto;overflow:visible}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.slide{position:relative;opacity:1!important;transform:none!important;min-height:100vh;break-after:page;overflow:visible}#nav,#dots,#kb-hint{display:none}}
+</style>
+</head>
+<body>
+<div id="deck">
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 1 — TITLE
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide active" id="s1">
+<div class="bg-grid"></div>
+<div class="content">
+<div class="badge"><div class="live-dot"></div> News intelligence</div>
+<div class="h1">Sentio<br/><span class="accent">Understand what changed.</span></div>
+<div class="subtitle">Turn news into signal, not noise.</div>
+<p class="update-note">News sentiment, coverage and the stories behind them.</p></div>
+<div id="ticker-wrap">
+<div id="ticker"><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Keyword search</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Sentiment over time</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Story drivers</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Clickable entities</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Period comparisons</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>6h to 3d windows</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Keyword search</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Sentiment over time</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Story drivers</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Clickable entities</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>Period comparisons</span><span class="ticker-item"><span class="ticker-dot" style="background:var(--pink)"></span>6h to 3d windows</span></div>
+</div>
+</div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 2 — THE PROBLEM
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s2">
+<div class="split">
+<div class="left">
+<div class="eyebrow"><h2>The Problem</h2></div>
+<div class="big-q">Headlines keep coming.<br/><span class="accent">What actually changed?</span></div>
+<p class="body">A topic can attract more coverage while its tone improves, declines or stays the same.<br/><br/>Reading individual headlines makes it hard to see the overall tone and the stories behind it.</p>
+</div>
+<div class="right" style="position:relative;">
+<!-- Stacked articles bleeding off with fog -->
+<div class="articles-stack-wrap">
+<div class="stack-articles" id="article-stack">
+<div class="article-card" style="animation-delay:.0s"><div><div class="src">Reuters</div><div class="headline">Central banks signal shift in policy stance</div></div><span class="tag tag-neg">Negative</span></div>
+<div class="article-card" style="animation-delay:.1s"><div><div class="src">Bloomberg</div><div class="headline">Markets react sharply to jobs data miss</div></div><span class="tag tag-neg">Negative</span></div>
+<div class="article-card" style="animation-delay:.2s"><div><div class="src">FT</div><div class="headline">Tech sector rallies on AI chip demand</div></div><span class="tag tag-pos">Positive</span></div>
+<div class="article-card" style="animation-delay:.3s"><div><div class="src">WSJ</div><div class="headline">Inflation expectations remain anchored</div></div><span class="tag tag-neu">Neutral</span></div>
+<div class="article-card" style="animation-delay:.4s"><div><div class="src">AP</div><div class="headline">Energy prices spike on supply concerns</div></div><span class="tag tag-neg">Negative</span></div>
+<div class="article-card" style="animation-delay:.5s"><div><div class="src">Guardian</div><div class="headline">Consumer confidence dips in March survey</div></div><span class="tag tag-neg">Negative</span></div>
+</div>
+<!-- Fade fog at bottom -->
+<div style="position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(to bottom, transparent, var(--bg));border-radius:0 0 10px 10px;pointer-events:none;"></div>
+</div>
+<!-- SVG clock -->
+<div style="display:flex;justify-content:center;margin-top:20px;">
+<svg height="90" id="clock-svg" viewbox="0 0 100 100" width="90">
+<circle cx="50" cy="50" fill="none" r="46" stroke="#1e2d45" stroke-width="2"></circle>
+<circle cx="50" cy="50" fill="#111827" r="42"></circle>
+<!-- tick marks -->
+<g stroke="#2d3d58" stroke-width="1.5">
+<line x1="50" x2="50" y1="10" y2="16"></line>
+<line x1="50" x2="50" y1="84" y2="90"></line>
+<line x1="10" x2="16" y1="50" y2="50"></line>
+<line x1="84" x2="90" y1="50" y2="50"></line>
+</g>
+<!-- Hour hand -->
+<line class="hand" id="hour-hand" stroke="#e2e8f0" stroke-linecap="round" stroke-width="3" x1="50" x2="50" y1="50" y2="26"></line>
+<!-- Minute hand -->
+<line class="hand" id="minute-hand" stroke="#f472b6" stroke-linecap="round" stroke-width="2" x1="50" x2="50" y1="50" y2="18"></line>
+<!-- Second hand -->
+<line class="hand" id="second-hand" stroke="#f87171" stroke-linecap="round" stroke-width="1" x1="50" x2="50" y1="54" y2="14"></line>
+<circle cx="50" cy="50" fill="#f472b6" r="3"></circle>
+</svg>
+<div style="display:flex;align-items:center;padding-left:14px;font-size:12px;color:var(--muted);max-width:160px;line-height:1.6;">
+            A useful overview starts with the articles behind the score.
+          </div>
+</div>
+<p class="update-note">Illustrative headlines</p></div>
+</div>
+</div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 3 — THE SOLUTION
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s3"><div class="center-content" style="text-align:center;max-width:900px"><div class="eyebrow">What is Sentio?</div><h2 class="h2">A clear view of <span class="accent">the mood behind the news.</span></h2><p style="font-size:21px;line-height:1.7;color:var(--muted);margin-top:26px">Search a company, person, event or topic. Sentio brings together news sentiment, coverage and related stories so you can understand the conversation and explore the headlines behind it.</p><div class="timer-badge">English news · Time windows from 6 hours to 3 days</div></div></div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 4 — HOW IT WORKS
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s4"><div class="eyebrow">Using Sentio</div><h2 class="h2 section-title">From a question to the stories that matter</h2><div class="update-grid"><div class="update-card"><div class="eyebrow">01 / Search</div><h3>Choose your topic</h3><p>Enter a keyword or a prompt such as “Tesla today” to set the topic and time window.</p></div><div class="update-card"><div class="eyebrow">02 / Overview</div><h3>Read the overall picture</h3><p>See the current tone, its trend and how much coverage the topic receives.</p></div><div class="update-card"><div class="eyebrow">03 / Explore</div><h3>Understand the prominent stories</h3><p>Open the drivers to inspect groups of related headlines and the coverage each story receives.</p></div><div class="update-card"><div class="eyebrow">04 / Follow up</div><h3>Look closer</h3><p>Read supporting headlines or select a mentioned entity to explore another topic.</p></div></div></div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 5 — WHAT THE USER SEES
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s5"><div class="eyebrow">Dashboard / illustrative example</div><h2 class="h2 section-title">One query, a clearer overview</h2><div class="ui-mockup"><div class="mock-bar"><span style="color:var(--pink);font-weight:800">sentio</span><div class="mock-search">Tesla today</div><span>Last 1d</span></div><div class="mock-body"><div class="sentiment-big"><div><div class="sent-label-big">Tesla <span style="color:var(--muted);font-size:16px">— Last 1d</span></div><div class="sent-dir">What changed?</div></div><span class="tag tag-neu" style="margin-left:auto">Example data</span></div><div class="chart-box"><div class="chart-title">Sentiment summary</div><h3 style="color:var(--green);font-size:26px">Slightly positive</h3><p class="demo-copy">Current average +0.12</p><p class="demo-copy" style="color:var(--green)">Trend: improving. Change: +0.08 vs previous 24h</p><p class="demo-copy">Positive 40%   Neutral 45%   Negative 15%</p><p class="demo-copy">Coverage: 40 articles (+25%), 10 sources (+25%)</p></div><div class="chart-box"><div class="chart-title">What’s driving this?</div><div class="driver-row"><strong>New vehicle announcement</strong><span class="tag tag-pos">New</span></div><p class="demo-copy">8 articles</p><div class="driver-row"><strong>Delivery outlook</strong><span class="tag tag-neu">More coverage</span></div><p class="demo-copy">6 articles</p></div><div class="chart-box"><div class="chart-title">Most mentioned</div><div class="entity-chips"><span>Tesla</span><span>Elon Musk</span><span>Austin</span></div><p class="demo-copy">Select an entity to start a new search.</p></div><div class="chart-box"><div class="chart-title">Headlines</div><p class="demo-copy">Vehicle announcement draws attention <span style="color:var(--green)">Positive</span></p><p class="demo-copy">Analysts discuss delivery outlook <span style="color:var(--amber)">Neutral</span></p></div><div class="trust-line">Simplified presentation mockup. The dashboard also includes a sentiment timeline and distribution chart.</div></div></div></div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 6 — WHO IT'S FOR
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s6"><div class="eyebrow">Who it’s for</div><h2 class="h2 section-title">For people who need to understand the news</h2><div class="update-grid"><div class="update-card"><div class="eyebrow">Analysis</div><h3>Analysts and researchers</h3><p>Track how coverage and sentiment evolve around companies, events and topics.</p></div><div class="update-card"><div class="eyebrow">Business</div><h3>Founders and communications teams</h3><p>Follow the conversation around an organisation or industry and inspect the stories attracting attention.</p></div><div class="update-card"><div class="eyebrow">Reporting</div><h3>Journalists</h3><p>Explore emerging stories, recurring entities and shifts in the tone of coverage.</p></div><div class="update-card"><div class="eyebrow">Everyday use</div><h3>Curious readers</h3><p>Get an overview of a topic, see what changed and open the supporting headlines.</p></div></div></div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 7 — WHY IT'S DIFFERENT
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s7"><div class="eyebrow">Sentiment and coverage</div><h2 class="h2 section-title">Put the current news in context</h2><div class="update-grid"><div class="update-card"><div class="eyebrow">Current tone</div><h3>How does the coverage read?</h3><p>The sentiment score and positive, neutral and negative shares summarise the tone of matching articles.</p></div><div class="update-card"><div class="eyebrow">Trend</div><h3>Is the tone shifting?</h3><p>The comparison with an equivalent previous period shows whether sentiment is improving, declining or stable.</p></div><div class="update-card"><div class="eyebrow">Coverage</div><h3>How much attention is it getting?</h3><p>Article and source counts show the breadth of coverage. Percentage changes reveal increases or decreases in attention.</p></div><div class="update-card"><div class="eyebrow">Story activity</div><h3>Which stories are gaining coverage?</h3><p>“New” and “More coverage” labels highlight stories appearing in the selected period or receiving more articles.</p></div></div><p class="update-note">Period comparisons depend on available history. The full 3d window has no previous-period comparison.</p></div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 8 — CURRENT CAPABILITIES
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s8"><div class="eyebrow">Inside the dashboard</div><h2 class="h2 section-title">The stories behind the numbers</h2><div class="update-grid"><div class="update-card"><div class="eyebrow">Drivers</div><h3>Related news, grouped together</h3><p>Prominent story groups help you see the main topics in the coverage, with article counts and representative headlines.</p></div><div class="update-card"><div class="eyebrow">Most mentioned</div><h3>People and organisations to explore</h3><p>Entities show who and what appears in the selected period. Select one to start a related search.</p></div><div class="update-card"><div class="eyebrow">Timeline</div><h3>Sentiment over time</h3><p>Follow the tone across the selected window and see where sentiment rises, falls or stays steady.</p></div><div class="update-card"><div class="eyebrow">Headlines</div><h3>The evidence behind the overview</h3><p>Inspect individual articles with their source, publication time and sentiment label.</p></div></div></div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 9 — NOT BUILDING YET
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="operations"><div class="eyebrow">Built around your question</div><h2 class="h2 section-title">Explore at your own pace</h2><div class="update-grid"><div class="update-card"><div class="eyebrow">Time windows</div><h3>A quick pulse or a broader view</h3><p>Choose 6h, 12h, 1d, 2d or 3d to explore the recent coverage that matters to you.</p></div><div class="update-card"><div class="eyebrow">Search</div><h3>Move between related topics</h3><p>Start with a prompt, then use mentioned entities to follow the conversation into a different search.</p></div><div class="update-card"><div class="eyebrow">Access</div><h3>Desktop and mobile</h3><p>Use the overview on a larger screen or browse on your phone with mobile search and time-window controls.</p></div><div class="update-card"><div class="eyebrow">Freshness</div><h3>Regularly collected news</h3><p>RSS collection runs every five minutes, with a rolling three-day window of English news.</p></div></div></div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 10 — SUCCESS QUESTION
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s10"><div class="eyebrow">What Sentio gives you</div><h2 class="h2 section-title">An overview you can investigate</h2><div class="update-grid"><div class="update-card"><div class="eyebrow">Orientation</div><h3>See the overall mood</h3><p>Get a summary of the tone across matching news before choosing which articles to read.</p></div><div class="update-card"><div class="eyebrow">Perspective</div><h3>Understand attention and direction</h3><p>Read sentiment alongside coverage to distinguish a shift in tone from an increase in news volume.</p></div><div class="update-card"><div class="eyebrow">Focus</div><h3>Find the prominent stories</h3><p>Use related-story groups to identify the topics attracting coverage in your selected window.</p></div><div class="update-card"><div class="eyebrow">Exploration</div><h3>Follow the evidence</h3><p>Move from the summary to headlines and sources, or continue through a related entity.</p></div></div></div>
+<!-- ──────────────────────────────────────────────────────────
+       SLIDE 11 — CLOSING
+  ────────────────────────────────────────────────────────────── -->
+<div class="slide" id="s9"><div class="eyebrow">Next improvements</div><h2 class="h2 section-title">Where Sentio goes next</h2><div class="update-grid"><div class="update-card"><div class="eyebrow">Personalisation</div><h3>Accounts and watchlists</h3><p>Saved topics and a personal monitoring workflow.</p></div><div class="update-card"><div class="eyebrow">Delivery</div><h3>Alerts and notifications</h3><p>Notify users when a topic’s sentiment or coverage changes.</p></div><div class="update-card"><div class="eyebrow">Data access</div><h3>Longer history and external API</h3><p>Broader archives and integrations for other tools.</p></div><div class="update-card"><div class="eyebrow">Specialised views</div><h3>Regional filters and dedicated brand dashboards</h3><p>Additional geographic filtering and workflows tailored to reputation monitoring.</p></div></div><p class="update-note">Upcoming priorities: personalisation, alerts, broader data access and specialised views.</p></div>
+
+<div class="slide" id="s11">
+<div class="bg-grid"></div>
+<div class="glow"></div>
+<div class="content">
+<div class="eyebrow">Sentio</div>
+<div class="h1">The current tone.<br/><span class="accent">The stories behind it.</span></div>
+<p style="margin-top:20px;font-size:clamp(14px,1.6vw,18px);color:#94a3b8;max-width:580px;line-height:1.7;text-align:center;">Sentio helps people understand changes in news sentiment and coverage, and explore the stories behind them.</p>
+<div class="tag-row">
+<span class="closing-tag ct-pink">Search</span>
+<span class="closing-tag ct-blue">Understand</span>
+<span class="closing-tag ct-green">Explore</span>
+</div>
+</div>
+</div>
+</div><!-- /deck -->
+<!-- Navigation -->
+<div id="dots"></div>
+<div id="nav">
+<button class="nav-btn" id="prev-btn">← Prev</button>
+<span id="slide-counter">1 / 12</span>
+<button class="nav-btn" id="next-btn">Next →</button>
+</div>
+<div id="kb-hint">← → arrow keys to navigate</div>
+<script>
+/* ── State ───────────────────────────────────────────────── */
+const slides    = Array.from(document.querySelectorAll('.slide'));
+const total     = slides.length;
+let current     = 0;
+let animating   = false;
+
+/* ── Dots ────────────────────────────────────────────────── */
+const dotsEl = document.getElementById('dots');
+slides.forEach((_, i) => {
+  const d = document.createElement('button'); d.setAttribute('aria-label', `Go to slide ${i+1}`); d.title = `Slide ${i+1}`;
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.addEventListener('click', () => goTo(i));
+  dotsEl.appendChild(d);
+});
+
+/* ── Navigation ──────────────────────────────────────────── */
+function goTo(idx) {
+  if (animating || idx === current || idx < 0 || idx >= total) return;
+  animating = true;
+
+  const prev = slides[current];
+  const next = slides[idx];
+
+  prev.classList.add('exit');
+  prev.classList.remove('active');
+
+  next.style.transform = 'translateY(24px)';
+  next.style.opacity   = '0';
+  next.classList.add('active');
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      next.style.transition = 'opacity .6s ease, transform .6s ease';
+      next.style.opacity    = '1';
+      next.style.transform  = 'translateY(0)';
+    });
+  });
+
+  setTimeout(() => {
+    prev.classList.remove('exit');
+    prev.style.transform = '';
+    next.style.transition = '';
+    next.style.opacity    = '';
+    next.style.transform  = '';
+    animating = false;
+  }, 650);
+
+  current = idx;
+  updateUI();
+
+  // Slide-specific triggers
+  if (next.id === 's10') triggerTraderAnim();
+  if (next.id === 's5') triggerTyping();
+}
+
+function updateUI() {
+  document.getElementById('slide-counter').textContent = `${current + 1} / ${total}`;
+  document.getElementById('prev-btn').disabled = current === 0;
+  document.getElementById('next-btn').disabled = current === total-1;
+  slides.forEach((s,i)=>{s.setAttribute('aria-hidden',i!==current);s.inert=i!==current;});
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+}
+
+document.getElementById('prev-btn').addEventListener('click', () => goTo(current - 1));
+document.getElementById('next-btn').addEventListener('click', () => goTo(current + 1));
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+});
+
+/* ── Clock hands: real time ──────────────────────────────── */
+function setClockHands() {
+  const now  = new Date();
+  const sec  = now.getSeconds();
+  const min  = now.getMinutes() + sec / 60;
+  const hour = now.getHours() % 12 + min / 60;
+  const secDeg  = sec  * 6;
+  const minDeg  = min  * 6;
+  const hourDeg = hour * 30;
+  document.getElementById('second-hand').style.transform = `rotate(${secDeg}deg)`;
+  document.getElementById('minute-hand').style.transform = `rotate(${minDeg}deg)`;
+  document.getElementById('hour-hand').style.transform   = `rotate(${hourDeg}deg)`;
+}
+setClockHands();
+setInterval(setClockHands, 1000);
+
+/* ── Slide 5 — Typing animation ──────────────────────────── */
+const typedEl   = document.getElementById('typed-query');
+const cursorEl  = document.getElementById('cursor-blink');
+const typeWords = ['Federal Reserve', 'NVDA', 'oil prices', 'inflation'];
+let typeIdx     = 0, charIdx = 0, typing = true, typeTimer = null;
+
+function runTyping() {
+  const word = typeWords[typeIdx % typeWords.length];
+  if (typing) {
+    typedEl.textContent = word.slice(0, ++charIdx);
+    if (charIdx >= word.length) { typing = false; typeTimer = setTimeout(runTyping, 1400); return; }
+  } else {
+    typedEl.textContent = word.slice(0, --charIdx);
+    if (charIdx <= 0) { typing = true; typeIdx++; typeTimer = setTimeout(runTyping, 300); return; }
+  }
+  typeTimer = setTimeout(runTyping, typing ? 80 : 45);
+}
+setInterval(() => { if(cursorEl) cursorEl.style.opacity = cursorEl.style.opacity === '0' ? '1' : '0'; }, 530);
+
+function triggerTyping() {
+  if (!typedEl || typeTimer) return;
+  runTyping();
+}
+
+/* ── Slide 10 — Trader animation ─────────────────────────── */
+function triggerTraderAnim() {
+  const avatars = document.querySelectorAll('.trader-avatar');
+  avatars.forEach((a, i) => {
+    a.classList.remove('lit');
+    setTimeout(() => a.classList.add('lit'), 300 + i * 220);
+  });
+}
+
+/* ── Cursor blink on Slide 5 init ────────────────────────── */
+// Already running globally via setInterval above.
+
+/* ── Article stack shuffle (Slide 2) ─────────────────────── */
+const articleData = [
+  { src: 'Reuters',   hl: 'Central banks signal shift in policy stance',  tag: 'neg' },
+  { src: 'Bloomberg', hl: 'Markets react sharply to jobs data miss',       tag: 'neg' },
+  { src: 'FT',        hl: 'Tech sector rallies on AI chip demand',         tag: 'pos' },
+  { src: 'WSJ',       hl: 'Inflation expectations remain anchored',        tag: 'neu' },
+  { src: 'AP',        hl: 'Energy prices spike on supply concerns',        tag: 'neg' },
+  { src: 'Guardian',  hl: 'Consumer confidence dips in March survey',      tag: 'neg' },
+  { src: 'CNBC',      hl: 'Dollar strengthens on safe-haven demand',       tag: 'neu' },
+  { src: 'Axios',     hl: 'Retail sales data disappoint analysts',         tag: 'neg' },
+  { src: 'BBC',       hl: 'Emerging market currencies face pressure',      tag: 'neg' },
+  { src: 'Barrons',   hl: 'Dividend stocks outperform growth peers',       tag: 'pos' },
+];
+
+let articlePtr = 0;
+function rotatArticle() {
+  const stack = document.getElementById('article-stack');
+  if (!stack) return;
+  const cards = stack.querySelectorAll('.article-card');
+  const item  = articleData[(++articlePtr + cards.length) % articleData.length];
+  const oldest = cards[cards.length - 1];
+  oldest.style.transition = 'opacity .4s, transform .4s';
+  oldest.style.opacity    = '0';
+  oldest.style.transform  = 'translateX(30px)';
+  setTimeout(() => {
+    const tagClass = item.tag === 'neg' ? 'tag-neg' : item.tag === 'pos' ? 'tag-pos' : 'tag-neu';
+    const tagText  = item.tag === 'neg' ? 'Negative' : item.tag === 'pos' ? 'Positive' : 'Neutral';
+    oldest.querySelector('.src').textContent      = item.src;
+    oldest.querySelector('.headline').textContent = item.hl;
+    const tagEl = oldest.querySelector('.tag');
+    tagEl.className = `tag ${tagClass}`;
+    tagEl.textContent = tagText;
+    oldest.style.transition = '';
+    oldest.style.opacity    = '';
+    oldest.style.transform  = '';
+    stack.insertBefore(oldest, stack.firstChild);
+  }, 420);
+}
+setInterval(rotatArticle, 2200);
+
+/* ── SVG Chart — subtle sentinel dot animation ───────────── */
+const sentChart = document.getElementById('sentiment-chart');
+if (sentChart) {
+  const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  dot.setAttribute('cx', '280');
+  dot.setAttribute('cy', '72');
+  dot.setAttribute('r', '4');
+  dot.setAttribute('fill', '#f87171');
+  const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+  anim.setAttribute('attributeName', 'r');
+  anim.setAttribute('values', '3;6;3');
+  anim.setAttribute('dur', '1.8s');
+  anim.setAttribute('repeatCount', 'indefinite');
+  dot.appendChild(anim);
+  const animOp = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+  animOp.setAttribute('attributeName', 'opacity');
+  animOp.setAttribute('values', '1;.4;1');
+  animOp.setAttribute('dur', '1.8s');
+  animOp.setAttribute('repeatCount', 'indefinite');
+  dot.appendChild(animOp);
+  sentChart.appendChild(dot);
+}
+
+updateUI();
+</script>
+</body>
+</html>
