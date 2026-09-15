@@ -16,3 +16,9 @@ export function formatTimeAgo(date: number | string) {
   if (diff < 1440) return `${Math.floor(diff / 60)} hr ago`;
   return `${Math.floor(diff / 1440)} day ago`;
 }
+
+export function formatWindow(hours: number) {
+  return hours > 24 && hours % 24 === 0
+    ? `${hours / 24}d`
+    : `${hours}h`;
+}
