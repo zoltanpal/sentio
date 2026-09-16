@@ -37,6 +37,7 @@ export function useDashboardSearch() {
     null
   );
   const resultsTopRef = useRef<HTMLDivElement>(null);
+  const skipSearchRestoreRef = useRef<string | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -131,6 +132,12 @@ export function useDashboardSearch() {
       setSearchSession(normalizedSession);
 
       if (nextSearch !== location.search) {
+        // Start the analysis before synchronizing the URL. The effect below
+        // also observes URL changes, so mark this exact update as already
+        // handled to avoid starting the same search a second time.
+        skipSearchRestoreRef.current = nextSearch;
+        void loadResolvedSearch(normalizedSession);
+
         navigate(
           {
             pathname: location.pathname,
@@ -199,6 +206,11 @@ export function useDashboardSearch() {
       params.get("timewindow"),
       session?.resolvedWindowHours
     );
+
+    if (skipSearchRestoreRef.current === location.search) {
+      skipSearchRestoreRef.current = null;
+      return;
+    }
 
     const restoreSearch = async () => {
       // An explicit URL query always takes priority.

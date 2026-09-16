@@ -1,5 +1,4 @@
 import Header from "@/components/layout/Header";
-import { MainNavigationMenu } from "@/components/layout/RightSimpleNav";
 import { Separator } from "@/components/shared/ui/separator";
 
 export default function About() {

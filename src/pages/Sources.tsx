@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import Header from "@/components/layout/Header";
 import { Separator } from "@/components/shared/ui/separator";
@@ -6,32 +6,38 @@ import { Separator } from "@/components/shared/ui/separator";
 
 
 const API_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN;
+const SOURCES_URL = `${import.meta.env.VITE_API_BASE_URL}/detailed_sources`;
+
+type Source = {
+  name: string;
+  site_url: string;
+  category: string;
+  current_article_count: number;
+};
 
 export default function Sources() {
     const [query, setQuery] = useState("");
     const [loading, setLoading] = useState(false);
-    const [sources, setSources] = useState<any[]>([]);
+    const [sources, setSources] = useState<Source[]>([]);
 
-    const url = import.meta.env.VITE_API_BASE_URL + '/detailed_sources';
-
-    useEffect(() => {
-      fetchSources();
-    }, []);
-
-    const fetchSources = async () => {
+    const fetchSources = useCallback(async () => {
         setLoading(true);
         try {
-          const response = await fetch(url, {
+          const response = await fetch(SOURCES_URL, {
             headers: { Authorization: `Bearer ${API_TOKEN}` },
           });
-          const result = await response.json();
-          setSources(result);
+          const result: unknown = await response.json();
+          setSources(Array.isArray(result) ? result as Source[] : []);
         } catch (err) {
           console.error("Error fetching feeds:", err);
         } finally {
           setLoading(false);
         }
-    }
+    }, []);
+
+    useEffect(() => {
+      void fetchSources();
+    }, [fetchSources]);
 
     const filteredSources =
         query.length >= 3
@@ -66,7 +72,7 @@ export default function Sources() {
             />
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
+            {loading ? <p className="text-sm text-slate-500">Loading sources…</p> : null}
             {filteredSources.map((source) => (
                 <a  key={source.name} href={source.site_url} target="_blank" rel="noopener noreferrer" 
                     className="block rounded-lg border border-gray-200 p-4 transition hover:border-gray-300 bg-white">

@@ -2,7 +2,6 @@
 import { Separator } from "@/components/shared/ui/separator";
 import { MailIcon } from "lucide-react";
 import LinkedinIcon from "@/components/shared/ui/linkedin-icon";
-import { Link } from "react-router-dom";
 import Header from "@/components/layout/Header";
 
 export default function Contact() {
