@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { DropdownMenu } from "radix-ui";
-import { ChevronDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon } from "lucide-react";
+import { ChevronDownIcon, LogOutIcon, UserRoundIcon } from "lucide-react";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { getFirebaseAuth } from "@/auth/firebase";
 

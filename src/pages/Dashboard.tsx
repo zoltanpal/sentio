@@ -141,7 +141,7 @@ export default function Dashboard() {
                 <DashboardHeading
                   query={activeQuery}
                   windowHours={windowHours}
-                  watchlist_candidates={data.watchlist_candidates}
+                  watchlist_candidates={data.watchlist_candidates ?? []}
                   selectedEntity={
                     selectedEntity?.name.toLocaleLowerCase() ===
                     activeQuery.toLocaleLowerCase()

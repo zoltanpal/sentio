@@ -47,7 +47,7 @@ function formatWindow(windowHours: number): string {
 export default function DashboardHeading({
   query,
   windowHours,
-  watchlist_candidates,
+  watchlist_candidates=[],
   selectedEntity
 }: Props) {
   const [followedIds, setFollowedIds] = useState<Set<number>>(new Set());

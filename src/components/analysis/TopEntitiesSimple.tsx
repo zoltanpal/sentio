@@ -1,4 +1,4 @@
-import { SearchIcon, TagsIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/shared/ui/button";
 

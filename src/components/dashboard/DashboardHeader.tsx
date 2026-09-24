@@ -1,6 +1,5 @@
 import type { MouseEvent } from "react";
 import {
-  CircleQuestionMarkIcon,
   Grid2X2Icon,
   BellIcon,
   StarIcon,
