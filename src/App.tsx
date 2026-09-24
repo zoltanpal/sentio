@@ -5,12 +5,17 @@ import AppLayout from "@/components/layout/Layout";
 import ScrollToTop from "./hooks/ScrollToTop";
 import { AuthProvider } from "@/auth/AuthContext";
 import Dashboard from "@/pages/Dashboard";
+
+const Register = lazy(() => import("@/pages/Register"));
+const Login = lazy(() => import("@/pages/Login"));
 const Home = lazy(() => import("@/pages/Home"));
 const About = lazy(() => import("@/pages/About"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const Help = lazy(() => import("@/pages/Help"));
 const Sources = lazy(() => import("@/pages/Sources"));
 const Statistics = lazy(() => import("@/pages/Statistics"));
+const Watchlist = lazy(() => import("@/pages/Watchlist"));
+
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export default function App() {
@@ -27,6 +32,9 @@ export default function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="help" element={<Help />} />
             <Route path="sources" element={<Sources />} />
+            <Route path="watchlist" element={<Watchlist />} />
+            <Route path="register" element={<Register />} />
+            <Route path="login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

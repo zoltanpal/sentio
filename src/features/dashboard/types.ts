@@ -57,6 +57,12 @@ export type LiveHeadline = {
   sentiment_raw: Record<string, unknown> | string | null;
 };
 
+export type Watchlist = {
+  id: number;
+  name: string;
+  type: string;
+}
+
 export type LiveQueryResponse = {
   query: string;
   window_hours: number;
@@ -95,6 +101,7 @@ export type LiveQueryResponse = {
     direction: ChangeDirection;
   } | null;
   ai_summary?: string | null;
+  watchlist_candidates: Watchlist[];
   sentiment_scores_per_hour: {
     bucket_start: string;
     article_count: number;

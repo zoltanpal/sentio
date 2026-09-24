@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
+
 import {
   BotIcon,
   ChartNoAxesCombinedIcon,
-  // SparkleIcon,
   NewspaperIcon,
 } from "lucide-react";
 
@@ -12,7 +13,9 @@ import ExpandableText from "@/components/analysis/ExpandableText";
 import DashboardSummaryCard from "@/components/analysis/DashboardSummaryCard";
 import DriversCard from "@/components/analysis/DriversCard";
 import TopEntities from "@/components/analysis/TopEntities";
+import TopEntitiesSimple from "@/components/analysis/TopEntitiesSimple";
 import DashboardHeading from "@/components/analysis/DashboardHeading";
+import { buildSentioApiUrl, getSentioApiHeaders } from "@/config/api";
 
 import {
   Card,
@@ -33,8 +36,17 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { formatWindow } from "@/features/dashboard/dashboardSearch";
 import { useDashboardSearch } from "@/features/dashboard/useDashboardSearch";
 
-const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
+import { getFirebaseAuth } from "@/auth/firebase";
 
+const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
+type Entity = {
+  name?: string;
+  type?: string;
+  count?: number;
+};
+
+const auth = getFirebaseAuth();
+await auth.authStateReady();
 
 export default function Dashboard() {
   const {
@@ -55,16 +67,67 @@ export default function Dashboard() {
     windowHours,
   } = useDashboardSearch();
   const countSources = new Set(data?.headlines.map((h) => h.source_name)).size;
+  const [entityItems, setEntityItems] = useState<Entity[]>([]);
+  const [selectedEntity, setSelectedEntity] = useState<{
+    name: string;
+    type: string;
+  } | null>(null);  
 
-  return (
+
+  
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchTopEntities() {
+      try {
+        const params = new URLSearchParams({
+          time_window: String(windowHours),
+        });
+
+        const response = await fetch(
+          buildSentioApiUrl(`/top_entities?${params.toString()}`),
+          {
+            headers: getSentioApiHeaders(),
+            signal: controller.signal,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`Fetching top entities failed: ${response.status}`);
+        }
+
+        const entities: Entity[] = await response.json();
+
+        if (!controller.signal.aborted) {
+          setEntityItems(entities);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error("Could not load top entities:", error);
+        }
+      }
+    }
+
+    void fetchTopEntities();
+
+    return () => controller.abort();
+  }, [windowHours]);
+
+    return (
     <div className="min-h-screen bg-[#f4f7fb] text-slate-950">
       <DashboardHeader
         promptInput={promptInput}
         isBusy={isBusy}
         error={displayError}
         onLogoClick={onLogoClick}
-        onPromptInputChange={onPromptInputChange}
-        onSearch={onSearch}
+        onPromptInputChange={(value) => {
+          setSelectedEntity(null);
+          onPromptInputChange(value);
+        }}
+        onSearch={() => {
+          setSelectedEntity(null);
+          void onSearch();
+        }}
       />
 
       <main className="min-w-0 mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
@@ -78,6 +141,13 @@ export default function Dashboard() {
                 <DashboardHeading
                   query={activeQuery}
                   windowHours={windowHours}
+                  watchlist_candidates={data.watchlist_candidates}
+                  selectedEntity={
+                    selectedEntity?.name.toLocaleLowerCase() ===
+                    activeQuery.toLocaleLowerCase()
+                      ? selectedEntity
+                      : null
+                  }  
                 />
               ) : (
                 <>
@@ -228,10 +298,14 @@ export default function Dashboard() {
 
               <section className="min-w-0 space-y-5">
                 <TopEntities
-                  data={data.top_entities}
+                  data={entityItems}
                   windowHours={windowHours}
                   variant="inline"
                   onSelect={(entity) => {
+                    setSelectedEntity({
+                      name: entity.name,
+                      type: entity.type,
+                    });
                     void onEntitySelect(entity.name);
                   }}
                 />
@@ -258,14 +332,32 @@ export default function Dashboard() {
                 </Card>
               </section>
             </div>
-          ) : showEmptyState ? (
-            <div className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white/60 p-8 text-center text-slate-500 sm:p-12">
-              No news found for the given query and time window. Please try
-              expanding the time window or using different keywords.
-            </div>
-          ) : showIdleState ? (
-            <div className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white/60 p-8 text-center text-slate-500 sm:p-12">
-              Enter a topic to start analyzing live news sentiment.
+          ) : showEmptyState || showIdleState ? (
+            <div className="space-y-8 sm:space-y-10">
+              <div className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white/60 px-3 py-5 text-center sm:px-5 sm:py-6">
+                <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+                  {showEmptyState ? "No news found for this search" : "Explore the latest news"}
+                </h2>
+                <p className="mx-auto mt-2 max-w-2lg text-sm leading-6 text-slate-600 sm:text-base">
+                  {showEmptyState
+                    ? "Try a different time window or different search term. You can also explore one of the topics below."
+                    : "Search for a topic to see its sentiment, trends, and headlines, or start with one of the top topics below."}
+                </p>
+                {entityItems.length > 0 && (
+                 <div className="space-y-3 mt-5 text-center" aria-label="Popular topics">
+                   <TopEntitiesSimple
+                     data={entityItems}
+                     windowHours={windowHours}
+                     variant="inline"
+                     onSelect={(entity) => {
+                       setSelectedEntity({ name: entity.name, type: entity.type });
+                       void onEntitySelect(entity.name);
+                     }}
+                   />
+                 </div>
+               )}
+              </div>
+
             </div>
           ) : null}
           </div>
