@@ -1,9 +1,5 @@
 import type { MouseEvent } from "react";
-import {
-  Grid2X2Icon,
-  BellIcon,
-  StarIcon,
-} from "lucide-react";
+import { Grid2X2Icon, BellIcon, StarIcon } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 
 import UserMenu from "@/components/auth/UserMenu";
@@ -29,7 +25,7 @@ export default function DashboardHeader({
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 xl:px-10">
-        <div className="flex h-16 items-center gap-2 sm:gap-4">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 py-2 sm:gap-x-4 lg:h-16 lg:flex-nowrap lg:py-0">
           <Link
             to="/"
             onClick={onLogoClick}
@@ -47,7 +43,6 @@ export default function DashboardHeader({
             {[
               { to: "/dashboard", label: "Dashboard", Icon: Grid2X2Icon },
               { to: "/watchlist", label: "Watchlist", Icon: StarIcon },
-              // { to: "/help", label: "How it works", Icon: CircleQuestionMarkIcon },
             ].map(({ to, label, Icon }) => (
               <NavLink
                 key={to}
@@ -81,22 +76,8 @@ export default function DashboardHeader({
             />
           </div>
 
-          {/* Mobile search takes the remaining space */}
-          <div className="min-w-0 flex-1 lg:hidden">
-            <SearchBar
-              value={promptInput}
-              onChange={onPromptInputChange}
-              onSearch={onSearch}
-              loading={isBusy}
-              error={error}
-              placeholder="Search..."
-              size="md"
-              inputClassName="min-w-0 w-full px-2 py-1.5 text-sm"
-              buttonClassName="shrink-0 px-2"
-            />
-          </div>
-
-          <div className="flex shrink-0 items-center gap-3">
+          {/* Account controls stay on the first row on mobile */}
+          <div className="ml-auto flex shrink-0 items-center gap-3 lg:ml-0">
             <BellIcon
               aria-label="Notifications"
               className="hidden h-5 w-5 text-slate-500 lg:block"
@@ -108,6 +89,21 @@ export default function DashboardHeader({
             />
 
             <UserMenu />
+          </div>
+
+          {/* Full-width mobile search on the second row */}
+          <div className="w-full min-w-0 lg:hidden">
+            <SearchBar
+              value={promptInput}
+              onChange={onPromptInputChange}
+              onSearch={onSearch}
+              loading={isBusy}
+              error={error}
+              placeholder="Search..."
+              size="md"
+              inputClassName="min-w-0 w-full px-2 py-1.5 text-sm"
+              buttonClassName="shrink-0 px-2"
+            />
           </div>
         </div>
       </div>
