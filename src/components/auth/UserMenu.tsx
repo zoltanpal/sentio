@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DropdownMenu } from "radix-ui";
 import {
@@ -8,54 +8,38 @@ import {
   StarIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { signOut } from "firebase/auth";
+
 import { getFirebaseAuth } from "@/auth/firebase";
+import { useUserSession } from "@/auth/UserSessionContext";
 
 export default function UserMenu() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, authLoading, authError } = useUserSession();
+
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [logoutError, setLogoutError] = useState("");
   const [open, setOpen] = useState(false);
   const [failedPhoto, setFailedPhoto] = useState<string | null>(null);
 
-  useEffect(() => {
-    try {
-      return onAuthStateChanged(
-        getFirebaseAuth(),
-        (currentUser) => {
-          setUser(currentUser);
-          setLoading(false);
-          setError("");
-        },
-        () => {
-          setLoading(false);
-          setError("Account status unavailable. Please refresh the page.");
-        },
-      );
-    } catch {
-      setLoading(false);
-      setError("Account status unavailable. Please refresh the page.");
-    }
-  }, []);
+  const error = logoutError || authError;
 
   async function logout() {
     if (busy) return;
 
     setBusy(true);
-    setError("");
+    setLogoutError("");
 
     try {
       await signOut(getFirebaseAuth());
       setOpen(false);
     } catch {
-      setError("Could not log out. Please try again.");
+      setLogoutError("Could not log out. Please try again.");
     } finally {
       setBusy(false);
     }
   }
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div
         role="status"
@@ -74,12 +58,14 @@ export default function UserMenu() {
         >
           Log in
         </Link>
+
         <Link
           to="/register"
           className="whitespace-nowrap rounded-sm bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 sm:px-4"
         >
           Sign up
         </Link>
+
         {error && (
           <span role="alert" className="max-w-40 text-xs text-red-700">
             {error}
@@ -91,17 +77,20 @@ export default function UserMenu() {
 
   const name =
     user.displayName?.trim() || user.email?.split("@")[0] || "Your account";
+
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
     .map((part) => Array.from(part)[0])
     .join("")
     .toUpperCase();
+
   const photo =
     user.photoURL && user.photoURL !== failedPhoto ? user.photoURL : null;
 
   const itemClass =
-    "flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-700 outline-none data-[highlighted]:bg-slate-100";
+    "flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 " +
+    "text-sm text-slate-700 outline-none data-[highlighted]:bg-slate-100";
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
@@ -124,6 +113,7 @@ export default function UserMenu() {
               initials || <UserRoundIcon className="h-4 w-4" />
             )}
           </span>
+
           <ChevronDownIcon
             aria-hidden="true"
             className="h-4 w-4 text-slate-500"

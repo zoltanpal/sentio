@@ -6,6 +6,7 @@ import { DEFAULT_WINDOW } from "@/lib/searchParams";
 const API_HOST = buildSentioApiUrl("/dashboard");
 const CACHE_PREFIX = "sentio_live_analysis";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// const CACHE_TTL_MS = 2; // 5 minutes
 
 type RunParams = {
   query: string;

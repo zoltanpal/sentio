@@ -40,9 +40,10 @@ import { getFirebaseAuth } from "@/auth/firebase";
 
 const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
 type Entity = {
-  name?: string;
-  type?: string;
-  count?: number;
+  id: number;
+  name: string;
+  type: string;
+  article_count: number;
 };
 
 const auth = getFirebaseAuth();
@@ -69,9 +70,10 @@ export default function Dashboard() {
   const countSources = new Set(data?.headlines.map((h) => h.source_name)).size;
   const [entityItems, setEntityItems] = useState<Entity[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<{
+    id: number;
     name: string;
     type: string;
-  } | null>(null);  
+  } | null>(null);
 
 
   
@@ -120,10 +122,7 @@ export default function Dashboard() {
         isBusy={isBusy}
         error={displayError}
         onLogoClick={onLogoClick}
-        onPromptInputChange={(value) => {
-          setSelectedEntity(null);
-          onPromptInputChange(value);
-        }}
+        onPromptInputChange={onPromptInputChange}
         onSearch={() => {
           setSelectedEntity(null);
           void onSearch();
@@ -143,11 +142,11 @@ export default function Dashboard() {
                   windowHours={windowHours}
                   watchlist_candidates={data.watchlist_candidates ?? []}
                   selectedEntity={
-                    selectedEntity?.name.toLocaleLowerCase() ===
-                    activeQuery.toLocaleLowerCase()
+                    selectedEntity?.name.trim().toLowerCase() ===
+                    activeQuery.trim().toLowerCase()
                       ? selectedEntity
                       : null
-                  }  
+                  }
                 />
               ) : (
                 <>
@@ -303,6 +302,7 @@ export default function Dashboard() {
                   variant="inline"
                   onSelect={(entity) => {
                     setSelectedEntity({
+                      id: entity.id,
                       name: entity.name,
                       type: entity.type,
                     });
@@ -349,10 +349,14 @@ export default function Dashboard() {
                      data={entityItems}
                      windowHours={windowHours}
                      variant="inline"
-                     onSelect={(entity) => {
-                       setSelectedEntity({ name: entity.name, type: entity.type });
-                       void onEntitySelect(entity.name);
-                     }}
+                    onSelect={(entity) => {
+                      setSelectedEntity({
+                        id: entity.id,
+                        name: entity.name,
+                        type: entity.type,
+                      });
+                      void onEntitySelect(entity.name);
+                    }}
                    />
                  </div>
                )}

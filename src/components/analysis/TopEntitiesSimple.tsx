@@ -5,15 +5,14 @@ import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
 
 type Entity = {
-  name?: string;
-  entity_text?: string;
-  type?: string;
-  entity_type?: string;
-  count?: number;
-  article_count?: number;
+  id: number;
+  name: string;
+  type: string;
+  article_count: number;
 };
 
 type NormalizedEntity = {
+  id: number;
   name: string;
   type: string;
   count: number;
@@ -52,10 +51,10 @@ export default function TopEntitiesSimple({
 }: Props) {
   const entities = (data ?? []).map(
     (item): NormalizedEntity => ({
-      // Support both the current API shape and older cached responses.
-      name: item.name ?? item.entity_text ?? "Unnamed entity",
-      type: item.type ?? item.entity_type ?? "",
-      count: item.count ?? item.article_count ?? 0,
+      id: item.id?? item.id ?? null,
+      name: item.name ?? item.name ?? "Unnamed entity",
+      type: item.type ?? item.type ?? "",
+      count: item.article_count ?? item.article_count ?? 0,
     })
   );
 

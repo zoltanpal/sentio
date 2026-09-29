@@ -8,51 +8,16 @@ import {
   StarIcon,
   Trash2Icon,
 } from "lucide-react";
-import { onAuthStateChanged } from "firebase/auth";
 
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { getFirebaseAuth } from "@/auth/firebase";
-import { clearUserCache, getUserData } from "@/auth/userSession";
+import {
+  readEntities,
+  useUserSession,
+  type WatchlistEntity as Entity,
+} from "@/auth/UserSessionContext";
 import { buildSentioApiUrl } from "@/config/api";
 import { useDashboardSearch } from "@/features/dashboard/useDashboardSearch";
-import { updateWatchlist } from "@/features/watchlist/updateWatchlist";
-
-type Entity = {
-  entity_id: number;
-  entity_name: string;
-  entity_type?: string;
-};
-
-function readEntities(value: unknown): Entity[] {
-  if (!Array.isArray(value)) {
-    throw new Error("Expected an entity array.");
-  }
-
-  return value.map((item: unknown) => {
-    if (!item || typeof item !== "object") {
-      throw new Error("Invalid entity response.");
-    }
-
-    const row = item as Record<string, unknown>;
-    const id = row.entity_id ?? row.id;
-    const name = row.entity_name ?? row.entity_text;
-
-    if (typeof id !== "number" || typeof name !== "string") {
-      throw new Error("Invalid entity ID or name.");
-    }
-
-    return {
-      entity_id: id,
-      entity_name: name,
-      entity_type:
-        typeof row.entity_type === "string" ? row.entity_type : undefined,
-    };
-  });
-}
-
-function readWatchlist(data: Record<string, unknown>): Entity[] {
-  return readEntities(data.watchlist);
-}
 
 export default function Watchlist() {
   const {
@@ -64,83 +29,51 @@ export default function Watchlist() {
     promptInput,
   } = useDashboardSearch();
 
-  const [items, setItems] = useState<Entity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [firebaseUid, setFirebaseUid] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const {
+    user,
+    authLoading,
+    authError,
+    items,
+    followedIds,
+    watchlistLoading,
+    watchlistReady,
+    watchlistError,
+    mutation,
+    refreshWatchlist,
+    updateFollow: saveFollow,
+  } = useUserSession();
 
+  const [notice, setNotice] = useState("");
   const [entityQuery, setEntityQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Entity[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [searchComplete, setSearchComplete] = useState(false);
 
-  const [mutation, setMutation] = useState<{
-    entityId: number;
-    method: "PUT" | "DELETE";
-  } | null>(null);
+  // Ignore local notices after unmounting or changing accounts.
+  const noticeVersion = useRef(0);
 
-  const operationLock = useRef(false);
-  const requestVersion = useRef(0);
-
-  const loggedIn = firebaseUid !== null;
-  const followedIds = new Set(items.map((item) => item.entity_id));
+  const firebaseUid = user?.uid ?? null;
+  const loggedIn = user !== null;
+  const loading = authLoading || watchlistLoading;
+  const error = authError || watchlistError;
   const normalizedQuery = entityQuery.trim();
+  const mutationsDisabled =
+    loading || !watchlistReady || mutation !== null;
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      getFirebaseAuth(),
-      (user) => {
-        const version = ++requestVersion.current;
+    noticeVersion.current += 1;
 
-        setFirebaseUid(user?.uid ?? null);
-        setItems([]);
-        setError("");
-        setNotice("");
-        setEntityQuery("");
-        setSearchResults([]);
-
-        if (!user) {
-          clearUserCache();
-          setLoading(false);
-          return;
-        }
-
-        setLoading(true);
-
-        void getUserData()
-          .then((data) => {
-            if (version === requestVersion.current) {
-              setItems(readWatchlist(data));
-              console.log(data)
-            }
-          })
-          .catch(() => {
-            if (version === requestVersion.current) {
-              setError("Could not load your watchlist. Please try again.");
-            }
-          })
-          .finally(() => {
-            if (version === requestVersion.current) {
-              setLoading(false);
-            }
-          });
-      },
-      () => {
-        requestVersion.current += 1;
-        setFirebaseUid(null);
-        setItems([]);
-        setLoading(false);
-        setError("Could not verify your session. Please refresh the page.");
-      },
-    );
+    setNotice("");
+    setEntityQuery("");
+    setSearchResults([]);
+    setSearchError("");
+    setSearchComplete(false);
 
     return () => {
-      unsubscribe();
-      requestVersion.current += 1;
+      noticeVersion.current += 1;
     };
-  }, []);
+  }, [firebaseUid]);
 
   // Search after typing stops for 300 ms.
   useEffect(() => {
@@ -161,11 +94,11 @@ export default function Watchlist() {
     const timer = window.setTimeout(() => {
       async function searchEntities() {
         try {
-          const user = getFirebaseAuth().currentUser;
+          const currentUser = getFirebaseAuth().currentUser;
 
-          if (!user || user.uid !== firebaseUid) return;
+          if (!currentUser || currentUser.uid !== firebaseUid) return;
 
-          const token = await user.getIdToken();
+          const token = await currentUser.getIdToken();
           if (cancelled) return;
 
           const params = new URLSearchParams({ q: normalizedQuery });
@@ -186,7 +119,10 @@ export default function Watchlist() {
 
           const results = readEntities(await response.json());
 
-          if (!cancelled) {
+          if (
+            !cancelled &&
+            getFirebaseAuth().currentUser?.uid === firebaseUid
+          ) {
             setSearchResults(results);
             setSearchComplete(true);
           }
@@ -211,101 +147,24 @@ export default function Watchlist() {
     };
   }, [firebaseUid, normalizedQuery]);
 
-  async function reloadWatchlist() {
-    if (operationLock.current) return;
-
-    operationLock.current = true;
-    const version = requestVersion.current;
-
-    setLoading(true);
-    setError("");
-    setNotice("");
-
-    try {
-      const data = await getUserData(true);
-
-      if (version === requestVersion.current) {
-        setItems(readWatchlist(data));
-      }
-    } catch {
-      if (version === requestVersion.current) {
-        setError("Could not refresh your watchlist. Please try again.");
-      }
-    } finally {
-      operationLock.current = false;
-
-      if (version === requestVersion.current) {
-        setLoading(false);
-      }
-    }
-  }
-
   async function updateFollow(entity: Entity, method: "PUT" | "DELETE") {
-    if (operationLock.current || loading) return;
-
-    const user = getFirebaseAuth().currentUser;
-    if (!user || user.uid !== firebaseUid) return;
-
-    if (method === "PUT" && followedIds.has(entity.entity_id)) return;
-
-    operationLock.current = true;
-    const version = requestVersion.current;
-
-    setMutation({ entityId: entity.entity_id, method });
-    setError("");
+    const version = noticeVersion.current;
     setNotice("");
 
-    try {
-      if (version !== requestVersion.current) return;
+    const saved = await saveFollow(entity, method);
 
-      await updateWatchlist(entity.entity_id, method);
-
-      if (version !== requestVersion.current) return;
-
-      // Update only after the API confirms success.
-      setItems((current) =>
-        method === "PUT"
-          ? current.some((item) => item.entity_id === entity.entity_id)
-            ? current
-            : [...current, entity]
-          : current.filter((item) => item.entity_id !== entity.entity_id),
-      );
-
+    if (saved && version === noticeVersion.current) {
       setNotice(
         method === "PUT"
           ? `Following ${entity.entity_name}.`
           : `${entity.entity_name} removed from your watchlist.`,
       );
-
-      // Invalidate first so a failed refresh cannot leave stale cached data.
-      clearUserCache();
-
-      try {
-        const data = await getUserData(true);
-
-        if (version === requestVersion.current) {
-          setItems(readWatchlist(data));
-        }
-      } catch {
-        if (version === requestVersion.current) {
-          clearUserCache();
-          setError(
-            "Your change was saved, but refreshing user data failed. Please refresh the list.",
-          );
-        }
-      }
-    } catch {
-      if (version === requestVersion.current) {
-        setError(
-          method === "PUT"
-            ? "Could not follow this entity. Please try again."
-            : "Could not remove this entity. Please try again.",
-        );
-      }
-    } finally {
-      operationLock.current = false;
-      setMutation(null);
     }
+  }
+
+  function reloadWatchlist() {
+    setNotice("");
+    void refreshWatchlist();
   }
 
   return (
@@ -330,7 +189,7 @@ export default function Watchlist() {
             </p>
           </div>
 
-          {loggedIn && !loading && (
+          {loggedIn && watchlistReady && !loading && (
             <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
               {items.length} {items.length === 1 ? "entity" : "entities"}
             </span>
@@ -415,14 +274,14 @@ export default function Watchlist() {
 
                           <button
                             type="button"
-                            onClick={() => updateFollow(entity, "PUT")}
-                            disabled={following || mutation !== null || loading}
+                            onClick={() => void updateFollow(entity, "PUT")}
+                            disabled={following || mutationsDisabled}
                             aria-label={
                               following
                                 ? `Following ${entity.entity_name}`
                                 : `Follow ${entity.entity_name}`
                             }
-                            className={`flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition ${
+                            className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition ${
                               following
                                 ? "text-teal-700"
                                 : "bg-teal-50 text-teal-700 hover:bg-teal-100 disabled:opacity-50"
@@ -435,6 +294,7 @@ export default function Watchlist() {
                             ) : (
                               <PlusIcon className="h-4 w-4" />
                             )}
+
                             {adding
                               ? "Adding…"
                               : following
@@ -463,7 +323,7 @@ export default function Watchlist() {
             className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700"
           >
             <span>{error}</span>
-            {loggedIn && (
+            {loggedIn && !authError && (
               <button
                 type="button"
                 onClick={reloadWatchlist}
@@ -507,22 +367,21 @@ export default function Watchlist() {
               </Link>
             </div>
           </div>
-        ) : items.length === 0 ? (
-          !error && (
-            <div className="rounded-2xl border border-dashed border-slate-300 px-6 py-14 text-center">
-              <StarIcon className="mx-auto h-8 w-8 text-slate-300" />
-              <h2 className="mt-4 text-lg font-semibold text-slate-900">
-                No entities followed yet
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Use the search above to add your first entity.
-              </p>
-            </div>
-          )
+        ) : !watchlistReady ? null : items.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 px-6 py-14 text-center">
+            <StarIcon className="mx-auto h-8 w-8 text-slate-300" />
+            <h2 className="mt-4 text-lg font-semibold text-slate-900">
+              No entities followed yet
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Use the search above to add your first entity.
+            </p>
+          </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <table className="w-full table-fixed text-left text-sm">
               <caption className="sr-only">Your followed entities</caption>
+
               <thead className="border-b border-slate-200 bg-slate-50">
                 <tr>
                   <th className="px-4 py-3 font-medium text-slate-500 sm:px-5">
@@ -542,6 +401,7 @@ export default function Watchlist() {
                   const removing =
                     mutation?.method === "DELETE" &&
                     mutation.entityId === item.entity_id;
+
                   const entityType =
                     item.entity_type?.replace(/_/g, " ") || "Entity";
 
@@ -572,11 +432,11 @@ export default function Watchlist() {
                       <td className="px-2 py-2">
                         <button
                           type="button"
-                          onClick={() => updateFollow(item, "DELETE")}
-                          disabled={mutation !== null}
+                          onClick={() => void updateFollow(item, "DELETE")}
+                          disabled={mutationsDisabled}
                           aria-label={`Remove ${item.entity_name} from watchlist`}
                           title="Remove from watchlist"
-                          className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-wait disabled:opacity-50"
+                          className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-wait disabled:opacity-50"
                         >
                           {removing ? (
                             <LoaderCircleIcon
