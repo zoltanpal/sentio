@@ -49,7 +49,7 @@ export default function DashboardHeading({
     watchlistLoading,
     watchlistReady,
     watchlistError,
-    mutation,
+    watchlist_action,
     refreshWatchlist,
     updateFollow,
   } = useUserSession();
@@ -58,23 +58,16 @@ export default function DashboardHeading({
 
   const loggedIn = user !== null;
 
-  const loading =
-    authLoading ||
-    (loggedIn && (watchlistLoading || !watchlistReady));
+   const loading = authLoading || (loggedIn && (watchlistLoading || !watchlistReady));
 
-  const busy = mutation !== null;
+  const busy = watchlist_action !== null;
   const error = authError || watchlistError;
 
-  const candidates = selectedEntity
-    ? [selectedEntity]
-    : watchlist_candidates ?? [];
+  const candidates = selectedEntity ? [selectedEntity] : watchlist_candidates ?? [];
 
-  const singleCandidate =
-    candidates.length === 1 ? candidates[0] : null;
+  const singleCandidate = candidates.length === 1 ? candidates[0] : null;
 
-  const followingSingle =
-    singleCandidate !== null &&
-    followedIds.has(singleCandidate.id);
+  const followingSingle = singleCandidate !== null && followedIds.has(singleCandidate.id);
 
   const followingAny = candidates.some((candidate) =>
     followedIds.has(candidate.id),
@@ -143,6 +136,8 @@ export default function DashboardHeading({
       setPickerOpen(false);
     }
   }
+
+  console.log("showStar",showStar);
 
   return (
     <TooltipProvider delayDuration={250}>
@@ -259,7 +254,7 @@ export default function DashboardHeading({
                       {candidates.map((candidate) => {
                         const following = followedIds.has(candidate.id);
                         const updating =
-                          mutation?.entityId === candidate.id;
+                          watchlist_action?.entityId === candidate.id;
 
                         return (
                           <button

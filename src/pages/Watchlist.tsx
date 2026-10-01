@@ -33,12 +33,12 @@ export default function Watchlist() {
     user,
     authLoading,
     authError,
-    items,
+    watchlistItems,
     followedIds,
     watchlistLoading,
     watchlistReady,
     watchlistError,
-    mutation,
+    watchlistAction,
     refreshWatchlist,
     updateFollow: saveFollow,
   } = useUserSession();
@@ -58,8 +58,8 @@ export default function Watchlist() {
   const loading = authLoading || watchlistLoading;
   const error = authError || watchlistError;
   const normalizedQuery = entityQuery.trim();
-  const mutationsDisabled =
-    loading || !watchlistReady || mutation !== null;
+  const watchlist_actionsDisabled =
+    loading || !watchlistReady || watchlistAction !== null;
 
   useEffect(() => {
     noticeVersion.current += 1;
@@ -191,7 +191,7 @@ export default function Watchlist() {
 
           {loggedIn && watchlistReady && !loading && (
             <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-              {items.length} {items.length === 1 ? "entity" : "entities"}
+              {watchlistItems.length} {watchlistItems.length === 1 ? "entity" : "entities"}
             </span>
           )}
         </div>
@@ -254,8 +254,8 @@ export default function Watchlist() {
                     {searchResults.map((entity) => {
                       const following = followedIds.has(entity.entity_id);
                       const adding =
-                        mutation?.method === "PUT" &&
-                        mutation.entityId === entity.entity_id;
+                        watchlistAction?.method === "PUT" &&
+                        watchlistAction.entityId === entity.entity_id;
 
                       return (
                         <li
@@ -275,7 +275,7 @@ export default function Watchlist() {
                           <button
                             type="button"
                             onClick={() => void updateFollow(entity, "PUT")}
-                            disabled={following || mutationsDisabled}
+                            disabled={following || watchlist_actionsDisabled}
                             aria-label={
                               following
                                 ? `Following ${entity.entity_name}`
@@ -327,7 +327,7 @@ export default function Watchlist() {
               <button
                 type="button"
                 onClick={reloadWatchlist}
-                disabled={loading || mutation !== null}
+                disabled={loading || watchlistAction !== null}
                 className="font-semibold underline disabled:opacity-50"
               >
                 Refresh list
@@ -367,7 +367,7 @@ export default function Watchlist() {
               </Link>
             </div>
           </div>
-        ) : !watchlistReady ? null : items.length === 0 ? (
+        ) : !watchlistReady ? null : watchlistItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 px-6 py-14 text-center">
             <StarIcon className="mx-auto h-8 w-8 text-slate-300" />
             <h2 className="mt-4 text-lg font-semibold text-slate-900">
@@ -397,10 +397,10 @@ export default function Watchlist() {
               </thead>
 
               <tbody className="divide-y divide-slate-100">
-                {items.map((item) => {
+                {watchlistItems.map((item) => {
                   const removing =
-                    mutation?.method === "DELETE" &&
-                    mutation.entityId === item.entity_id;
+                    watchlistAction?.method === "DELETE" &&
+                    watchlistAction.entityId === item.entity_id;
 
                   const entityType =
                     item.entity_type?.replace(/_/g, " ") || "Entity";
@@ -433,7 +433,7 @@ export default function Watchlist() {
                         <button
                           type="button"
                           onClick={() => void updateFollow(item, "DELETE")}
-                          disabled={mutationsDisabled}
+                          disabled={watchlist_actionsDisabled}
                           aria-label={`Remove ${item.entity_name} from watchlist`}
                           title="Remove from watchlist"
                           className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-wait disabled:opacity-50"

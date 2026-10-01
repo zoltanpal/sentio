@@ -75,8 +75,6 @@ export default function Dashboard() {
     type: string;
   } | null>(null);
 
-
-  
   useEffect(() => {
     const controller = new AbortController();
 
@@ -114,6 +112,7 @@ export default function Dashboard() {
 
     return () => controller.abort();
   }, [windowHours]);
+
 
     return (
     <div className="min-h-screen bg-[#f4f7fb] text-slate-950">

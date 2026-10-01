@@ -20,7 +20,7 @@ export type WatchlistEntity = {
   entity_type?: string;
 };
 
-type Mutation = {
+type WatchlistAction = {
   entityId: number;
   method: "PUT" | "DELETE";
 };
@@ -29,12 +29,12 @@ type SessionValue = {
   user: User | null;
   authLoading: boolean;
   authError: string;
-  items: WatchlistEntity[];
+  watchlistItems: WatchlistEntity[];
   watchlistLoading: boolean;
   watchlistReady: boolean;
   watchlistError: string;
   followedIds: Set<number>;
-  mutation: Mutation | null;
+  watchlistAction: WatchlistAction | null;
   refreshWatchlist: () => Promise<void>;
   updateFollow: (
     entity: WatchlistEntity,
@@ -80,11 +80,11 @@ export function UserSessionProvider({
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState("");
 
-  const [items, setItems] = useState<WatchlistEntity[]>([]);
+  const [watchlistItems, setWatchlistItems] = useState<WatchlistEntity[]>([]);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
   const [watchlistReady, setWatchlistReady] = useState(false);
   const [watchlistError, setWatchlistError] = useState("");
-  const [mutation, setMutation] = useState<Mutation | null>(null);
+  const [watchlistAction, setWatchlistAction] = useState<WatchlistAction | null>(null);
 
   const versionRef = useRef(0);
   const operationLock = useRef(false);
@@ -98,10 +98,10 @@ export function UserSessionProvider({
         setUser(currentUser);
         setAuthLoading(false);
         setAuthError("");
-        setItems([]);
+        setWatchlistItems([]);
         setWatchlistReady(false);
         setWatchlistError("");
-        setMutation(null);
+        setWatchlistAction(null);
         operationLock.current = false;
 
         if (!currentUser) {
@@ -116,8 +116,7 @@ export function UserSessionProvider({
           .then((data) => {
             if (version !== versionRef.current) return;
             if (!data) throw new Error("No user data returned.");
-
-            setItems(readEntities(data.watchlist));
+            setWatchlistItems(readEntities(data.watchlist));
             setWatchlistReady(true);
           })
           .catch(() => {
@@ -139,10 +138,10 @@ export function UserSessionProvider({
         setUser(null);
         setAuthLoading(false);
         setAuthError("Could not verify your session.");
-        setItems([]);
+        setWatchlistItems([]);
         setWatchlistReady(false);
         setWatchlistLoading(false);
-        setMutation(null);
+        setWatchlistAction(null);
       },
     );
 
@@ -173,7 +172,7 @@ export function UserSessionProvider({
       if (version !== versionRef.current) return;
       if (!data) throw new Error("No user data returned.");
 
-      setItems(readEntities(data.watchlist));
+      setWatchlistItems(readEntities(data.watchlist));
       setWatchlistReady(true);
     } catch {
       if (version === versionRef.current) {
@@ -204,7 +203,7 @@ export function UserSessionProvider({
 
       const version = versionRef.current;
       operationLock.current = true;
-      setMutation({ entityId: entity.entity_id, method });
+      setWatchlistAction({ entityId: entity.entity_id, method });
       setWatchlistError("");
 
       try {
@@ -217,7 +216,7 @@ export function UserSessionProvider({
           return false;
         }
 
-        setItems((current) =>
+        setWatchlistItems((current) =>
           method === "PUT"
             ? current.some((item) => item.entity_id === entity.entity_id)
               ? current
@@ -240,7 +239,7 @@ export function UserSessionProvider({
       } finally {
         if (version === versionRef.current) {
           operationLock.current = false;
-          setMutation(null);
+          setWatchlistAction(null);
         }
       }
     },
@@ -248,8 +247,8 @@ export function UserSessionProvider({
   );
 
   const followedIds = useMemo(
-    () => new Set(items.map((item) => item.entity_id)),
-    [items],
+    () => new Set(watchlistItems.map((item) => item.entity_id)),
+    [watchlistItems],
   );
 
   return (
@@ -258,12 +257,12 @@ export function UserSessionProvider({
         user,
         authLoading,
         authError,
-        items,
+        watchlistItems,
         watchlistLoading,
         watchlistReady,
         watchlistError,
         followedIds,
-        mutation,
+        watchlistAction,
         refreshWatchlist,
         updateFollow,
       }}
