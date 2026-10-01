@@ -49,7 +49,7 @@ export default function DashboardHeading({
     watchlistLoading,
     watchlistReady,
     watchlistError,
-    watchlist_action,
+    watchlistAction,
     refreshWatchlist,
     updateFollow,
   } = useUserSession();
@@ -60,7 +60,7 @@ export default function DashboardHeading({
 
    const loading = authLoading || (loggedIn && (watchlistLoading || !watchlistReady));
 
-  const busy = watchlist_action !== null;
+  const busy = watchlistAction !== null;
   const error = authError || watchlistError;
 
   const candidates = selectedEntity ? [selectedEntity] : watchlist_candidates ?? [];
@@ -253,8 +253,7 @@ export default function DashboardHeading({
                     <div className="max-h-64 overflow-y-auto">
                       {candidates.map((candidate) => {
                         const following = followedIds.has(candidate.id);
-                        const updating =
-                          watchlist_action?.entityId === candidate.id;
+                        const updating = watchlistAction?.entityId === candidate.id;
 
                         return (
                           <button
