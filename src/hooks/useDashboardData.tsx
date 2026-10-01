@@ -4,8 +4,9 @@ import type { LiveQueryResponse } from "@/features/dashboard/types";
 import { DEFAULT_WINDOW } from "@/lib/searchParams";
 
 const API_HOST = buildSentioApiUrl("/dashboard");
-const CACHE_PREFIX = "sentio_live_analysis";
+const CACHE_PREFIX = "sentio_dashb";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// const CACHE_TTL_MS = 2; // 5 minutes
 
 type RunParams = {
   query: string;
@@ -118,7 +119,12 @@ async function fetchDashboardData(
     );
   }
 
-  return response.json();
+  const data: LiveQueryResponse = await response.json();
+
+  console.log("API candidates:", data.watchlist_candidates);
+
+  return data;
+
 }
 
 export function useDashboardData() {

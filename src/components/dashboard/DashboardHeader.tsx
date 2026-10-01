@@ -1,11 +1,8 @@
 import type { MouseEvent } from "react";
-import {
-  CircleQuestionMarkIcon,
-  FileTextIcon,
-  Grid2X2Icon,
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import { Grid2X2Icon, BellIcon, StarIcon } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
 
+import UserMenu from "@/components/auth/UserMenu";
 import SearchBar from "@/components/search/SearchBar";
 
 type DashboardHeaderProps = {
@@ -27,8 +24,8 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-10">
-        <div className="flex h-16 items-center gap-3 sm:gap-5">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 xl:px-10">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 py-2 sm:gap-x-4 lg:h-16 lg:flex-nowrap lg:py-0">
           <Link
             to="/"
             onClick={onLogoClick}
@@ -38,30 +35,34 @@ export default function DashboardHeader({
             <img
               src="/logo/sentio_logo.png"
               alt="Sentio"
-              className="h-auto w-32 sm:w-42"
+              className="h-auto w-20 sm:w-32 lg:w-42"
             />
           </Link>
-          <nav className="hidden items-center gap-1 lg:flex">
-            <span className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
-              <Grid2X2Icon className="h-4 w-4" />
-              Dashboard
-            </span>
-            <Link
-              to="/sources"
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
-            >
-              <FileTextIcon className="h-4 w-4" />
-              Sources
-            </Link>
-            <Link
-              to="/help"
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
-            >
-              <CircleQuestionMarkIcon className="h-4 w-4" />
-              How it works
-            </Link>
+
+          <nav className="hidden shrink-0 items-center gap-1 lg:flex">
+            {[
+              { to: "/dashboard", label: "Dashboard", Icon: Grid2X2Icon },
+              { to: "/watchlist", label: "Watchlist", Icon: StarIcon },
+            ].map(({ to, label, Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${
+                    isActive
+                      ? "bg-blue-50 font-semibold text-blue-700"
+                      : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                  }`
+                }
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </NavLink>
+            ))}
           </nav>
-          <div className="ml-auto hidden w-full max-w-[30rem] lg:block">
+
+          {/* Desktop search */}
+          <div className="ml-auto hidden min-w-0 flex-1 lg:block lg:max-w-[22rem]">
             <SearchBar
               value={promptInput}
               onChange={onPromptInputChange}
@@ -70,12 +71,28 @@ export default function DashboardHeader({
               error={error}
               placeholder="e.g. Tesla, NVDA, oil prices"
               size="md"
-              inputClassName="py-1.5 text-sm sm:py-1.5"
-              buttonClassName="px-3 sm:px-3"
+              inputClassName="min-w-0 py-1.5 text-sm sm:py-1.5"
+              buttonClassName="px-2 sm:px-2"
             />
           </div>
 
-          <div className="ml-auto min-w-0 flex-1 lg:hidden">
+          {/* Account controls stay on the first row on mobile */}
+          <div className="ml-auto flex shrink-0 items-center gap-3 lg:ml-0">
+            <BellIcon
+              aria-label="Notifications"
+              className="hidden h-5 w-5 text-slate-500 lg:block"
+            />
+
+            <span
+              aria-hidden="true"
+              className="hidden h-6 w-px bg-slate-200 lg:block"
+            />
+
+            <UserMenu />
+          </div>
+
+          {/* Full-width mobile search on the second row */}
+          <div className="w-full min-w-0 lg:hidden">
             <SearchBar
               value={promptInput}
               onChange={onPromptInputChange}
@@ -84,8 +101,8 @@ export default function DashboardHeader({
               error={error}
               placeholder="Search..."
               size="md"
-              inputClassName="min-w-0 py-1.5 text-sm"
-              buttonClassName="px-3"
+              inputClassName="min-w-0 w-full px-2 py-1.5 text-sm"
+              buttonClassName="shrink-0 px-2"
             />
           </div>
         </div>

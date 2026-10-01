@@ -16,7 +16,7 @@ const components: {
 }, { 
   title: "How it works", href: "/help"
  }, 
-//{
+// {
 //   title: "Statistics", href: "/statistics"
 // }, 
 {

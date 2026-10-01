@@ -2,7 +2,10 @@ import {
   ALLOWED_WINDOWS,
   DEFAULT_WINDOW,
 } from "@/lib/searchParams";
-import type { SearchSession } from "@/lib/searchSession";
+import {
+  parseEntityId,
+  type SearchSession,
+} from "@/lib/searchSession";
 
 export type DashboardViewStateParams = {
   pageError: string;
@@ -69,15 +72,23 @@ export function getPreferredWindow(
 
 export function buildDashboardSearch(
   currentSearch: string,
-  session: SearchSession
+  session: SearchSession,
 ): string {
   const params = new URLSearchParams(currentSearch);
 
   params.set("q", session.resolvedQuery);
   params.set(
     "timewindow",
-    String(session.resolvedWindowHours ?? DEFAULT_WINDOW)
+    String(session.resolvedWindowHours ?? DEFAULT_WINDOW),
   );
+
+  const entityId = parseEntityId(session.entityId);
+
+  if (entityId !== null) {
+    params.set("entity_id", String(entityId));
+  } else {
+    params.delete("entity_id");
+  }
 
   return `?${params.toString()}`;
 }

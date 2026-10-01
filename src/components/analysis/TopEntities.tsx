@@ -11,15 +11,14 @@ import {
 import { cn } from "@/lib/utils";
 
 type Entity = {
-  name?: string;
-  entity_text?: string;
-  type?: string;
-  entity_type?: string;
-  count?: number;
-  article_count?: number;
+  id: number;
+  name: string;
+  type: string;
+  article_count: number;
 };
 
 type NormalizedEntity = {
+  id: number;
   name: string;
   type: string;
   count: number;
@@ -60,11 +59,11 @@ export default function TopEntities({
 }: Props) {
   const entities = (data ?? []).map(
     (item): NormalizedEntity => ({
-      // Support both the current API shape and older cached responses.
-      name: item.name ?? item.entity_text ?? "Unnamed entity",
-      type: item.type ?? item.entity_type ?? "",
-      count: item.count ?? item.article_count ?? 0,
-    })
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      count: item.article_count,
+    }),
   );
 
   if (!entities.length) {
@@ -107,7 +106,7 @@ export default function TopEntities({
         <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {entities.map((item) => (
             <Button
-              key={`${item.type}-${item.name}`}
+              key={item.id}
               type="button"
               variant="outline"
               size="sm"

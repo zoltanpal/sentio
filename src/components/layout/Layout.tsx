@@ -11,6 +11,9 @@ const routeTitleMap: Record<string, string> = {
   "/contact": "Contact",
   "/sources": "Sources",
   "/privacy": "Privacy Policy",
+  "/login": "Login",
+  "/register": "Registration",
+  "/watchlist": "Watchlist",
 };
 
 
