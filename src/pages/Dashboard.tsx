@@ -57,6 +57,7 @@ export default function Dashboard() {
     hasResults,
     isBusy,
     onEntitySelect,
+    selectedEntity,
     onLogoClick,
     onPromptInputChange,
     onSearch,
@@ -69,11 +70,6 @@ export default function Dashboard() {
   } = useDashboardSearch();
   const countSources = new Set(data?.headlines.map((h) => h.source_name)).size;
   const [entityItems, setEntityItems] = useState<Entity[]>([]);
-  const [selectedEntity, setSelectedEntity] = useState<{
-    id: number;
-    name: string;
-    type: string;
-  } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -122,10 +118,7 @@ export default function Dashboard() {
         error={displayError}
         onLogoClick={onLogoClick}
         onPromptInputChange={onPromptInputChange}
-        onSearch={() => {
-          setSelectedEntity(null);
-          void onSearch();
-        }}
+        onSearch={onSearch}
       />
 
       <main className="min-w-0 mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
@@ -140,12 +133,7 @@ export default function Dashboard() {
                   query={activeQuery}
                   windowHours={windowHours}
                   watchlist_candidates={data.watchlist_candidates ?? []}
-                  selectedEntity={
-                    selectedEntity?.name.trim().toLowerCase() ===
-                    activeQuery.trim().toLowerCase()
-                      ? selectedEntity
-                      : null
-                  }
+                  selectedEntity={selectedEntity}
                 />
               ) : (
                 <>
@@ -300,12 +288,7 @@ export default function Dashboard() {
                   windowHours={windowHours}
                   variant="inline"
                   onSelect={(entity) => {
-                    setSelectedEntity({
-                      id: entity.id,
-                      name: entity.name,
-                      type: entity.type,
-                    });
-                    void onEntitySelect(entity.name);
+                    void onEntitySelect(entity);
                   }}
                 />
 
@@ -348,14 +331,9 @@ export default function Dashboard() {
                      data={entityItems}
                      windowHours={windowHours}
                      variant="inline"
-                    onSelect={(entity) => {
-                      setSelectedEntity({
-                        id: entity.id,
-                        name: entity.name,
-                        type: entity.type,
-                      });
-                      void onEntitySelect(entity.name);
-                    }}
+                      onSelect={(entity) => {
+                        void onEntitySelect(entity);
+                      }}
                    />
                  </div>
                )}

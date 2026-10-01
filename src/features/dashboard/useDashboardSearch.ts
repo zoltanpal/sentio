@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -8,6 +14,7 @@ import {
   clearSearchSession,
   getPendingPrompt,
   getSearchSession,
+  parseEntityId,
   setSearchSession,
   type SearchSession,
 } from "@/lib/searchSession";
@@ -27,30 +34,44 @@ import {
 const USE_AI = true;
 const USE_AI_PROMPT_RESOLVER = true;
 
+type SelectedEntity = {
+  id: number;
+  name: string;
+};
+
 export function useDashboardSearch() {
   const [promptInput, setPromptInput] = useState("");
   const [activeQuery, setActiveQuery] = useState("");
   const [windowHours, setWindowHours] = useState(DEFAULT_WINDOW);
   const [pageError, setPageError] = useState("");
   const [hasAttemptedSearch, setHasAttemptedSearch] = useState(false);
-  const [resolvedSession, setResolvedSession] = useState<SearchSession | null>(
-    null
-  );
+  const [resolvedSession, setResolvedSession] =
+    useState<SearchSession | null>(null);
+
   const resultsTopRef = useRef<HTMLDivElement>(null);
   const skipSearchRestoreRef = useRef<string | null>(null);
+
+  // Prevent an older prompt resolution from overriding a newer action.
+  const promptVersionRef = useRef(0);
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const { data, error, loading, run, clearResults } = useDashboardData();
+
   const {
     run: resolvePrompt,
     loading: resolving,
     error: resolveError,
   } = usePromptResolver();
 
-  const onLogoClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    // Preserve opening the link in a new tab.
+  useEffect(() => {
+    return () => {
+      promptVersionRef.current += 1;
+    };
+  }, []);
+
+  const onLogoClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (
       event.ctrlKey ||
       event.metaKey ||
@@ -62,16 +83,21 @@ export function useDashboardSearch() {
     }
 
     event.preventDefault();
+    promptVersionRef.current += 1;
 
     const session = getSearchSession();
+
     navigate(session?.resolvedQuery.trim() ? "/dashboard" : "/");
   };
 
   const loadResolvedSearch = useCallback(
     async (session: SearchSession) => {
       const resolvedQuery = sanitizeQuery(session.resolvedQuery);
-      const resolvedWindow = sanitizeWindow(String(session.resolvedWindowHours));
+      const resolvedWindow = sanitizeWindow(
+        String(session.resolvedWindowHours),
+      );
       const rawPrompt = sanitizeQuery(session.rawPrompt);
+      const entityId = parseEntityId(session.entityId);
       const validationError = validateQuery(resolvedQuery);
 
       if (validationError) {
@@ -83,18 +109,21 @@ export function useDashboardSearch() {
         return;
       }
 
-      setPageError("");
-      setHasAttemptedSearch(true);
-      setResolvedSession(session);
-      setPromptInput(rawPrompt || resolvedQuery);
-      setActiveQuery(resolvedQuery);
-      setWindowHours(resolvedWindow);
-      setSearchSession({
+      const normalizedSession: SearchSession = {
         ...session,
         resolvedQuery,
         resolvedWindowHours: resolvedWindow,
         rawPrompt: rawPrompt || null,
-      });
+        entityId,
+      };
+
+      setPageError("");
+      setHasAttemptedSearch(true);
+      setResolvedSession(normalizedSession);
+      setPromptInput(rawPrompt || resolvedQuery);
+      setActiveQuery(resolvedQuery);
+      setWindowHours(resolvedWindow);
+      setSearchSession(normalizedSession);
 
       await run({
         query: resolvedQuery,
@@ -103,7 +132,7 @@ export function useDashboardSearch() {
         useAi: USE_AI,
       });
     },
-    [clearResults, run]
+    [clearResults, run],
   );
 
   const executeResolvedSearch = useCallback(
@@ -112,9 +141,10 @@ export function useDashboardSearch() {
         ...session,
         resolvedQuery: sanitizeQuery(session.resolvedQuery),
         resolvedWindowHours: sanitizeWindow(
-          String(session.resolvedWindowHours)
+          String(session.resolvedWindowHours),
         ),
         rawPrompt: sanitizeQuery(session.rawPrompt) || null,
+        entityId: parseEntityId(session.entityId),
       };
 
       const isDashboard = location.pathname === "/dashboard";
@@ -126,43 +156,44 @@ export function useDashboardSearch() {
 
       const nextSearch = buildDashboardSearch(
         isDashboard ? location.search : "",
-        normalizedSession
+        normalizedSession,
       );
 
-      // Store prompt metadata before navigation. The URL contains only the
-      // resolved query and time window.
       setSearchSession(normalizedSession);
 
       if (!isDashboard) {
         skipSearchRestoreRef.current = null;
+
         navigate(
           {
             pathname: "/dashboard",
             search: nextSearch,
           },
-          { replace }
+          { replace },
         );
+
         return;
       }
 
       if (nextSearch !== location.search) {
-        // Start the analysis before synchronizing the URL. The effect below
-        // also observes URL changes, so mark this exact update as already
-        // handled to avoid starting the same search a second time.
+        // Start loading immediately and avoid repeating the same request
+        // when the URL restoration effect observes this navigation.
         skipSearchRestoreRef.current = nextSearch;
         void loadResolvedSearch(normalizedSession);
+
         navigate(
           {
             pathname: location.pathname,
             search: nextSearch,
             hash: location.hash,
           },
-          { replace }
+          { replace },
         );
+
         return;
       }
 
-      // Allow submitting the same search again without URL navigation.
+      // Submitting the same query again can still reload its data.
       await loadResolvedSearch(normalizedSession);
     },
     [
@@ -171,12 +202,12 @@ export function useDashboardSearch() {
       location.hash,
       navigate,
       loadResolvedSearch,
-    ]
+    ],
   );
 
   const scrollToResults = useCallback(() => {
     const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
+      "(prefers-reduced-motion: reduce)",
     ).matches;
 
     resultsTopRef.current?.scrollIntoView({
@@ -186,35 +217,49 @@ export function useDashboardSearch() {
   }, []);
 
   const onEntitySelect = useCallback(
-    async (entityText: string) => {
-      const query = sanitizeQuery(entityText);
+    async (entity: SelectedEntity) => {
+      const query = sanitizeQuery(entity.name);
+      const entityId = parseEntityId(entity.id);
       const validationError = validateQuery(query);
 
-      if (validationError) {
-        setPageError(validationError);
+      if (validationError || entityId === null) {
+        setPageError(validationError || "Invalid entity.");
         return;
       }
+
+      promptVersionRef.current += 1;
+      clearPendingPrompt();
 
       const nextSession: SearchSession = {
         source: "keyword",
         rawPrompt: query,
         resolvedQuery: query,
         resolvedWindowHours: windowHours,
+        entityId,
       };
 
       scrollToResults();
       await executeResolvedSearch(nextSession);
     },
-    [executeResolvedSearch, scrollToResults, windowHours]
+    [executeResolvedSearch, scrollToResults, windowHours],
   );
 
   useEffect(() => {
     if (location.pathname !== "/dashboard") {
       skipSearchRestoreRef.current = null;
+      promptVersionRef.current += 1;
       return;
     }
 
+    if (skipSearchRestoreRef.current === location.search) {
+      skipSearchRestoreRef.current = null;
+      return;
+    }
+
+    skipSearchRestoreRef.current = null;
+
     let cancelled = false;
+    const version = ++promptVersionRef.current;
 
     const params = new URLSearchParams(location.search);
     const session = getSearchSession();
@@ -222,31 +267,34 @@ export function useDashboardSearch() {
 
     const preferredWindow = getPreferredWindow(
       params.get("timewindow"),
-      session?.resolvedWindowHours
+      session?.resolvedWindowHours,
     );
 
-    if (skipSearchRestoreRef.current === location.search) {
-      skipSearchRestoreRef.current = null;
-      return;
-    }
-
     const restoreSearch = async () => {
-      // An explicit URL query always takes priority.
+      // The URL takes priority over previously stored selections.
       if (params.has("q")) {
         clearPendingPrompt();
 
         const query = sanitizeQuery(params.get("q"));
-        const matchesSession = query === session?.resolvedQuery;
+        const entityId = parseEntityId(params.get("entity_id"));
+
+        const matchesSession =
+          query === session?.resolvedQuery &&
+          entityId === parseEntityId(session?.entityId);
 
         await executeResolvedSearch(
           {
-            source: matchesSession ? session.source : "keyword",
-            rawPrompt: matchesSession ? session.rawPrompt : null,
+            source:
+              matchesSession && session ? session.source : "keyword",
+            rawPrompt:
+              matchesSession && session ? session.rawPrompt : null,
             resolvedQuery: query,
             resolvedWindowHours: preferredWindow,
+            entityId,
           },
-          true
+          true,
         );
+
         return;
       }
 
@@ -270,7 +318,11 @@ export function useDashboardSearch() {
           useAi: USE_AI_PROMPT_RESOLVER,
         });
 
-        if (cancelled || !resolved) {
+        if (
+          cancelled ||
+          version !== promptVersionRef.current ||
+          !resolved
+        ) {
           return;
         }
 
@@ -281,10 +333,14 @@ export function useDashboardSearch() {
             source: "prompt",
             rawPrompt: pendingPrompt,
             resolvedQuery: resolved.query,
-            resolvedWindowHours: resolved.window_hours,
+            resolvedWindowHours: resolved.window_parsed
+              ? resolved.window_hours
+              : preferredWindow,
+            entityId: null,
           },
-          true
+          true,
         );
+
         return;
       }
 
@@ -293,13 +349,14 @@ export function useDashboardSearch() {
           {
             ...session,
             resolvedWindowHours: preferredWindow,
+            entityId: parseEntityId(session.entityId),
           },
-          true
+          true,
         );
+
         return;
       }
 
-      // No URL query or saved search: keep the dashboard idle.
       setPromptInput("");
       setActiveQuery("");
       setWindowHours(preferredWindow);
@@ -316,10 +373,11 @@ export function useDashboardSearch() {
     };
   }, [
     location.pathname,
-    location.search, 
-    executeResolvedSearch, 
-    resolvePrompt, 
-    clearResults]);
+    location.search,
+    executeResolvedSearch,
+    resolvePrompt,
+    clearResults,
+  ]);
 
   const onSearch = async () => {
     const trimmedPrompt = promptInput.trim();
@@ -330,6 +388,8 @@ export function useDashboardSearch() {
       return;
     }
 
+    const version = ++promptVersionRef.current;
+
     setPageError("");
     setHasAttemptedSearch(true);
 
@@ -338,9 +398,11 @@ export function useDashboardSearch() {
       useAi: USE_AI_PROMPT_RESOLVER,
     });
 
-    if (!resolved) {
+    if (version !== promptVersionRef.current || !resolved) {
       return;
     }
+
+    clearPendingPrompt();
 
     const nextSession: SearchSession = {
       source: "prompt",
@@ -349,6 +411,8 @@ export function useDashboardSearch() {
       resolvedWindowHours: resolved.window_parsed
         ? resolved.window_hours
         : windowHours,
+      // A new prompt must not inherit the previously selected entity.
+      entityId: null,
     };
 
     await executeResolvedSearch(nextSession);
@@ -361,25 +425,31 @@ export function useDashboardSearch() {
       return;
     }
 
+    promptVersionRef.current += 1;
     setWindowHours(normalizedWindow);
-    setHasAttemptedSearch(true);
 
     if (!activeQuery) {
       return;
     }
 
+    setHasAttemptedSearch(true);
+
     const nextSession: SearchSession = {
-      source: resolvedSession?.source ?? "prompt",
-      rawPrompt: resolvedSession?.rawPrompt ?? (promptInput.trim() || null),
+      source: resolvedSession?.source ?? "keyword",
+      rawPrompt: resolvedSession?.rawPrompt ?? null,
       resolvedQuery: activeQuery,
       resolvedWindowHours: normalizedWindow,
+      // Changing the window preserves the active entity.
+      entityId: parseEntityId(resolvedSession?.entityId),
     };
 
     void executeResolvedSearch(nextSession);
   };
 
   const onPromptInputChange = (value: string) => {
+    // Editing the draft does not change the displayed query or entity.
     setPromptInput(value);
+
     if (pageError) {
       setPageError("");
     }
@@ -395,8 +465,19 @@ export function useDashboardSearch() {
     hasAttemptedSearch,
   });
 
+  const entityId = parseEntityId(resolvedSession?.entityId);
+
+  const selectedEntity: SelectedEntity | null =
+    entityId !== null
+      ? {
+          id: entityId,
+          name: activeQuery,
+        }
+      : null;
+
   return {
     activeQuery,
+    selectedEntity,
     data,
     onEntitySelect,
     onLogoClick,

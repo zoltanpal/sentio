@@ -268,7 +268,7 @@ export default function DashboardHeading({
                             }
                             aria-pressed={following}
                             aria-busy={updating}
-                            className="flex min-h-12 w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-wait"
+                            className="flex min-h-12 w-full items-center gap-3 rounded-lg px-1 py-1 text-left transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-wait"
                           >
                             <StarIcon
                               aria-hidden="true"

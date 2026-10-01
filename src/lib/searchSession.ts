@@ -8,7 +8,21 @@ export type SearchSession = {
   rawPrompt: string | null;
   resolvedQuery: string;
   resolvedWindowHours: number | null;
+  entityId?: number | null;
 };
+
+export function parseEntityId(value: unknown): number | null {
+  if (
+    typeof value !== "number" &&
+    (typeof value !== "string" || !/^[1-9]\d*$/.test(value))
+  ) {
+    return null;
+  }
+
+  const id = Number(value);
+
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
 
 function isSearchSession(value: unknown): value is SearchSession {
   if (!value || typeof value !== "object") return false;
@@ -29,7 +43,10 @@ export function getSearchSession(): SearchSession | null {
     if (!raw) return null;
 
     const session: unknown = JSON.parse(raw);
-    return isSearchSession(session) ? session : null;
+    return isSearchSession(session) ? {
+        ...session,
+        entityId: parseEntityId(session.entityId),
+      } : null;
   } catch {
     return null;
   }

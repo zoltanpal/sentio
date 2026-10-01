@@ -412,7 +412,11 @@ export default function Watchlist() {
                     >
                       <td className="px-4 py-3 sm:px-5">
                         <Link
-                          to={`/dashboard?q=${encodeURIComponent(item.entity_name)}`}
+                          to={`/dashboard?${new URLSearchParams({
+                            q: item.entity_name,
+                            entity_id: String(item.entity_id),
+                            timewindow: "24",
+                          }).toString()}`}
                           className="block truncate font-medium text-slate-900 hover:text-teal-700"
                           title={item.entity_name}
                         >
