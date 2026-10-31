@@ -35,11 +35,14 @@ export default function DashboardHeader({
             <img
               src="/logo/sentio_logo.png"
               alt="Sentio"
-              className="h-auto w-20 sm:w-32 lg:w-42"
+              className="h-auto w-24 sm:w-32 lg:w-42"
             />
           </Link>
 
-          <nav className="shrink-0 items-center gap-1 lg:flex">
+          <nav
+            aria-label="Main navigation"
+            className="flex shrink-0 items-center gap-0.5 sm:gap-1"
+          >
             {[
               { to: "/dashboard", label: "Dashboard", Icon: Grid2X2Icon },
               { to: "/watchlist", label: "Watchlist", Icon: StarIcon },
@@ -48,14 +51,17 @@ export default function DashboardHeader({
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${
+                  `inline-flex min-h-11 items-center gap-1 whitespace-nowrap rounded-xl px-2 py-2 text-xs transition-colors sm:gap-2 sm:px-3 sm:text-sm ${
                     isActive
                       ? "bg-blue-50 font-semibold text-blue-700"
                       : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-950"
                   }`
                 }
               >
-                <Icon className="h-4 w-4" />
+                <Icon
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4"
+                />
                 {label}
               </NavLink>
             ))}
@@ -76,7 +82,7 @@ export default function DashboardHeader({
             />
           </div>
 
-          {/* Account controls stay on the first row on mobile */}
+          {/* UserMenu uses a compact 44px account button on mobile */}
           <div className="ml-auto flex shrink-0 items-center gap-3 lg:ml-0">
             <BellIcon
               aria-label="Notifications"
