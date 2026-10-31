@@ -4,8 +4,10 @@ import { DropdownMenu } from "radix-ui";
 import {
   ChevronDownIcon,
   Grid2X2Icon,
+  LogInIcon,
   LogOutIcon,
   StarIcon,
+  UserPlusIcon,
   UserRoundIcon,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
@@ -22,6 +24,14 @@ export default function UserMenu() {
   const [failedPhoto, setFailedPhoto] = useState<string | null>(null);
 
   const error = logoutError || authError;
+
+  const itemClass =
+    "flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-3 py-2 " +
+    "text-sm text-slate-700 outline-none data-[highlighted]:bg-slate-100";
+
+  const contentClass =
+    "z-50 w-48 max-w-[calc(100vw-24px)] rounded-xl " +
+    "border border-slate-200 bg-white p-1 shadow-lg outline-none";
 
   async function logout() {
     if (busy) return;
@@ -44,53 +54,91 @@ export default function UserMenu() {
       <div
         role="status"
         aria-label="Loading account"
-        className="h-7 w-7 shrink-0 animate-pulse rounded-full bg-slate-100 sm:h-9 sm:w-9"
-      />
+        className="flex h-11 w-11 shrink-0 items-center justify-center"
+      >
+        <span className="h-8 w-8 animate-pulse rounded-full bg-slate-100" />
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex shrink-0 items-center gap-2">
-        <Link
-          to="/login"
-          className="whitespace-nowrap rounded-sm px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-        >
-          Log in
-        </Link>
+      <>
+        {/* Compact account menu on mobile and tablet */}
+        <div className="shrink-0 lg:hidden">
+          <DropdownMenu.Root open={open} onOpenChange={setOpen}>
+            <DropdownMenu.Trigger asChild>
+              <button
+                type="button"
+                aria-label="Account menu"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-slate-600 outline-none hover:bg-slate-50 hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+              >
+                <UserRoundIcon aria-hidden="true" className="h-5 w-5" />
+              </button>
+            </DropdownMenu.Trigger>
 
-        <Link
-          to="/register"
-          className="whitespace-nowrap rounded-sm bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 sm:px-4"
-        >
-          Sign up
-        </Link>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                align="end"
+                sideOffset={6}
+                collisionPadding={12}
+                className={`${contentClass} lg:hidden`}
+              >
+                <DropdownMenu.Item asChild className={itemClass}>
+                  <Link to="/login">
+                    <LogInIcon aria-hidden="true" className="h-4 w-4" />
+                    Log in
+                  </Link>
+                </DropdownMenu.Item>
 
-        {error && (
-          <span role="alert" className="max-w-40 text-xs text-red-700">
-            {error}
-          </span>
-        )}
-      </div>
+                <DropdownMenu.Item asChild className={itemClass}>
+                  <Link to="/register">
+                    <UserPlusIcon aria-hidden="true" className="h-4 w-4" />
+                    Create account
+                  </Link>
+                </DropdownMenu.Item>
+
+                {error && (
+                  <p role="alert" className="px-3 py-2 text-xs text-red-700">
+                    {error}
+                  </p>
+                )}
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
+        </div>
+
+        {/* Text buttons on desktop */}
+        <div className="hidden shrink-0 items-center gap-2 lg:flex">
+          <Link
+            to="/login"
+            className="whitespace-nowrap rounded-sm px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+          >
+            Log in
+          </Link>
+
+          <Link
+            to="/register"
+            className="whitespace-nowrap rounded-sm bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+          >
+            Sign up
+          </Link>
+
+          {error && (
+            <span role="alert" className="max-w-40 text-xs text-red-700">
+              {error}
+            </span>
+          )}
+        </div>
+      </>
     );
   }
 
   const name =
     user.displayName?.trim() || user.email?.split("@")[0] || "Your account";
 
-  const initials = name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => Array.from(part)[0])
-    .join("")
-    .toUpperCase();
-
   const photo =
     user.photoURL && user.photoURL !== failedPhoto ? user.photoURL : null;
-
-  const itemClass =
-    "flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 " +
-    "text-sm text-slate-700 outline-none data-[highlighted]:bg-slate-100";
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
@@ -98,9 +146,9 @@ export default function UserMenu() {
         <button
           type="button"
           aria-label={`Account menu for ${name}`}
-          className="flex shrink-0 items-center gap-1.5 rounded-2xl p-1 outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 lg:w-auto lg:gap-1.5 lg:rounded-2xl lg:px-1"
         >
-          <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full text-sm font-semibold text-teal-800 sm:h-9 sm:w-9">
+          <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-slate-600 lg:h-9 lg:w-9">
             {photo ? (
               <img
                 src={photo}
@@ -110,13 +158,13 @@ export default function UserMenu() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              initials || <UserRoundIcon className="h-4 w-4" />
+              <UserRoundIcon aria-hidden="true" className="h-5 w-5" />
             )}
           </span>
 
           <ChevronDownIcon
             aria-hidden="true"
-            className="h-4 w-4 text-slate-500"
+            className="hidden h-4 w-4 text-slate-500 lg:block"
           />
         </button>
       </DropdownMenu.Trigger>
@@ -126,7 +174,7 @@ export default function UserMenu() {
           align="end"
           sideOffset={6}
           collisionPadding={12}
-          className="z-50 w-44 max-w-[calc(100vw-24px)] rounded-md border border-slate-200 bg-white p-1 shadow-lg outline-none"
+          className={contentClass}
         >
           <DropdownMenu.Item asChild className={`${itemClass} lg:hidden`}>
             <Link to="/dashboard">
