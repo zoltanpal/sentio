@@ -39,7 +39,7 @@ export default function DashboardHeader({
             />
           </Link>
 
-          <nav className="hidden shrink-0 items-center gap-1 lg:flex">
+          <nav className="shrink-0 items-center gap-1 lg:flex">
             {[
               { to: "/dashboard", label: "Dashboard", Icon: Grid2X2Icon },
               { to: "/watchlist", label: "Watchlist", Icon: StarIcon },
