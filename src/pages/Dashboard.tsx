@@ -24,21 +24,14 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/shared/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/shared/ui/select";
 import SentimentTimelineChart from "@/components/analysis/SentimentTimelineChart";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import TimeWindowSelector from "@/components/shared/TimeWindowSelector";
 import { formatWindow } from "@/features/dashboard/dashboardSearch";
 import { useDashboardSearch } from "@/features/dashboard/useDashboardSearch";
 
 import { getFirebaseAuth } from "@/auth/firebase";
 
-const WINDOW_OPTIONS = [6, 12, 24, 48, 72] as const;
 type Entity = {
   id: number;
   name: string;
@@ -146,70 +139,11 @@ export default function Dashboard() {
                 </>
               )}
             </div>
-            <div className="shrink-0">
-              <div className="sm:hidden">
-                <Select
-                  value={String(windowHours)}
-                  onValueChange={(value) =>
-                    onWindowTimeChange(Number(value))
-                  }
-                  disabled={isBusy}
-                >
-                  <SelectTrigger
-                    className="h-10 w-[5.25rem] rounded-xl border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-none focus:ring-2 focus:ring-blue-100"
-                    aria-label="Time window"
-                  >
-                  <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent
-                    align="end"
-                    className="min-w-[7rem] rounded-xl border-slate-200 p-1"
-                  >
-                    {WINDOW_OPTIONS.map((hours) => (
-                      <SelectItem
-                        key={hours}
-                        value={String(hours)}
-                        className="h-10 rounded-lg text-sm font-medium"
-                      >
-                        {formatWindow(hours)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="hidden sm:block">
-                <span className="mb-2 block text-[0.7rem] font-bold uppercase tracking-[0.12em] text-slate-500">
-                  Time window
-                </span>
-                <div
-                  className="inline-flex rounded-xl border border-slate-200 bg-white p-1"
-                  role="group"
-                  aria-label="Time window"
-                >
-                  {WINDOW_OPTIONS.map((hours) => {
-                    const isSelected = hours === windowHours;
-
-                    return (
-                      <button
-                        key={hours}
-                        type="button"
-                        onClick={() => onWindowTimeChange(hours)}
-                        disabled={isBusy}
-                        aria-pressed={isSelected}
-                        className={`h-8 min-w-11 rounded-sm px-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                          isSelected
-                            ? "bg-blue-600 text-white shadow-sm"
-                            : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-                        }`}
-                      >
-                        {formatWindow(hours)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            <TimeWindowSelector
+              value={windowHours}
+              onChange={onWindowTimeChange}
+              disabled={isBusy}
+            />
           </div>
 
           {isBusy ? (

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import TimeWindowSelector from "@/components/shared/TimeWindowSelector";
 import { getFirebaseAuth } from "@/auth/firebase";
 import {
   readEntities,
@@ -21,7 +22,6 @@ import { useDashboardSearch } from "@/features/dashboard/useDashboardSearch";
 import WatchlistOverviewTable from "@/features/watchlist/WatchlistOverviewTable";
 import {
   useWatchlistOverview,
-  WATCHLIST_WINDOWS,
   type WatchlistWindow,
 } from "@/features/watchlist/useWatchlistOverview";
 
@@ -408,28 +408,12 @@ export default function Watchlist() {
                 </p>
               </div>
 
-              <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
-                <div
-                  role="group"
-                  aria-label="Watchlist time window"
-                  className="flex min-w-0 flex-1 items-center justify-between rounded-lg border border-slate-200 bg-white p-1 sm:flex-none"
-                >
-                  {WATCHLIST_WINDOWS.map((hours) => (
-                    <button
-                      key={hours}
-                      type="button"
-                      onClick={() => setWindowHours(hours)}
-                      aria-pressed={windowHours === hours}
-                      className={`min-h-10 min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition sm:flex-none sm:px-3 ${
-                        windowHours === hours
-                          ? "bg-teal-700 text-white"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      }`}
-                    >
-                      {hours >= 24 && hours % 24 === 0 ? `${hours / 24}d` : `${hours}h`}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex w-full min-w-0 items-center justify-end gap-2 sm:w-auto">
+                <TimeWindowSelector
+                  value={windowHours}
+                  onChange={setWindowHours}
+                  disabled={overview.loading}
+                />
 
                 <button
                   type="button"
