@@ -189,7 +189,7 @@ export default function Watchlist() {
   }
 
   return (
-    <div className="mx-auto w-full">
+    <div className="mx-auto min-w-0 w-full">
       <DashboardHeader
         promptInput={promptInput}
         isBusy={isBusy}
@@ -199,13 +199,13 @@ export default function Watchlist() {
         onSearch={onSearch}
       />
 
-      <main className="mx-auto min-w-0 max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
-        <div className="mb-6 flex items-end justify-between gap-3">
+      <main className="mx-auto min-w-0 max-w-7xl px-3 py-4 sm:px-6 sm:py-7 lg:px-8 xl:px-10">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-2 sm:mb-6 sm:gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
               Watchlist
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500">
               Entities you’re following.
             </p>
           </div>
@@ -218,7 +218,7 @@ export default function Watchlist() {
         </div>
 
         {loggedIn && (
-          <section className="mb-6 max-w-xl" aria-label="Find entities to follow">
+          <section className="mb-5 w-full max-w-xl sm:mb-6" aria-label="Find entities to follow">
             <label
               htmlFor="entity-search"
               className="mb-2 block text-sm font-medium text-slate-700"
@@ -229,7 +229,7 @@ export default function Watchlist() {
             <div className="relative">
               <SearchIcon
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400"
+                className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400"
               />
               <input
                 id="entity-search"
@@ -244,7 +244,7 @@ export default function Watchlist() {
                 }}
                 placeholder="Search companies, people, crypto…"
                 aria-describedby="entity-search-hint"
-                className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10"
+                className="h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-base outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10 sm:text-sm"
               />
             </div>
 
@@ -271,7 +271,7 @@ export default function Watchlist() {
                     No matching entities found.
                   </p>
                 ) : (
-                  <ul className="max-h-72 divide-y divide-slate-100 overflow-y-auto">
+                  <ul className="max-h-64 divide-y divide-slate-100 overflow-y-auto sm:max-h-72">
                     {searchResults.map((entity) => {
                       const following = followedIds.has(entity.entity_id);
                       const adding =
@@ -366,11 +366,11 @@ export default function Watchlist() {
             Loading watchlist…
           </div>
         ) : !loggedIn ? (
-          <div className="rounded-2xl border border-slate-200 p-8 text-center">
+          <div className="rounded-2xl border border-slate-200 px-4 py-8 text-center sm:p-8">
             <h2 className="text-lg font-semibold text-slate-900">
               Your watchlist, in one place
             </h2>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500">
               Log in to view and manage the entities you follow.
             </p>
             <div className="mt-5 flex justify-center gap-3">
@@ -389,18 +389,18 @@ export default function Watchlist() {
             </div>
           </div>
         ) : !watchlistReady ? null : watchlistItems.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 px-6 py-14 text-center">
+          <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-10 text-center sm:px-6 sm:py-14">
             <StarIcon className="mx-auto h-8 w-8 text-slate-300" />
             <h2 className="mt-4 text-lg font-semibold text-slate-900">
               No entities followed yet
             </h2>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500">
               Use the search above to add your first entity.
             </p>
           </div>
         ) : (
           <section aria-label="Followed entity overview">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="mb-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Overview</h2>
                 <p className="mt-0.5 text-xs text-slate-500">
@@ -408,11 +408,11 @@ export default function Watchlist() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
                 <div
                   role="group"
                   aria-label="Watchlist time window"
-                  className="flex items-center rounded-lg border border-slate-200 bg-white p-1"
+                  className="flex min-w-0 flex-1 items-center justify-between rounded-lg border border-slate-200 bg-white p-1 sm:flex-none"
                 >
                   {WATCHLIST_WINDOWS.map((hours) => (
                     <button
@@ -420,7 +420,7 @@ export default function Watchlist() {
                       type="button"
                       onClick={() => setWindowHours(hours)}
                       aria-pressed={windowHours === hours}
-                      className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition sm:px-3 ${
+                      className={`min-h-10 min-w-0 flex-1 rounded-md px-1.5 py-2 text-xs font-medium transition sm:flex-none sm:px-3 ${
                         windowHours === hours
                           ? "bg-teal-700 text-white"
                           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
@@ -437,7 +437,7 @@ export default function Watchlist() {
                   disabled={overview.loading}
                   aria-label="Refresh watchlist metrics"
                   title="Refresh watchlist metrics"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-teal-700 disabled:opacity-50"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:opacity-50"
                 >
                   <RefreshCwIcon
                     aria-hidden="true"

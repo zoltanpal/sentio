@@ -51,14 +51,14 @@ function MetricInfo({ metric, label }: { metric: MetricKey; label: string }) {
   const info = METRIC_INFO[metric];
 
   return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+    <span className="inline-flex max-w-full items-center gap-0.5 whitespace-nowrap">
       <span>{label}</span>
       <Popover>
         <PopoverTrigger asChild>
           <button
             type="button"
             aria-label={`About ${label.toLowerCase()}`}
-            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+            className="-my-1 inline-flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
             <InfoIcon className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
@@ -67,7 +67,7 @@ function MetricInfo({ metric, label }: { metric: MetricKey; label: string }) {
           align="start"
           side="bottom"
           sideOffset={6}
-          className="w-72 max-w-[calc(100vw-2rem)] space-y-2 p-4 text-left text-sm text-slate-600"
+          className="w-72 max-w-[calc(100vw-1.5rem)] space-y-2 p-4 text-left text-sm leading-relaxed text-slate-600"
         >
           <p className="font-semibold text-slate-900">{info.title}</p>
           <p>{info.description}</p>
@@ -137,7 +137,7 @@ function Coverage({ row, loading }: { row?: WatchlistOverviewRow; loading: boole
 
   return (
     <div>
-      <div className="font-semibold tabular-nums text-slate-900">{numberLabel(row.article_count)}</div>
+      <div className="text-xl font-semibold leading-tight tabular-nums text-slate-900 lg:text-base">{numberLabel(row.article_count)}</div>
       <div className="mt-0.5 text-xs text-slate-500">{volumeDelta(row.article_count, row.previous_article_count)}</div>
       <div className="mt-0.5 text-xs text-slate-400">
         {row.source_count} {row.source_count === 1 ? "source" : "sources"}
@@ -152,10 +152,10 @@ function Sentiment({ row, loading }: { row?: WatchlistOverviewRow; loading: bool
   const change = row.sentiment_change;
   return (
     <div>
-      <div className={`font-semibold tabular-nums ${scoreColor(row.avg_sentiment)}`}>
+      <div className={`text-xl font-semibold leading-tight tabular-nums lg:text-base ${scoreColor(row.avg_sentiment)}`}>
         {scoreLabel(row.avg_sentiment)}
       </div>
-      <div className="mt-1 flex items-center gap-1 text-xs">
+      <div className="mt-1 flex flex-wrap items-center gap-1 text-xs leading-snug">
         {change === null ? (
           <span className="text-slate-400">No comparison</span>
         ) : (
@@ -196,7 +196,7 @@ function Distribution({ row, loading }: { row?: WatchlistOverviewRow; loading: b
     <div
       role="img"
       aria-label={`Positive: ${row.positive_count}, neutral: ${row.neutral_count}, negative: ${row.negative_count}`}
-      className="max-w-48"
+      className="w-full min-w-0 lg:max-w-48"
     >
       <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
         {segments.map((segment) => (
@@ -208,7 +208,7 @@ function Distribution({ row, loading }: { row?: WatchlistOverviewRow; loading: b
         ))}
       </div>
       <div
-        className="mt-1 flex justify-between gap-1 text-[11px] tabular-nums text-slate-500"
+        className="mt-2 flex flex-wrap justify-between gap-x-2 gap-y-1 text-[11px] tabular-nums text-slate-500"
         aria-hidden="true"
       >
         <span className="text-emerald-700">{row.positive_count} pos</span>
@@ -233,15 +233,15 @@ function LatestArticle({ row, loading }: { row?: WatchlistOverviewRow; loading: 
           href={articleUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block line-clamp-2 text-sm text-slate-700 hover:text-teal-700 hover:underline"
+          className="block min-h-11 py-1.5 text-sm leading-5 text-slate-700 hover:text-teal-700 hover:underline lg:line-clamp-2 lg:min-h-0 lg:py-0"
         >
           {row.latest_title}
         </a>
       ) : (
-        <p className="line-clamp-2 text-sm text-slate-700">{row.latest_title}</p>
+        <p className="text-sm leading-5 text-slate-700 lg:line-clamp-2">{row.latest_title}</p>
       )}
       {publishedAt && (
-        <time dateTime={row.latest_published_at ?? undefined} className="mt-1 block text-xs text-slate-400">
+        <time dateTime={row.latest_published_at ?? undefined} className="mt-1 block break-words text-xs text-slate-400">
           {publishedAt}
         </time>
       )}
@@ -290,23 +290,27 @@ export default function WatchlistOverviewTable({
   const metricsById = new Map(rows.map((row) => [row.entity_id, row]));
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-      <div className="lg:hidden divide-y divide-slate-100">
+    <>
+      {/* Phones: one card per entity. Tablets: two cards per row. */}
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden" aria-label="Watchlist overview">
         {followed.map((item) => {
           const row = metricsById.get(item.entity_id);
           const type = item.entity_type?.replace(/_/g, " ") || "Entity";
 
           return (
-            <article key={item.entity_id} className="p-4 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+            <article
+              key={item.entity_id}
+              className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-4"
+            >
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
                   <Link
                     to={dashboardUrl(item, windowHours)}
-                    className="text-base font-semibold text-slate-900 hover:text-teal-700"
+                    className="block break-words text-base font-semibold leading-snug text-slate-900 hover:text-teal-700 [overflow-wrap:anywhere]"
                   >
                     {item.entity_name}
                   </Link>
-                  <p className="mt-0.5 text-xs capitalize text-slate-500">{type}</p>
+                  <p className="mt-1 text-xs capitalize text-slate-500">{type}</p>
                 </div>
                 <RemoveButton
                   entity={item}
@@ -315,22 +319,33 @@ export default function WatchlistOverviewTable({
                   onRemove={onRemove}
                 />
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div>
-                  <div className="mb-1 text-xs font-medium text-slate-500"><MetricInfo metric="articles" label="Articles" /></div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2.5 max-[359px]:grid-cols-1">
+                <div className="min-w-0 rounded-xl bg-slate-50 px-3 py-2.5">
+                  <div className="mb-2 text-xs font-medium text-slate-600">
+                    <MetricInfo metric="articles" label="Articles" />
+                  </div>
                   <Coverage row={row} loading={loading} />
                 </div>
-                <div>
-                  <div className="mb-1 text-xs font-medium text-slate-500"><MetricInfo metric="sentiment" label="Avg. sentiment" /></div>
+                <div className="min-w-0 rounded-xl bg-slate-50 px-3 py-2.5">
+                  <div className="mb-2 text-xs font-medium text-slate-600">
+                    <MetricInfo metric="sentiment" label="Sentiment" />
+                  </div>
                   <Sentiment row={row} loading={loading} />
                 </div>
               </div>
-              <div className="mt-4">
-                <div className="mb-2 text-xs font-medium text-slate-500"><MetricInfo metric="distribution" label="Sentiment distribution" /></div>
+
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                <div className="mb-2 text-xs font-medium text-slate-600">
+                  <MetricInfo metric="distribution" label="Sentiment distribution" />
+                </div>
                 <Distribution row={row} loading={loading} />
               </div>
-              <div className="mt-4 border-t border-slate-100 pt-3">
-                <div className="mb-1 text-xs font-medium text-slate-500"><MetricInfo metric="latest" label="Latest article" /></div>
+
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                <div className="mb-1 text-xs font-medium text-slate-600">
+                  <MetricInfo metric="latest" label="Latest article" />
+                </div>
                 <LatestArticle row={row} loading={loading} />
               </div>
             </article>
@@ -338,7 +353,8 @@ export default function WatchlistOverviewTable({
         })}
       </div>
 
-      <div className="hidden lg:block">
+      {/* Large screens: retain the compact table layout. */}
+      <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white lg:block">
         <table className="w-full table-fixed text-left text-sm">
           <caption className="sr-only">Coverage and sentiment for your followed entities</caption>
           <colgroup>
@@ -352,11 +368,21 @@ export default function WatchlistOverviewTable({
           <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500">
             <tr>
               <th scope="col" className="px-5 py-3 font-medium">Entity</th>
-              <th scope="col" className="px-3 py-3 font-medium"><MetricInfo metric="articles" label="Articles" /></th>
-              <th scope="col" className="px-3 py-3 font-medium"><MetricInfo metric="sentiment" label="Avg. sentiment" /></th>
-              <th scope="col" className="px-3 py-3 font-medium"><MetricInfo metric="distribution" label="Distribution" /></th>
-              <th scope="col" className="px-3 py-3 font-medium"><MetricInfo metric="latest" label="Latest article" /></th>
-              <th scope="col" className="px-2 py-3"><span className="sr-only">Actions</span></th>
+              <th scope="col" className="px-3 py-3 font-medium">
+                <MetricInfo metric="articles" label="Articles" />
+              </th>
+              <th scope="col" className="px-3 py-3 font-medium">
+                <MetricInfo metric="sentiment" label="Avg. sentiment" />
+              </th>
+              <th scope="col" className="px-3 py-3 font-medium">
+                <MetricInfo metric="distribution" label="Distribution" />
+              </th>
+              <th scope="col" className="px-3 py-3 font-medium">
+                <MetricInfo metric="latest" label="Latest article" />
+              </th>
+              <th scope="col" className="px-2 py-3">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -394,6 +420,6 @@ export default function WatchlistOverviewTable({
           </tbody>
         </table>
       </div>
-    </div>
+    </>
   );
 }
