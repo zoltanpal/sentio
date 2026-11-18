@@ -6,7 +6,7 @@ import {
   PlusIcon,
   SearchIcon,
   StarIcon,
-  Trash2Icon,
+  RefreshCwIcon,
 } from "lucide-react";
 
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -18,6 +18,12 @@ import {
 } from "@/auth/UserSessionContext";
 import { buildSentioApiUrl } from "@/config/api";
 import { useDashboardSearch } from "@/features/dashboard/useDashboardSearch";
+import WatchlistOverviewTable from "@/features/watchlist/WatchlistOverviewTable";
+import {
+  useWatchlistOverview,
+  WATCHLIST_WINDOWS,
+  type WatchlistWindow,
+} from "@/features/watchlist/useWatchlistOverview";
 
 export default function Watchlist() {
   const {
@@ -43,6 +49,7 @@ export default function Watchlist() {
     updateFollow: saveFollow,
   } = useUserSession();
 
+  const [windowHours, setWindowHours] = useState<WatchlistWindow>(24);
   const [notice, setNotice] = useState("");
   const [entityQuery, setEntityQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Entity[]>([]);
@@ -60,6 +67,18 @@ export default function Watchlist() {
   const normalizedQuery = entityQuery.trim();
   const watchlist_actionsDisabled =
     loading || !watchlistReady || watchlistAction !== null;
+
+  // An added/removed entity invalidates the overview even when the time window stays the same.
+  const watchlistKey = watchlistItems
+    .map((item) => item.entity_id)
+    .sort((a, b) => a - b)
+    .join(",");
+  const overview = useWatchlistOverview({
+    firebaseUid,
+    ready: watchlistReady,
+    watchlistKey,
+    windowHours,
+  });
 
   useEffect(() => {
     noticeVersion.current += 1;
@@ -159,12 +178,14 @@ export default function Watchlist() {
           ? `Following ${entity.entity_name}.`
           : `${entity.entity_name} removed from your watchlist.`,
       );
+      overview.refresh();
     }
   }
 
   function reloadWatchlist() {
     setNotice("");
     void refreshWatchlist();
+    overview.refresh();
   }
 
   return (
@@ -378,89 +399,85 @@ export default function Watchlist() {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <table className="w-full table-fixed text-left text-sm">
-              <caption className="sr-only">Your followed entities</caption>
+          <section aria-label="Followed entity overview">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Overview</h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Coverage and sentiment compared with the preceding equal-length period.
+                </p>
+              </div>
 
-              <thead className="border-b border-slate-200 bg-slate-50">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-slate-500 sm:px-5">
-                    Entity
-                  </th>
-                  <th className="hidden w-36 px-4 py-3 font-medium text-slate-500 sm:table-cell">
-                    Type
-                  </th>
-                  <th className="w-16 px-3 py-3">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-slate-100">
-                {watchlistItems.map((item) => {
-                  const removing =
-                    watchlistAction?.method === "DELETE" &&
-                    watchlistAction.entityId === item.entity_id;
-
-                  const entityType =
-                    item.entity_type?.replace(/_/g, " ") || "Entity";
-
-                  return (
-                    <tr
-                      key={item.entity_id}
-                      className="transition-colors hover:bg-slate-50/70"
+              <div className="flex items-center gap-2">
+                <div
+                  role="group"
+                  aria-label="Watchlist time window"
+                  className="flex items-center rounded-lg border border-slate-200 bg-white p-1"
+                >
+                  {WATCHLIST_WINDOWS.map((hours) => (
+                    <button
+                      key={hours}
+                      type="button"
+                      onClick={() => setWindowHours(hours)}
+                      aria-pressed={windowHours === hours}
+                      className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition sm:px-3 ${
+                        windowHours === hours
+                          ? "bg-teal-700 text-white"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                      }`}
                     >
-                      <td className="px-4 py-3 sm:px-5">
-                        <Link
-                          to={`/dashboard?${new URLSearchParams({
-                            q: item.entity_name,
-                            entity_id: String(item.entity_id),
-                            timewindow: "24",
-                          }).toString()}`}
-                          className="block truncate font-medium text-slate-900 hover:text-teal-700"
-                          title={item.entity_name}
-                        >
-                          {item.entity_name}
-                        </Link>
-                        <span className="mt-1 block text-xs capitalize text-slate-500 sm:hidden">
-                          {entityType}
-                        </span>
-                      </td>
+                      {hours >= 24 && hours % 24 === 0 ? `${hours / 24}d` : `${hours}h`}
+                    </button>
+                  ))}
+                </div>
 
-                      <td className="hidden px-4 py-3 sm:table-cell">
-                        <span className="inline-block rounded-md bg-slate-100 px-2 py-1 text-xs capitalize text-slate-600">
-                          {entityType}
-                        </span>
-                      </td>
+                <button
+                  type="button"
+                  onClick={overview.refresh}
+                  disabled={overview.loading}
+                  aria-label="Refresh watchlist metrics"
+                  title="Refresh watchlist metrics"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-teal-700 disabled:opacity-50"
+                >
+                  <RefreshCwIcon
+                    aria-hidden="true"
+                    className={`h-4 w-4 ${overview.loading ? "animate-spin" : ""}`}
+                  />
+                </button>
+              </div>
+            </div>
 
-                      <td className="px-2 py-2">
-                        <button
-                          type="button"
-                          onClick={() => void updateFollow(item, "DELETE")}
-                          disabled={watchlist_actionsDisabled}
-                          aria-label={`Remove ${item.entity_name} from watchlist`}
-                          title="Remove from watchlist"
-                          className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-wait disabled:opacity-50"
-                        >
-                          {removing ? (
-                            <LoaderCircleIcon
-                              aria-hidden="true"
-                              className="h-4 w-4 animate-spin"
-                            />
-                          ) : (
-                            <Trash2Icon
-                              aria-hidden="true"
-                              className="h-4 w-4"
-                            />
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+            {overview.error && (
+              <div
+                role="alert"
+                className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              >
+                <span>{overview.error}</span>
+                <button type="button" onClick={overview.refresh} className="font-semibold underline">
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {overview.loading && (
+              <p role="status" className="mb-3 flex items-center gap-2 text-xs text-slate-500">
+                <LoaderCircleIcon className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                Updating overview…
+              </p>
+            )}
+
+            <WatchlistOverviewTable
+              followed={watchlistItems}
+              rows={overview.rows}
+              windowHours={windowHours}
+              loading={overview.loading}
+              actionsDisabled={watchlist_actionsDisabled}
+              removingId={
+                watchlistAction?.method === "DELETE" ? watchlistAction.entityId : null
+              }
+              onRemove={(entity) => void updateFollow(entity, "DELETE")}
+            />
+          </section>
         )}
       </main>
     </div>
