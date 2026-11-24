@@ -1,142 +1,107 @@
 # Sentio
 
-Sentio is a React frontend for live news sentiment analysis.
+**Explore the news. Understand the sentiment. See what's driving the story.**
 
-The user enters a free-form prompt such as `Tesla`, `NVDA`, or `oil prices`. The app navigates to the dashboard immediately, resolves that prompt into a parsed search query through an API call, and then fetches live news sentiment results for the parsed query.
+Sentio is a news intelligence platform that turns recent news coverage into an interactive view of sentiment, emerging themes, and the entities behind the headlines. Search for a company, person, market topic, or keyword to explore how it is being covered and how that coverage changes over time.
 
-## Authentication
+This repository contains the **Sentio web frontend**. News collection, natural-language processing, and analytical APIs are handled by separate backend services.
 
-The app has a lightweight client-side login gate. Copy `.env.example` to `.env` and set the credentials:
+## Features
 
-```env
-VITE_AUTH_USERNAME=your-username
-VITE_AUTH_PASSWORD=your-password
+- **Search and explore** — Enter a keyword or natural-language prompt and explore the resulting news coverage.
+- **Sentiment dashboard** — View sentiment distribution, changes in tone, article volume, and recent headlines for a selected time window.
+- **What's driving this?** — Explore groups of related articles to understand the stories contributing to the overall picture.
+- **Entity insights** — Discover frequently mentioned companies, people, and other entities, and navigate directly to their coverage.
+- **Watchlist** — Follow entities of interest and revisit their latest metrics in one place.
+- **Comparison** — Compare coverage and sentiment across selected subjects.
+- **Source and coverage views** — Explore information about the news sources and the available coverage.
+- **Responsive interface** — Use the dashboard across desktop and mobile screen sizes.
+
+## How Sentio works
+
+At a high level, the platform combines news ingestion, language processing, and a searchable frontend:
+
+```mermaid
+flowchart LR
+    Feeds[News feeds] --> Ingestion[Article ingestion]
+    Ingestion --> DB[(PostgreSQL + pgvector)]
+    Processing[Sentiment, entity extraction, and clustering workers] <--> DB
+    API[FastAPI backend] <--> DB
+    Frontend[React frontend] --> API
 ```
 
-Until a `.env` file is configured, the temporary credentials are `admin` / `sentio`.
-This is only a UI-level guard: values prefixed with `VITE_` are bundled into the browser. Use server-side authentication before relying on it to protect sensitive data.
+The backend collects articles and processes them for sentiment, named entities, and semantic similarity. Related articles can be clustered to surface the main stories behind a topic. The frontend requests aggregated results from the API and presents them as interactive visualizations and article lists.
 
-## What The App Does
+Sentio focuses on **recent news coverage**, with an emphasis on European sources. Results reflect the articles available in the system for the chosen search and time window; they are not a measure of public opinion or a prediction of future events.
 
-- Accepts a natural-language prompt on the home page
-- Navigates to the dashboard without waiting for prompt parsing
-- Resolves the prompt into a structured query and time window
-- Fetches live analysis results for that parsed query
-- Shows a summary, tone shift, article count, and recent headlines
-- Lets the user change the time range for the already parsed query
+## Technology
 
-## User Flow
+| Area | Technologies |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite |
+| Styling and UI | Tailwind CSS v4, Radix-based components |
+| Navigation | React Router |
+| Charts | Chart.js, `react-chartjs-2` |
+| Backend services (separate repository) | Python, FastAPI, PostgreSQL, pgvector |
+| Analysis (backend) | Sentiment analysis, named-entity recognition, embeddings, and article clustering |
 
-1. The user enters a prompt on `/`.
-2. The frontend stores the raw prompt in session storage.
-3. The app navigates immediately to `/results?mode=prompt`.
-4. The dashboard reads the pending prompt and sends it to the prompt parser API.
-5. The parser API returns a resolved query and window.
-6. The dashboard updates the URL to `?query=...&window=...`.
-7. The dashboard sends the live analysis request for that resolved query.
-8. The UI renders the returned sentiment data.
+## Getting started
 
-Important behavior:
+### Prerequisites
 
-- Going back to the Home page resets the current session and pending prompt.
-- Changing the time window on the Dashboard reuses the parsed query, not the raw prompt.
-- If the user edits the prompt in the Dashboard but does not search again, the current time-range changes still apply to the last parsed query.
+- Node.js and npm
+- Access to a running Sentio API
 
-## Stack
+The backend is maintained separately from this repository. API access and endpoint information are provided by the project maintainer.
 
-- React 19
-- TypeScript
-- Vite
-- React Router
-- Tailwind CSS v4
-- Chart.js
-- `react-chartjs-2`
-- Radix-based UI primitives
-
-## Project Structure
-
-```text
-src/
-  components/
-    analysis/
-    search/
-    shared/
-  config/
-    api.ts
-  hooks/
-    useDashboardData.tsx
-    usePromptResolver.tsx
-    searchSession.ts
-  lib/
-    searchParams.ts
-    utils.tsx
-  pages/
-    Dashboard.tsx
-    Home.tsx
-    Loading.tsx
-    NotFound.tsx
-```
-
-Structure rules used in this project:
-
-- `pages/` contains route-level screens
-- `components/search/` contains search-related UI
-- `components/analysis/` contains result and sentiment UI
-- `components/shared/` contains shared UI primitives
-- `hooks/` contains API and session hooks
-- `lib/` contains small reusable helpers
-
-## Main Files
-
-- `src/pages/Home.tsx`: prompt entry point
-- `src/pages/Dashboard.tsx`: dashboard UI and search flow orchestration
-- `src/hooks/usePromptResolver.tsx`: prompt parsing API logic
-- `src/hooks/useDashboardData.tsx`: dashboard data and live analysis API logic
-- `src/lib/searchSession.ts`: session storage helpers
-- `src/config/api.ts`: env-based API configuration
-
-## Environment Variables
-
-Create a `.env` file if needed:
-
-```bash
-VITE_SENTIO_API_BASE_URL=https://devapi.palzoltan.net/sentio
-VITE_SENTIO_API_TOKEN=
-```
-
-Notes:
-
-- `VITE_SENTIO_API_BASE_URL` is the base URL used by the frontend API helpers.
-- If `VITE_SENTIO_API_TOKEN` is empty, the app sends no `Authorization` header.
-
-## Scripts
-
-```bash
-npm install
-npm run dev
-npm run build
-npm run lint
-npm run preview
-```
-
-## Local Development
+### Run locally
 
 1. Install dependencies:
 
-```bash
-npm install
+   ```bash
+   npm install
+   ```
+
+2. Configure the API endpoint in a local `.env` file (you can start from `.env.example`):
+
+   ```dotenv
+   VITE_SENTIO_API_BASE_URL=https://your-api.example.com/sentio
+   ```
+
+   Replace the example URL with the endpoint you have been given.
+
+3. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open the local URL printed by Vite in your terminal.
+
+### Available commands
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build |
+| `npm run preview` | Preview a production build locally |
+| `npm run lint` | Run lint checks |
+
+## Repository structure
+
+The frontend is organized by route-level pages, reusable components, hooks, and shared utilities:
+
+```text
+src/
+  components/   # Dashboard, analysis, search, and shared UI components
+  config/       # API and application configuration
+  hooks/        # Data fetching, search, and application hooks
+  lib/          # Shared helpers and utilities
+  pages/        # Route-level screens (Home, Dashboard, Watchlist, etc.)
 ```
 
-2. Start the dev server:
+The frontend communicates with Sentio APIs for query resolution, search results, sentiment metrics, and other analytics. It does not run ingestion or NLP processing locally.
 
-```bash
-npm run dev
-```
+## Project scope
 
-3. Open the app in the browser. The Vite config currently runs on port `5000`.
-
-## Current Notes
-
-- Build passes.
-- Lint passes with a few existing `react-refresh/only-export-components` warnings in shared UI files.
-- The frontend depends on external Sentio APIs for prompt parsing and live analysis.
+Sentio is an actively developed project focused on helping people examine **what the news is saying, how the tone is changing, and which stories are influencing that change**. The current application is designed for exploration and analysis rather than financial advice or automated decision-making.
