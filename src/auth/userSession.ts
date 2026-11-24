@@ -58,6 +58,8 @@ export async function getUserData(
 
   // Firebase refreshes the token when necessary.
   const token = await user.getIdToken();
+  console.log("user token:", token);
+
 
   const response = await fetch(buildSentioApiUrl("/user/me"), {
     headers: {

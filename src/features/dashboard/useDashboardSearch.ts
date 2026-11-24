@@ -127,6 +127,7 @@ export function useDashboardSearch() {
 
       await run({
         query: resolvedQuery,
+        entityId,
         windowHours: resolvedWindow,
         rawPrompt: rawPrompt || null,
         useAi: USE_AI,

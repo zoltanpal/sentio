@@ -61,7 +61,14 @@ export default function Dashboard() {
     showIdleState,
     windowHours,
   } = useDashboardSearch();
-  const countSources = new Set(data?.headlines.map((h) => h.source_name)).size;
+  const aggregatedSourceCount =
+    data?.aggregated && "source_count" in data.aggregated
+      ? data.aggregated.source_count
+      : null;
+  const countSources =
+    typeof aggregatedSourceCount === "number"
+      ? aggregatedSourceCount
+      : new Set(data?.headlines.map((h) => h.source_name)).size;
   const [entityItems, setEntityItems] = useState<Entity[]>([]);
 
   useEffect(() => {
